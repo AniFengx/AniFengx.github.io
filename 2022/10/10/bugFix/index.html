@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"anifengx.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="java内存泄露事故分析 问题描述 电影票长期存在ticket模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查dump日志未能定位到具体问题，最终特权选择多开ticket模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的ticket模块。  电影票ticket模块在h5用户下单时，会调用异步比价">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java内存泄露事故分析">
+<meta property="og:url" content="https://anifengx.github.io/2022/10/10/bugFix/index.html">
+<meta property="og:site_name" content="Ani的第九艺术">
+<meta property="og:description" content="java内存泄露事故分析 问题描述 电影票长期存在ticket模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查dump日志未能定位到具体问题，最终特权选择多开ticket模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的ticket模块。  电影票ticket模块在h5用户下单时，会调用异步比价">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/JProfiler1.png">
+<meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/YtbShowListResponse.png">
+<meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/JProfiler2.png">
+<meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/queryYtbOrderInfo.png">
+<meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/Mirror.png">
+<meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/nuztAndFastjson.png">
+<meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/debug.png">
+<meta property="article:published_time" content="2022-10-10T06:06:33.000Z">
+<meta property="article:modified_time" content="2022-10-10T06:10:02.747Z">
+<meta property="article:author" content="Ani">
+<meta property="article:tag" content="bug">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://anifengx.github.io/2022/10/10/bugFix/JProfiler1.png">
+
+<link rel="canonical" href="https://anifengx.github.io/2022/10/10/bugFix/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>java内存泄露事故分析 | Ani的第九艺术</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Ani的第九艺术</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://anifengx.github.io/2022/10/10/bugFix/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ani">
+      <meta itemprop="description" content="software">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ani的第九艺术">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          java内存泄露事故分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-10-10 14:06:33 / 修改时间：14:10:02" itemprop="dateCreated datePublished" datetime="2022-10-10T14:06:33+08:00">2022-10-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/developLive/" itemprop="url" rel="index"><span itemprop="name">开发日常</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1>java内存泄露事故分析</h1>
+<h3 id="问题描述">问题描述</h3>
+<p><strong>电影票</strong>长期存在<strong>ticket</strong>模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查dump日志未能定位到具体问题，最终特权选择多开<strong>ticket</strong>模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的<strong>ticket</strong>模块。</p>
+<blockquote>
+<p><em>电影票ticket模块在h5用户下单时，会调用异步比价功能，此功能使用@Async注解实现，意味着每有一笔订单都会启用一个比价线程</em></p>
+</blockquote>
+<p>本问题历时一年才得以解决，这其中经历了四个问题分析阶段</p>
+<ol>
+<li>
+<p><strong>ticket</strong>模块崩溃，根据dump日志发现内存中存在大量比价功能生成的对象，初步判断是短时订单量过大导致的，未有较好的解决办法，选择多开<strong>ticket</strong>模块顶住大量订单的压力。</p>
+</li>
+<li>
+<p>运维侧报告<strong>ticket</strong>模块存在凌晨崩溃的情况，排查日志发现凌晨订单只有几笔，此时怀疑是比价功能存在一定问题，导致其产生的对象停留较久，但是依旧未排查到问题。</p>
+<blockquote>
+<p><em>因还是未定位到能导致内存溢出的问题，只能判断认为是虚拟机内存回收较慢导致的</em></p>
+</blockquote>
+</li>
+<li>
+<p>技术侧发现<code>@Async</code>注解支持选择线程池来将异步线程改为用线程池来执行，可以防止大量调用<code>@Async</code>导致生成了海量线程从而内存溢出。但是在本功能上线后，依然出现了<strong>ticket</strong>模块崩溃的问题。</p>
+</li>
+<li>
+<p>经过以上三次排查，已基本确定本次问题是由代码问题引起的内存泄露，并不是因为电影票订单数据量过大导致的系统崩溃。随后重新开始排查问题，并最终定位到是因为json序列化引起的内存泄露。</p>
+</li>
+</ol>
+<h3 id="定位思路">定位思路</h3>
+<h4 id="步骤1">步骤1</h4>
+<p>首先使用<strong>JProfiler</strong>工具查看<strong>dump</strong>日志，按照保留大小倒序排序，可以发现最多的是<code>String</code>对象，这是因为<code>YtbShowListResponse</code>内存溢出对象中存储有请求接口返回的字符串内容，此内容包含一个影院下面的所有场次，所以内容较大。</p>
+<p><img src="JProfiler1.png" alt="avatar"></p>
+<center>
+（JProfiler工具查看dump日志）
+</center>
+<h4 id="步骤2">步骤2</h4>
+<p>查看对象的数据结构，发现本质是一个<code>Map</code>，初步怀疑是不是<strong>NutMap</strong>第三方工具引起的</p>
+<p><img src="YtbShowListResponse.png" alt="avatar"></p>
+<center>
+（YtbShowListResponse数据结构）
+</center>
+<h4 id="步骤3">步骤3</h4>
+<p>使用<strong>JProfiler</strong>工具的图表功能，查看对象到GC根(root)的路径，可以发现最终是被<strong>org.nutz.lang.Mirror</strong>对象所持有，导致无法被回收</p>
+<p><img src="JProfiler2.png" alt="avatar"></p>
+<center>
+（JProfiler工具查看图标）
+</center>
+<h4 id="步骤4">步骤4</h4>
+<p>此时查看比价功能代码，可以发现<code>YtbShowListResponse</code>对象的使用都是正常的，并没有放置到java静态变量中等操作，但是根据<strong>dump</strong>日志分析其中的<code>YtbShowListResponse</code>对象，<code>YtbShowListResponse</code>中<code>content</code>字段都是成功，即请求失败就不会出现内存泄露问题，问题代码范围进一步缩小。</p>
+<p><img src="queryYtbOrderInfo.png" alt="avatar"></p>
+<center>
+（比价功能代码）
+</center>
+<h4 id="步骤5">步骤5</h4>
+<p>排查代码发现<em><strong>getResponse</strong></em>方法有非常高的可疑性，使用了第三方序列化方式<em><strong>Json.fromJson</strong></em>，并且使用了<strong>PType</strong>第三方工具来标识序列化类型，更加可疑，此序列化方法和<strong>org.nutz.lang.Mirror</strong>同属于<strong>nutz</strong>第三方工具包，基本已锁定到问题代码。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">   public List&lt;YtbShowBo&gt; getResponse() &#123;</span><br><span class="line">       String data = this.getData();</span><br><span class="line">       if (Strings.isBlank(data)) &#123;</span><br><span class="line">           throw new YtbException(&quot;影托邦场次列表响应为空&quot;);</span><br><span class="line">       &#125;</span><br><span class="line">       return Json.fromJson(new PType&lt;List&lt;YtbShowBo&gt;&gt;() &#123;</span><br><span class="line">       &#125;, data);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="步骤6">步骤6</h4>
+<p>为了验证是否是json序列化导致，在<code>YtbShowListResponse</code>上重写了<em><strong>finalize</strong></em>方法，并在其中打印了日志，验证对象是否被回收了，采用对照法，使用<strong>fastjson</strong>包替换了序列化方法，执行相同比价功能，最终验证结果如下：</p>
+<ol>
+<li><em><strong>Json.fromJson</strong></em>方法和<strong>PType</strong>共同使用情况下，会导致<em><strong>finalize</strong></em>不被执行，也就意味着此对象不会被虚拟机回收</li>
+<li><em><strong>JSON.parseObject</strong></em>方法和<strong>TypeReference</strong>共同使用情况下，<em><strong>finalize</strong></em>很快就执行了，意味着对象被回收了</li>
+</ol>
+<blockquote>
+<p>java的<em><strong>finalize</strong></em>方法在生产环境是禁止使用的，<strong>对其的重写可能会造成虚拟机性能下降或者对象无法被回收的问题</strong>，最终导致系统崩溃（网上说的，未验证ㄟ( ▔, ▔ )ㄏ），本次只是在测试环境打印日志，方便检查对象是否被回收，<strong>切勿在生产环境使用本方法</strong>。</p>
+</blockquote>
+<blockquote>
+<p><em>其实java虚拟机垃圾回收执行的很快</em></p>
+</blockquote>
+<h4 id="总结">总结</h4>
+<p>到这里，其实问题已经得到了解决，但是为了提现我们热爱技术的一面，也为了彰显我们的钻研精神，那么还要提出疑问，为什么这会导致内存泄露？总结出以下几个问题：</p>
+<ul>
+<li>为什么<strong>fastjson</strong>不会出现内存泄露的问题？</li>
+<li>明明序列化的对象是字符串<strong>data</strong>数据，生成后的对象也是<code>List&lt;YtbShowBo&gt;</code>，怎么结果就成了<code>YtbShowListResponse</code>存到了虚拟机中无法被回收？</li>
+<li>json序列化的原理是什么？</li>
+</ul>
+<p>本着以上几个问题，我们进入了下一阶段，我们要找到问题本质~我们要搞清楚到底是什么东西，影响了虚拟机内存回收？</p>
+<h3 id="追本溯源">追本溯源</h3>
+<p>进入<strong>nutz</strong>的jar包源码，可以发现他使用了<code>mirrorCache</code>把所有使用到的序列化类型都缓存了起来，问题就出在了这里</p>
+<p><img src="Mirror.png" alt="avatar"></p>
+<center>
+（json序列化源码）
+</center>
+<p>这时就要开始使用我们的好帮手百度了，<strong>PType</strong>实现了<strong>ParameterizedType</strong>接口，使用<strong>ParameterizedType</strong> + 内存溢出为标题查到一篇文章<sup>①</sup>，说明<strong>fastjson</strong>也存在使用<strong>ParameterizedType</strong>不当导致的内存泄露问题，此问题已经被<strong>fastjson</strong>修复了。不过<strong>nutz</strong>包和<strong>fastjson</strong>包并不相同，但是这也印证了我们的观点，json序列化如果使用不当确实会导致内存泄露的问题。</p>
+<blockquote>
+<p><strong>ParameterizedType</strong>是jdk提供的用于处理带泛型类型的类的序列化方式<sup>②</sup></p>
+</blockquote>
+<p>比对了<strong>nutz</strong>包和<strong>fastjson</strong>的源码，发现了区别，<strong>fastjson</strong>并没有直接使用序列化类型<strong>Type</strong>，而是在其内部进行了重新实现，到这里，我们就能回答出前面三个问题中的两个了：</p>
+<ul>
+<li><strong>fastjson</strong>采用了在<strong>Type</strong>中重新生成子序列化类型的方式，避免了内存泄露的问题</li>
+<li>json序列化的原理就是通过声明一个序列化类型，然后将字符串内容进行转换的过程</li>
+</ul>
+<p><img src="nuztAndFastjson.png" alt="avatar"></p>
+<center>
+（**nutz**包和**fastjson**源码比较，左**nutz**，右**fastjson**）
+</center>
+<p>但是，第二个问题没有得到解答，为什么最终在内存中存储了大量的<code>YtbShowListResponse</code>而不是<code>List&lt;YtbShowBo&gt;</code>呢？</p>
+<p>这个问题最终通过研究<code>new TypeReference</code>和<code>new PType</code>两者之间的区别得以解决</p>
+<p>先看下声明序列化类型的写法, <code>new xxx()&#123;&#125;</code>是java匿名内部类的写法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">List&lt;YtbShowBo&gt; ytbShowBos = Json.fromJson(<span class="keyword">new</span> <span class="title class_">PType</span>&lt;List&lt;YtbShowBo&gt;&gt;() &#123;</span><br><span class="line">&#125;, data);</span><br></pre></td></tr></table></figure>
+<p>此时，你只需要回想下学过的java基础，就能明白一点，java的匿名内部类是依赖于其父类的，这就导致你在dump日志或者debug模式下查看匿名内部类对象时，都会惊奇的发现他的指针并不是指向他的内存地址，而是直接指向其父类</p>
+<blockquote>
+<p><em>匿名内部类其实极易导致内存泄露问题<sup>③</sup></em></p>
+</blockquote>
+<p><img src="debug.png" alt="avatar"></p>
+<center>
+（debug）
+</center>
+<p>到这里，你也就明白了为什么会出现内存泄露的问题，为什么内存中会有大量的<code>YtbShowListResponse</code>对象，因为每一个<code>new PType</code>都持有了其父类对象，当<strong>PType</strong>被放置到<code>mirrorCache</code>中缓存起来时，也就导致他持有的父对象再也无法被回收了，我们也就解答了前面第二个问题，也就明白了这次内存泄露的本质</p>
+<h5 id="这就结束了吗？">这就结束了吗？</h5>
+<p>问题找到了，但是我们还没有去解决问题，前面好像已经找到了解决办法，就是替换第三方序列化工具，使用<strong>fastjson</strong>替代<strong>nutz</strong>，但是这样好像我们学到的知识没用上，如何使用java基础解决这个问题？让我们倒回前文有关匿名内部类的部分，解决办法就藏在这里面 ↑</p>
+<h5 id="终极解决方案：">终极解决方案：</h5>
+<p>将在方法内部创建的<strong>Type</strong>改为静态变量</p>
+<p><code>private static final PType&lt;List&lt;YtbShowBo&gt;&gt; YTB_SHOW_BO_TYPE = new PType&lt;List&lt;YtbShowBo&gt;&gt;() &#123;&#125;;</code></p>
+<p>本问题随即解决</p>
+<blockquote>
+<p>当匿名内部类成为静态变量时，根据我们学过的java基础知识，java类下的静态变量属于类，被所有类实例对象所共享，当且仅当在类初次加载时会被初始化</p>
+</blockquote>
+<h5 id="到此为止了，但是没有完全为止">到此为止了，但是没有完全为止</h5>
+<p>本次内存泄露问题已经圆满解决，大家也跟着本文档学习了解了如何排查问题，如何分析问题，如何解决问题。但是本文档只是个引子，希望在以后的工作中大家都能保持钻研精神，不怕问题，解决问题。</p>
+<h3 id="附录">附录</h3>
+<p>收录相关在排查问题时查询到的有参考意义的博客内容</p>
+<p>附录① <a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_33358099/article/details/114828657">Java反序列化json内存溢出_fastjson反序列化使用不当导致内存泄露</a></p>
+<p>附录② <a target="_blank" rel="noopener" href="https://blog.csdn.net/JustBeauty/article/details/81116144">ParameterizedType详解</a></p>
+<p>附录③ <a target="_blank" rel="noopener" href="https://blog.csdn.net/feiying0canglang/article/details/124946774">JVM–Java内存泄露–匿名内部类–原因/解决方案</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/bug/" rel="tag"># bug</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/10/10/spotbugs/" rel="prev" title="spotbugs使用指南">
+      <i class="fa fa-chevron-left"></i> spotbugs使用指南
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link"><span class="nav-number">1.</span> <span class="nav-text">java内存泄露事故分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.0.1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%BD%8D%E6%80%9D%E8%B7%AF"><span class="nav-number">1.0.2.</span> <span class="nav-text">定位思路</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A41"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">步骤1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A42"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">步骤2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A43"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">步骤3</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A44"><span class="nav-number">1.0.2.4.</span> <span class="nav-text">步骤4</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A45"><span class="nav-number">1.0.2.5.</span> <span class="nav-text">步骤5</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A46"><span class="nav-number">1.0.2.6.</span> <span class="nav-text">步骤6</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.0.2.7.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%BD%E6%9C%AC%E6%BA%AF%E6%BA%90"><span class="nav-number">1.0.3.</span> <span class="nav-text">追本溯源</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%99%E5%B0%B1%E7%BB%93%E6%9D%9F%E4%BA%86%E5%90%97%EF%BC%9F"><span class="nav-number">1.0.3.0.1.</span> <span class="nav-text">这就结束了吗？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BB%88%E6%9E%81%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A"><span class="nav-number">1.0.3.0.2.</span> <span class="nav-text">终极解决方案：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%B0%E6%AD%A4%E4%B8%BA%E6%AD%A2%E4%BA%86%EF%BC%8C%E4%BD%86%E6%98%AF%E6%B2%A1%E6%9C%89%E5%AE%8C%E5%85%A8%E4%B8%BA%E6%AD%A2"><span class="nav-number">1.0.3.0.3.</span> <span class="nav-text">到此为止了，但是没有完全为止</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%99%84%E5%BD%95"><span class="nav-number">1.0.4.</span> <span class="nav-text">附录</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ani</p>
+  <div class="site-description" itemprop="description">software</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ani</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
