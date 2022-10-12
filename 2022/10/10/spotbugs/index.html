@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://anifengx.github.io/2022/10/10/spotbugs/SpotBugsInstall.png">
 <meta property="og:image" content="https://anifengx.github.io/2022/10/10/spotbugs/SpotBugsUseStepOne.png">
 <meta property="article:published_time" content="2022-10-10T02:22:23.000Z">
-<meta property="article:modified_time" content="2022-10-10T06:04:02.370Z">
+<meta property="article:modified_time" content="2022-10-12T07:14:13.519Z">
 <meta property="article:author" content="AniFengx">
 <meta property="article:tag" content="spotbugs">
 <meta name="twitter:card" content="summary">
@@ -190,10 +190,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-10-10 10:22:23 / 修改时间：14:04:02" itemprop="dateCreated datePublished" datetime="2022-10-10T10:22:23+08:00">2022-10-10</time>
+              <time title="创建时间：2022-10-10 10:22:23" itemprop="dateCreated datePublished" datetime="2022-10-10T10:22:23+08:00">2022-10-10</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-10-12 15:14:13" itemprop="dateModified" datetime="2022-10-12T15:14:13+08:00">2022-10-12</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -242,6 +248,8 @@
 <center>
 SpotBugs安装
 </center>
+
+<span id="more"></span>
 
 <h3 id="使用手册"><a href="#使用手册" class="headerlink" title="使用手册"></a>使用手册</h3><h4 id="使用步骤"><a href="#使用步骤" class="headerlink" title="使用步骤"></a>使用步骤</h4><p>SpotBugs的使用方式是通过插件扫描代码的方式来检查出代码中隐含的bug，首先切换idea任务栏到SpotBugs下（截图红字3）。SpotBugs主要有两种扫描方式，可全项目扫描或单模块扫描：</p>
 <ul>
@@ -560,8 +568,12 @@ SpotBugs使用步骤
         .then(response => response.json())
         .then(({ results }) => {
           for (let url of entries) {
-            let target = results.find(item => item.url === url);
-            leancloudSelector(url).innerText = target ? target.time : 0;
+            if (results instanceof Array) {
+              let target = results.find(item => item.url === url);
+              leancloudSelector(url).innerText = target ? target.time : 0;
+            } else {
+              leancloudSelector(url).innerText = 0;
+            }
           }
         })
         .catch(error => {

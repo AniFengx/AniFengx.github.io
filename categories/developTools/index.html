@@ -188,7 +188,7 @@
 
       <div class="post-title">
           <a class="post-title-link" href="/2022/10/10/chromeTranslate/" itemprop="url">
-            <span itemprop="name">chromeTranslate</span>
+            <span itemprop="name">chrome浏览器内置谷歌翻译无法使用解决方案</span>
           </a>
       </div>
 
@@ -411,8 +411,12 @@
         .then(response => response.json())
         .then(({ results }) => {
           for (let url of entries) {
-            let target = results.find(item => item.url === url);
-            leancloudSelector(url).innerText = target ? target.time : 0;
+            if (results instanceof Array) {
+              let target = results.find(item => item.url === url);
+              leancloudSelector(url).innerText = target ? target.time : 0;
+            } else {
+              leancloudSelector(url).innerText = 0;
+            }
           }
         })
         .catch(error => {

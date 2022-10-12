@@ -176,7 +176,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2022/10/10/chromeTranslate/" class="post-title-link" itemprop="url">chromeTranslate</a>
+            <a href="/2022/10/10/chromeTranslate/" class="post-title-link" itemprop="url">chrome浏览器内置谷歌翻译无法使用解决方案</a>
         </h2>
 
         <div class="post-meta">
@@ -185,10 +185,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-10-10 16:21:31 / 修改时间：17:11:25" itemprop="dateCreated datePublished" datetime="2022-10-10T16:21:31+08:00">2022-10-10</time>
+              <time title="创建时间：2022-10-10 16:21:31" itemprop="dateCreated datePublished" datetime="2022-10-10T16:21:31+08:00">2022-10-10</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-10-12 14:56:29" itemprop="dateModified" datetime="2022-10-12T14:56:29+08:00">2022-10-12</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -200,7 +206,7 @@
             </span>
 
           
-            <span id="/2022/10/10/chromeTranslate/" class="post-meta-item leancloud_visitors" data-flag-title="chromeTranslate" title="阅读次数">
+            <span id="/2022/10/10/chromeTranslate/" class="post-meta-item leancloud_visitors" data-flag-title="chrome浏览器内置谷歌翻译无法使用解决方案" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -282,10 +288,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-10-10 14:06:33 / 修改时间：14:10:02" itemprop="dateCreated datePublished" datetime="2022-10-10T14:06:33+08:00">2022-10-10</time>
+              <time title="创建时间：2022-10-10 14:06:33" itemprop="dateCreated datePublished" datetime="2022-10-10T14:06:33+08:00">2022-10-10</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-10-12 15:10:30" itemprop="dateModified" datetime="2022-10-12T15:10:30+08:00">2022-10-12</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -351,94 +363,14 @@
 <center>
 （JProfiler工具查看dump日志）
 </center>
-
-<h4 id="步骤2"><a href="#步骤2" class="headerlink" title="步骤2"></a>步骤2</h4><p>查看对象的数据结构，发现本质是一个<code>Map</code>，初步怀疑是不是<strong>NutMap</strong>第三方工具引起的</p>
-<p><img src="/2022/10/10/bugFix/YtbShowListResponse.png" alt="avatar"></p>
-<center>
-（YtbShowListResponse数据结构）
-</center>
-
-<h4 id="步骤3"><a href="#步骤3" class="headerlink" title="步骤3"></a>步骤3</h4><p>使用<strong>JProfiler</strong>工具的图表功能，查看对象到GC根(root)的路径，可以发现最终是被<strong>org.nutz.lang.Mirror</strong>对象所持有，导致无法被回收</p>
-<p><img src="/2022/10/10/bugFix/JProfiler2.png" alt="avatar"></p>
-<center>
-（JProfiler工具查看图标）
-</center>
-
-<h4 id="步骤4"><a href="#步骤4" class="headerlink" title="步骤4"></a>步骤4</h4><p>此时查看比价功能代码，可以发现<code>YtbShowListResponse</code>对象的使用都是正常的，并没有放置到java静态变量中等操作，但是根据<strong>dump</strong>日志分析其中的<code>YtbShowListResponse</code>对象，<code>YtbShowListResponse</code>中<code>content</code>字段都是成功，即请求失败就不会出现内存泄露问题，问题代码范围进一步缩小。</p>
-<p><img src="/2022/10/10/bugFix/queryYtbOrderInfo.png" alt="avatar"></p>
-<center>
-（比价功能代码）
-</center>
-
-<h4 id="步骤5"><a href="#步骤5" class="headerlink" title="步骤5"></a>步骤5</h4><p>排查代码发现<em><strong>getResponse</strong></em>方法有非常高的可疑性，使用了第三方序列化方式<em><strong>Json.fromJson</strong></em>，并且使用了<strong>PType</strong>第三方工具来标识序列化类型，更加可疑，此序列化方法和<strong>org.nutz.lang.Mirror</strong>同属于<strong>nutz</strong>第三方工具包，基本已锁定到问题代码。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">   public List&lt;YtbShowBo&gt; getResponse() &#123;</span><br><span class="line">       String data = this.getData();</span><br><span class="line">       if (Strings.isBlank(data)) &#123;</span><br><span class="line">           throw new YtbException(&quot;影托邦场次列表响应为空&quot;);</span><br><span class="line">       &#125;</span><br><span class="line">       return Json.fromJson(new PType&lt;List&lt;YtbShowBo&gt;&gt;() &#123;</span><br><span class="line">       &#125;, data);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="步骤6"><a href="#步骤6" class="headerlink" title="步骤6"></a>步骤6</h4><p>为了验证是否是json序列化导致，在<code>YtbShowListResponse</code>上重写了<em><strong>finalize</strong></em>方法，并在其中打印了日志，验证对象是否被回收了，采用对照法，使用<strong>fastjson</strong>包替换了序列化方法，执行相同比价功能，最终验证结果如下：</p>
-<ol>
-<li><em><strong>Json.fromJson</strong></em>方法和<strong>PType</strong>共同使用情况下，会导致<em><strong>finalize</strong></em>不被执行，也就意味着此对象不会被虚拟机回收</li>
-<li><em><strong>JSON.parseObject</strong></em>方法和<strong>TypeReference</strong>共同使用情况下，<em><strong>finalize</strong></em>很快就执行了，意味着对象被回收了</li>
-</ol>
-<blockquote>
-<p>java的<em><strong>finalize</strong></em>方法在生产环境是禁止使用的，<strong>对其的重写可能会造成虚拟机性能下降或者对象无法被回收的问题</strong>，最终导致系统崩溃（网上说的，未验证ㄟ( ▔, ▔ )ㄏ），本次只是在测试环境打印日志，方便检查对象是否被回收，<strong>切勿在生产环境使用本方法</strong>。</p>
-</blockquote>
-<blockquote>
-<p><em>其实java虚拟机垃圾回收执行的很快</em></p>
-</blockquote>
-<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>到这里，其实问题已经得到了解决，但是为了提现我们热爱技术的一面，也为了彰显我们的钻研精神，那么还要提出疑问，为什么这会导致内存泄露？总结出以下几个问题：</p>
-<ul>
-<li>为什么<strong>fastjson</strong>不会出现内存泄露的问题？</li>
-<li>明明序列化的对象是字符串<strong>data</strong>数据，生成后的对象也是<code>List&lt;YtbShowBo&gt;</code>，怎么结果就成了<code>YtbShowListResponse</code>存到了虚拟机中无法被回收？</li>
-<li>json序列化的原理是什么？</li>
-</ul>
-<p>本着以上几个问题，我们进入了下一阶段，我们要找到问题本质~我们要搞清楚到底是什么东西，影响了虚拟机内存回收？</p>
-<h3 id="追本溯源"><a href="#追本溯源" class="headerlink" title="追本溯源"></a>追本溯源</h3><p>进入<strong>nutz</strong>的jar包源码，可以发现他使用了<code>mirrorCache</code>把所有使用到的序列化类型都缓存了起来，问题就出在了这里</p>
-<p><img src="/2022/10/10/bugFix/Mirror.png" alt="avatar"></p>
-<center>
-（json序列化源码）
-</center>
-
-<p>这时就要开始使用我们的好帮手百度了，<strong>PType</strong>实现了<strong>ParameterizedType</strong>接口，使用<strong>ParameterizedType</strong> + 内存溢出为标题查到一篇文章<sup>①</sup>，说明<strong>fastjson</strong>也存在使用<strong>ParameterizedType</strong>不当导致的内存泄露问题，此问题已经被<strong>fastjson</strong>修复了。不过<strong>nutz</strong>包和<strong>fastjson</strong>包并不相同，但是这也印证了我们的观点，json序列化如果使用不当确实会导致内存泄露的问题。</p>
-<blockquote>
-<p><strong>ParameterizedType</strong>是jdk提供的用于处理带泛型类型的类的序列化方式<sup>②</sup></p>
-</blockquote>
-<p>比对了<strong>nutz</strong>包和<strong>fastjson</strong>的源码，发现了区别，<strong>fastjson</strong>并没有直接使用序列化类型<strong>Type</strong>，而是在其内部进行了重新实现，到这里，我们就能回答出前面三个问题中的两个了：</p>
-<ul>
-<li><strong>fastjson</strong>采用了在<strong>Type</strong>中重新生成子序列化类型的方式，避免了内存泄露的问题</li>
-<li>json序列化的原理就是通过声明一个序列化类型，然后将字符串内容进行转换的过程</li>
-</ul>
-<p><img src="/2022/10/10/bugFix/nuztAndFastjson.png" alt="avatar"></p>
-<center>
-（**nutz**包和**fastjson**源码比较，左**nutz**，右**fastjson**）
-</center>
-
-<p>但是，第二个问题没有得到解答，为什么最终在内存中存储了大量的<code>YtbShowListResponse</code>而不是<code>List&lt;YtbShowBo&gt;</code>呢？</p>
-<p>这个问题最终通过研究<code>new TypeReference</code>和<code>new PType</code>两者之间的区别得以解决</p>
-<p>先看下声明序列化类型的写法, <code>new xxx()&#123;&#125;</code>是java匿名内部类的写法。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">List&lt;YtbShowBo&gt; ytbShowBos = Json.fromJson(<span class="keyword">new</span> <span class="title class_">PType</span>&lt;List&lt;YtbShowBo&gt;&gt;() &#123;</span><br><span class="line">&#125;, data);</span><br></pre></td></tr></table></figure>
-
-<p>此时，你只需要回想下学过的java基础，就能明白一点，java的匿名内部类是依赖于其父类的，这就导致你在dump日志或者debug模式下查看匿名内部类对象时，都会惊奇的发现他的指针并不是指向他的内存地址，而是直接指向其父类</p>
-<blockquote>
-<p><em>匿名内部类其实极易导致内存泄露问题<sup>③</sup></em></p>
-</blockquote>
-<p><img src="/2022/10/10/bugFix/debug.png" alt="avatar"></p>
-<center>
-（debug）
-</center>
-
-<p>到这里，你也就明白了为什么会出现内存泄露的问题，为什么内存中会有大量的<code>YtbShowListResponse</code>对象，因为每一个<code>new PType</code>都持有了其父类对象，当<strong>PType</strong>被放置到<code>mirrorCache</code>中缓存起来时，也就导致他持有的父对象再也无法被回收了，我们也就解答了前面第二个问题，也就明白了这次内存泄露的本质</p>
-<h5 id="这就结束了吗？"><a href="#这就结束了吗？" class="headerlink" title="这就结束了吗？"></a>这就结束了吗？</h5><p>问题找到了，但是我们还没有去解决问题，前面好像已经找到了解决办法，就是替换第三方序列化工具，使用<strong>fastjson</strong>替代<strong>nutz</strong>，但是这样好像我们学到的知识没用上，如何使用java基础解决这个问题？让我们倒回前文有关匿名内部类的部分，解决办法就藏在这里面 ↑</p>
-<h5 id="终极解决方案："><a href="#终极解决方案：" class="headerlink" title="终极解决方案："></a>终极解决方案：</h5><p>将在方法内部创建的<strong>Type</strong>改为静态变量</p>
-<p><code>private static final PType&lt;List&lt;YtbShowBo&gt;&gt; YTB_SHOW_BO_TYPE = new PType&lt;List&lt;YtbShowBo&gt;&gt;() &#123;&#125;;</code></p>
-<p>本问题随即解决</p>
-<blockquote>
-<p>当匿名内部类成为静态变量时，根据我们学过的java基础知识，java类下的静态变量属于类，被所有类实例对象所共享，当且仅当在类初次加载时会被初始化</p>
-</blockquote>
-<h5 id="到此为止了，但是没有完全为止"><a href="#到此为止了，但是没有完全为止" class="headerlink" title="到此为止了，但是没有完全为止"></a>到此为止了，但是没有完全为止</h5><p>本次内存泄露问题已经圆满解决，大家也跟着本文档学习了解了如何排查问题，如何分析问题，如何解决问题。但是本文档只是个引子，希望在以后的工作中大家都能保持钻研精神，不怕问题，解决问题。</p>
-<h3 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h3><p>收录相关在排查问题时查询到的有参考意义的博客内容</p>
-<p>附录① <a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_33358099/article/details/114828657">Java反序列化json内存溢出_fastjson反序列化使用不当导致内存泄露</a></p>
-<p>附录② <a target="_blank" rel="noopener" href="https://blog.csdn.net/JustBeauty/article/details/81116144">ParameterizedType详解</a></p>
-<p>附录③ <a target="_blank" rel="noopener" href="https://blog.csdn.net/feiying0canglang/article/details/124946774">JVM–Java内存泄露–匿名内部类–原因&#x2F;解决方案</a></p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/10/10/bugFix/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -480,10 +412,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-10-10 10:22:23 / 修改时间：14:04:02" itemprop="dateCreated datePublished" datetime="2022-10-10T10:22:23+08:00">2022-10-10</time>
+              <time title="创建时间：2022-10-10 10:22:23" itemprop="dateCreated datePublished" datetime="2022-10-10T10:22:23+08:00">2022-10-10</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-10-12 15:14:13" itemprop="dateModified" datetime="2022-10-12T15:14:13+08:00">2022-10-12</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -532,86 +470,14 @@
 <center>
 SpotBugs安装
 </center>
-
-<h3 id="使用手册"><a href="#使用手册" class="headerlink" title="使用手册"></a>使用手册</h3><h4 id="使用步骤"><a href="#使用步骤" class="headerlink" title="使用步骤"></a>使用步骤</h4><p>SpotBugs的使用方式是通过插件扫描代码的方式来检查出代码中隐含的bug，首先切换idea任务栏到SpotBugs下（截图红字3）。SpotBugs主要有两种扫描方式，可全项目扫描或单模块扫描：</p>
-<ul>
-<li>全项目扫描使用截图红字2中第三个按钮</li>
-<li>单模块扫描首先选择需要扫描的模块（截图红字1），然后点击截图红字2中第一个按钮</li>
-</ul>
-<blockquote>
-<p>说明：截图红字3中三个按钮依次为：扫描选中模块不包含TEST类；扫描选中模块包含TEST类；扫描全项目</p>
-</blockquote>
-<p><img src="/2022/10/10/spotbugs/SpotBugsUseStepOne.png" alt="avatar"></p>
-<center>
-SpotBugs使用步骤
-</center>
-
-<h4 id="BUG说明"><a href="#BUG说明" class="headerlink" title="BUG说明"></a>BUG说明</h4><p>SpotBugs扫描出的问题主要分为几个大类，每个大类中包含多个具体问题，具体问题有自己对应的处理优先级，分为高中低三级。现针对具体问题做解释说明，方便修改错误代码。本文档并未描述SpotBugs支持的全部问题，只针对每个大类列举有特点且较难理解的问题，未在本文档中出现但是被SpotBugs扫描出的问题，开发者也应自行查找处理，附<a target="_blank" rel="noopener" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html" title="SpotBugs官方校验规则文档">SpotBugs官方校验规则文档</a></p>
-<h5 id="高危（强制修改）"><a href="#高危（强制修改）" class="headerlink" title="高危（强制修改）"></a>高危（强制修改）</h5><h6 id="1-1-No-relationship-between-generic-parameter-and-method-argument"><a href="#1-1-No-relationship-between-generic-parameter-and-method-argument" class="headerlink" title="1.1 No relationship between generic parameter and method argument"></a>1.1 No relationship between generic parameter and method argument</h6><p>方法参数和传入参数存在泛型不一致的情况<br><br /><br><font color="#FF0000">反例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; strList = new ArrayList&lt;&gt;();</span><br><span class="line">strList.add(&quot;1&quot;);</span><br><span class="line">List&lt;Long&gt; idList = new ArrayList&lt;&gt;();</span><br><span class="line">idList.add(1L);</span><br><span class="line">idList.add(2L);</span><br><span class="line">idList.add(3L);</span><br><span class="line">idList.removeAll(strList);</span><br></pre></td></tr></table></figure>
-
-<h6 id="1-2-Call-to-equals-comparing-different-types"><a href="#1-2-Call-to-equals-comparing-different-types" class="headerlink" title="1.2 Call to equals() comparing different types"></a>1.2 Call to equals() comparing different types</h6><p>equals方法比较的双方不是相同类型<br><br /><br><font color="#FF0000">反例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cn.common.enums.OrderStatusEnum.REFUNDED.equals(cn.common.kentucky.enums.OrderStatusEnum.REFUNDED)</span><br></pre></td></tr></table></figure>
-
-<h6 id="1-3-Nullcheck-of-value-previously-dereferenced"><a href="#1-3-Nullcheck-of-value-previously-dereferenced" class="headerlink" title="1.3 Nullcheck of value previously dereferenced"></a>1.3 Nullcheck of value previously dereferenced</h6><p>空值检查顺序错误<br><br /><br><font color="#FF0000">反例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Order order = OrderDao.getOrder(dto.getId());</span><br><span class="line">if (BreakUpType.CHILD.equals(order.getBreakUpType())) &#123;</span><br><span class="line">    // do something</span><br><span class="line">&#125;</span><br><span class="line">if (order == null) &#123;</span><br><span class="line">    return new SimpleMessage(ErrorCodeEnum.NO, &quot;订单不存在&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h6 id="1-4-A-parameter-is-dead-upon-entry-to-a-method-but-overwritten"><a href="#1-4-A-parameter-is-dead-upon-entry-to-a-method-but-overwritten" class="headerlink" title="1.4 A parameter is dead upon entry to a method but overwritten"></a>1.4 A parameter is dead upon entry to a method but overwritten</h6><p>错误的认为对参数的覆盖会回传给调用者<br><br /><br><font color="#FF0000">反例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">private void partialH5Refund(Long id, String refundNo, String content, OrderRefund orderRefund) throws Exception &#123;</span><br><span class="line">	// String类型采用值传递，在方法中修改参数并不会影响原参数</span><br><span class="line">    content = String.format(&quot;系统同步部分退款, 退款交易流水号[%s]&quot;, refundNo);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><span><font color="#D2B48C">说明：</font>JAVA中当传入参数是对象时，修改对象属性是可以生效的，但是直接赋值覆盖对象的操作，是不会影响原参数的；String类在JAVA中是值传递，对其的修改不会影响原参数。具体有关JAVA值传递和引用传递的相关介绍可参考文章<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/388486387" title="JAVA值传递和引用传递">JAVA值传递和引用传递</a></span></p>
-<h6 id="1-5-Self-assignment-of-clearInterval-rather-than-assigned-to-field"><a href="#1-5-Self-assignment-of-clearInterval-rather-than-assigned-to-field" class="headerlink" title="1.5 Self assignment of clearInterval rather than assigned to field"></a>1.5 Self assignment of clearInterval rather than assigned to field</h6><p>在setValue中错误的将传参的值赋值给传参<br><br /><br><font color="#FF0000">反例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public void setClearInterval(Long clearInterval) &#123;</span><br><span class="line">	// 应该使用this引用</span><br><span class="line">    clearInterval = clearInterval;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h6 id="1-6-Class-names-shouldn’t-shadow-simple-name-of-superclass"><a href="#1-6-Class-names-shouldn’t-shadow-simple-name-of-superclass" class="headerlink" title="1.6 Class names shouldn’t shadow simple name of superclass"></a>1.6 Class names shouldn’t shadow simple name of superclass</h6><p>子类名称不应和父类相同<br><br /><br><font color="#FF0000">反例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public class OrderConfig extends cn.kentucky.order.config.OrderConfig</span><br></pre></td></tr></table></figure>
-
-<h6 id="1-7-Random-object-created-and-used-only-once"><a href="#1-7-Random-object-created-and-used-only-once" class="headerlink" title="1.7 Random object created and used only once"></a>1.7 Random object created and used only once</h6><p>推荐使用java.security.SecureRandom代替Random</p>
-<h6 id="1-8-Boxing-x2F-unboxing-to-parse-a-primitive"><a href="#1-8-Boxing-x2F-unboxing-to-parse-a-primitive" class="headerlink" title="1.8 Boxing&#x2F;unboxing to parse a primitive"></a>1.8 Boxing&#x2F;unboxing to parse a primitive</h6><p>使用Integer.parse代替Integer.valueOf；Integer.valueOf会涉及多次拆箱装箱操作，经历了String - int - Integer - int的过程</p>
-<h6 id="1-9-Reliance-on-default-encoding"><a href="#1-9-Reliance-on-default-encoding" class="headerlink" title="1.9 Reliance on default encoding"></a>1.9 Reliance on default encoding</h6><p>使用 new String、 getBytes等方法需要指定编码格式，默认编码格式会因服务所在平台发生改变，这会产生意想不到的问题<br><br /><br><font color="#006666">正例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">byte[] data = plainText.getBytes(StandardCharsets.UTF_8);</span><br></pre></td></tr></table></figure>
-
-<h6 id="1-10-HTTP-Response-splitting-vulnerability"><a href="#1-10-HTTP-Response-splitting-vulnerability" class="headerlink" title="1.10 HTTP Response splitting vulnerability"></a>1.10 HTTP Response splitting vulnerability</h6><p>禁止将用户提交的参数直接放置到response header上或作为重定向参数，这可能会出现安全漏洞，具体描述参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_35976271/article/details/103276682" title="HTTP Response Splitting">HTTP Response Splitting</a><br><br /><br><font color="#FF0000">反例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">String referer = request.getHeader(&quot;REFERER&quot;);</span><br><span class="line"></span><br><span class="line">response.sendRedirect(referer);</span><br></pre></td></tr></table></figure>
-
-<h5 id="中等（强制修改）"><a href="#中等（强制修改）" class="headerlink" title="中等（强制修改）"></a>中等（强制修改）</h5><h6 id="2-1-equals-method-overrides-equals-in-superclass-and-may-not-be-symmetric"><a href="#2-1-equals-method-overrides-equals-in-superclass-and-may-not-be-symmetric" class="headerlink" title="2.1 equals method overrides equals in superclass and may not be symmetric"></a>2.1 equals method overrides equals in superclass and may not be symmetric</h6><p>JAVA中当子类使用lombok插件的@Data注解时，必须配上@EqualsAndHashCode(callSuper &#x3D; true)<br><br /><br><font color="#D2B48C">说明：</font>@Data默认使用@EqualsAndHashCode(callSuper &#x3D; false)，当在子类中使用此属性时，调用equals方法只会比较子类的属性，不会比较继承自父类的属性，极易产生不符合预期的结果（网上提示，此注解同时会产生父子类互相调用equals方法结果不相同的问题，即（a.equals(b) &#x3D;&#x3D; b.equals(a)），但是实测不会产生本问题，因lombok同时生成了canEqual方法）</p>
-<p><font color="#006666">正例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">@EqualsAndHashCode(callSuper = true)</span><br><span class="line">@Data</span><br><span class="line">public class McOrderVO extends McOrder implements Serializable</span><br></pre></td></tr></table></figure>
-
-<h6 id="2-2-Possible-null-pointer-dereference-in-method-on-exception-path"><a href="#2-2-Possible-null-pointer-dereference-in-method-on-exception-path" class="headerlink" title="2.2 Possible null pointer dereference in method on exception path"></a>2.2 Possible null pointer dereference in method on exception path</h6><p>当代码经过exception异常处理时，存在可能的空值引用<br><br /><br><font color="#FF0000">反例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;String, Object&gt; paramMap = null;</span><br><span class="line">try &#123;</span><br><span class="line">    paramMap = commonDingTalkPayService.payForApplet(aliConfig.getAppId());</span><br><span class="line">&#125; catch (Exception e) &#123;</span><br><span class="line">    // do something</span><br><span class="line">&#125;</span><br><span class="line">MessageBean payInfoData = wechatPayService.getPayInfo(orderNo, order.getUserId());</span><br><span class="line">PayInfoVo data = (PayInfoVo)payInfoData.getData();</span><br><span class="line">// paramMap 默认声明是null值，当在try中抛出错误时，会经过异常处理但是paramMap依然保持null值，会在后续put时引发空指针问题</span><br><span class="line">paramMap.put(&quot;payInfo&quot;, data);</span><br></pre></td></tr></table></figure>
-
-<h6 id="2-3【推荐】May-expose-internal-representation-by-incorporating-reference-to-mutable-object"><a href="#2-3【推荐】May-expose-internal-representation-by-incorporating-reference-to-mutable-object" class="headerlink" title="2.3【推荐】May expose internal representation by incorporating reference to mutable object"></a>2.3【推荐】May expose internal representation by incorporating reference to mutable object</h6><p>不建议当对象中的属性也是对象时，其get和set方法直接进行赋值操作或返回操作，而是set时将传入参数进行拷贝并返回，get时将属性拷贝并返回；如果直接使用传参赋值，会造成修改传参的效果被同步，引起与开发预期不符的问题。具体问题案例可参考<a target="_blank" rel="noopener" href="https://www.cnblogs.com/hyddd/articles/1391098.html" title="属性拷贝">属性拷贝</a><br><br /><br><font color="#006666">正例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">public class Test3 &#123;</span><br><span class="line"></span><br><span class="line">    private Date regDate ;</span><br><span class="line"></span><br><span class="line">    public void setRegDate(Date regDate) &#123;</span><br><span class="line">		// 将传参的拷贝赋值给当前属性</span><br><span class="line">        this.regDate = (Date) regDate.clone();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public Date getRegDate() &#123;</span><br><span class="line">		// 将当前属性拷贝返回出去</span><br><span class="line">        return (Date) regDate.clone();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h6 id="2-4【推荐】May-expose-internal-representation-by-returning-reference-to-mutable-object"><a href="#2-4【推荐】May-expose-internal-representation-by-returning-reference-to-mutable-object" class="headerlink" title="2.4【推荐】May expose internal representation by returning reference to mutable object"></a>2.4【推荐】May expose internal representation by returning reference to mutable object</h6><p>问题同2.3，本问题是不建议直接返回原属性，而是返回属性的拷贝值</p>
-<h6 id="2-5-May-expose-internal-representation-by-returning-reference-to-mutable-object"><a href="#2-5-May-expose-internal-representation-by-returning-reference-to-mutable-object" class="headerlink" title="2.5 May expose internal representation by returning reference to mutable object"></a>2.5 May expose internal representation by returning reference to mutable object</h6><p>静态集合常量应该是final型的，不允许修改</p>
-<h6 id="2-6-Field-isn’t-final-and-can’t-be-protected-from-malicious-code"><a href="#2-6-Field-isn’t-final-and-can’t-be-protected-from-malicious-code" class="headerlink" title="2.6 Field isn’t final and can’t be protected from malicious code"></a>2.6 Field isn’t final and can’t be protected from malicious code</h6><p>字段未被final修饰，存在被修改的风险</p>
-<h6 id="2-7-Field-should-be-package-protected"><a href="#2-7-Field-should-be-package-protected" class="headerlink" title="2.7 Field should be package protected"></a>2.7 Field should be package protected</h6><p>属性应该用protected保护</p>
-<h6 id="2-8-Field-is-a-mutable-collection-which-should-be-package-protected"><a href="#2-8-Field-is-a-mutable-collection-which-should-be-package-protected" class="headerlink" title="2.8 Field is a mutable collection which should be package protected"></a>2.8 Field is a mutable collection which should be package protected</h6><p>集合属性应该使用protected保护</p>
-<h6 id="2-9-Field-isn’t-final-but-should-be"><a href="#2-9-Field-isn’t-final-but-should-be" class="headerlink" title="2.9 Field isn’t final but should be"></a>2.9 Field isn’t final but should be</h6><p>属性应该被设置为final</p>
-<h6 id="2-10-Field-is-a-mutable-array"><a href="#2-10-Field-is-a-mutable-array" class="headerlink" title="2.10 Field is a mutable array"></a>2.10 Field is a mutable array</h6><p>集合属性存在被修改的风险<br><br /><br><span><font color="#006666">正例：</font>涉及2.3-2.8</span></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public class TestMap &#123;</span><br><span class="line">  // list也应设置为不可修改的类型，并且建议使用list替换array格式，array只能通过protected修改来防止修改。</span><br><span class="line">  public static final List&lt;String&gt; UPLOAD_IMAGE_TYPES = ImmutableList.of(&quot;image/jpeg&quot;, &quot;image/png&quot;, &quot;image/bmp&quot;);</span><br><span class="line"></span><br><span class="line">  public static final String CANCEL = &quot;CANCEL&quot;;</span><br><span class="line"></span><br><span class="line">  private static final Map&lt;Integer,String&gt; map ;</span><br><span class="line">  static &#123;</span><br><span class="line">    Map&lt;Integer,String&gt; tempMap  = new HashMap();</span><br><span class="line">    tempMap.put(1, &quot;one&quot;);</span><br><span class="line">    tempMap.put(2, &quot;two&quot;);</span><br><span class="line">	// 禁止修改集合</span><br><span class="line">    map = Collections.unmodifiableMap(tempMap);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h6 id="2-11-Non-transient-non-serializable-instance-field-in-serializable-class"><a href="#2-11-Non-transient-non-serializable-instance-field-in-serializable-class" class="headerlink" title="2.11 Non-transient non-serializable instance field in serializable class"></a>2.11 Non-transient non-serializable instance field in serializable class</h6><p>实现序列化的类中存在未实现序列化的属性，推荐类中添加系列化标识</p>
-<h6 id="2-12-Serializable-inner-class"><a href="#2-12-Serializable-inner-class" class="headerlink" title="2.12 Serializable inner class"></a>2.12 Serializable inner class</h6><p>实现了序列化标识的内部类建议都为静态内部类，可以减少序列化时必须要关联外部类的问题</p>
-<h6 id="2-13-Method-may-fail-to-close-stream"><a href="#2-13-Method-may-fail-to-close-stream" class="headerlink" title="2.13 Method may fail to close stream"></a>2.13 Method may fail to close stream</h6><p>使用JAVA的IO流时，必须在finally块中对流进行关闭</p>
-<h6 id="2-14-Format-string-should-use-n-rather-than-n"><a href="#2-14-Format-string-should-use-n-rather-than-n" class="headerlink" title="2.14 Format string should use %n rather than \n"></a>2.14 Format string should use %n rather than \n</h6><p>String的format方法应该使用%n来进行换行</p>
-<h6 id="2-15-Useless-object-created"><a href="#2-15-Useless-object-created" class="headerlink" title="2.15 Useless object created"></a>2.15 Useless object created</h6><p>问题同3.2</p>
-<h6 id="2-16-Method-may-fail-to-clean-up-stream-or-resource-on-checked-exception"><a href="#2-16-Method-may-fail-to-clean-up-stream-or-resource-on-checked-exception" class="headerlink" title="2.16 Method may fail to clean up stream or resource on checked exception"></a>2.16 Method may fail to clean up stream or resource on checked exception</h6><p>JAVA的IO流使用后必须调用关闭方法</p>
-<h6 id="2-17-Boxed-value-is-unboxed-and-then-immediately-reboxed"><a href="#2-17-Boxed-value-is-unboxed-and-then-immediately-reboxed" class="headerlink" title="2.17 Boxed value is unboxed and then immediately reboxed"></a>2.17 Boxed value is unboxed and then immediately reboxed</h6><p>JAVA中三目运算时，如果同时存在基本类型和包装类型，JAVA会自动向下转型拆箱，然后最后进行赋值操作时重新装箱<br><br /><br><font color="#006666">正例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">return this.isTempDrug == null ? Integer.valueOf(0) : this.isTempDrug;</span><br></pre></td></tr></table></figure>
-
-<h6 id="2-18-Inefficient-use-of-keySet-iterator-instead-of-entrySet-iterator"><a href="#2-18-Inefficient-use-of-keySet-iterator-instead-of-entrySet-iterator" class="headerlink" title="2.18 Inefficient use of keySet iterator instead of entrySet iterator"></a>2.18 Inefficient use of keySet iterator instead of entrySet iterator</h6><p>遍历map时，如果需要使用到value值时，推荐使用entrySet而不是keySet<br><br /><br><font color="#FF0000">反例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;String, String&gt; param = new HashMap&lt;&gt;();</span><br><span class="line">for (String key : param.keySet()) &#123;</span><br><span class="line">	// 从map中根据key获取value会浪费性能</span><br><span class="line">    list.add(new BasicNameValuePair(key, param.get(key)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h5 id="低危（建议修改）"><a href="#低危（建议修改）" class="headerlink" title="低危（建议修改）"></a>低危（建议修改）</h5><h6 id="3-1-Exception-is-caught-when-Exception-is-not-thrown"><a href="#3-1-Exception-is-caught-when-Exception-is-not-thrown" class="headerlink" title="3.1 Exception is caught when Exception is not thrown"></a>3.1 Exception is caught when Exception is not thrown</h6><p>针对已知异常，根据业务需要分开处理，而不是直接全部归为Exception<br><br /><br><font color="#006666">正例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">try&#123;</span><br><span class="line">　　　　// do something</span><br><span class="line">　　&#125;</span><br><span class="line">　　catch(SQLException ex)&#123;</span><br><span class="line">　　　　// do something</span><br><span class="line">　　&#125;</span><br><span class="line">　　catch(IOException ex)&#123;</span><br><span class="line">　　　　// do something</span><br><span class="line">　　&#125;</span><br><span class="line">　　catch(Exception ex)&#123;</span><br><span class="line">　　　　// do something</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h6 id="3-2-Dead-store-to-local-variable"><a href="#3-2-Dead-store-to-local-variable" class="headerlink" title="3.2 Dead store to local variable"></a>3.2 Dead store to local variable</h6><p>禁止局部变量创建却未使用</p>
-<h6 id="3-3-Switch-statement-found-where-default-case-is-missing"><a href="#3-3-Switch-statement-found-where-default-case-is-missing" class="headerlink" title="3.3 Switch statement found where default case is missing"></a>3.3 Switch statement found where default case is missing</h6><p>switch出现条件中未添加break导致进入default的情况<br><br /><br><font color="#FF0000">反例：</font></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">switch (sendOrderRequest.getOrderStatus()) &#123;</span><br><span class="line">    case SUCCESS:</span><br><span class="line">        dealSuccess(order, sendOrderRequest);</span><br><span class="line">        break;</span><br><span class="line">    case FAIL:</span><br><span class="line">        dealFail(order, sendOrderRequest);</span><br><span class="line">		// 此处应该添加break， 防止后续修改时添加default操作导致与预期不符的情况出现</span><br><span class="line">    default:</span><br><span class="line">        break;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/10/10/spotbugs/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -924,8 +790,12 @@ SpotBugs使用步骤
         .then(response => response.json())
         .then(({ results }) => {
           for (let url of entries) {
-            let target = results.find(item => item.url === url);
-            leancloudSelector(url).innerText = target ? target.time : 0;
+            if (results instanceof Array) {
+              let target = results.find(item => item.url === url);
+              leancloudSelector(url).innerText = target ? target.time : 0;
+            } else {
+              leancloudSelector(url).innerText = 0;
+            }
           }
         })
         .catch(error => {
