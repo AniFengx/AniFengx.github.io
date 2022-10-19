@@ -22,12 +22,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"anifengx.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="java 内存泄露事故分析问题描述电影票长期存在 ticket 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 ticket 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 ticket 模块。  电影票 ticket 模块在 h5 用户">
+    <meta name="description" content="问题描述 电影票长期存在 ticket 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 ticket 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 ticket 模块。  电影票 ticket 模块在 h5 用户下单时，会调用异步比价功">
 <meta property="og:type" content="article">
 <meta property="og:title" content="java 内存泄露事故分析">
 <meta property="og:url" content="https://anifengx.github.io/2022/10/10/bugFix/index.html">
 <meta property="og:site_name" content="Ani的第九艺术">
-<meta property="og:description" content="java 内存泄露事故分析问题描述电影票长期存在 ticket 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 ticket 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 ticket 模块。  电影票 ticket 模块在 h5 用户">
+<meta property="og:description" content="问题描述 电影票长期存在 ticket 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 ticket 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 ticket 模块。  电影票 ticket 模块在 h5 用户下单时，会调用异步比价功">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/JProfiler1.png">
 <meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/YtbShowListResponse.png">
@@ -37,7 +37,7 @@
 <meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/nuztAndFastjson.png">
 <meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/debug.png">
 <meta property="article:published_time" content="2022-10-10T06:06:33.000Z">
-<meta property="article:modified_time" content="2022-10-19T03:33:09.030Z">
+<meta property="article:modified_time" content="2022-10-19T07:56:14.585Z">
 <meta property="article:author" content="AniFengx">
 <meta property="article:tag" content="bug">
 <meta name="twitter:card" content="summary">
@@ -87,7 +87,7 @@
       <p class="site-title">Ani的第九艺术</p>
       <i class="logo-line"></i>
     </a>
-      <p class="site-subtitle" itemprop="description">anifengx</p>
+      <p class="site-subtitle" itemprop="description">blog from anifengx</p>
   </div>
 
   <div class="site-nav-right">
@@ -157,7 +157,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#java%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%BA%8B%E6%95%85%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">java 内存泄露事故分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.0.1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%BD%8D%E6%80%9D%E8%B7%AF"><span class="nav-number">1.0.2.</span> <span class="nav-text">定位思路</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A41"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">步骤 1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A42"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">步骤 2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A43"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">步骤 3</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A44"><span class="nav-number">1.0.2.4.</span> <span class="nav-text">步骤 4</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A45"><span class="nav-number">1.0.2.5.</span> <span class="nav-text">步骤 5</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A46"><span class="nav-number">1.0.2.6.</span> <span class="nav-text">步骤 6</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.0.2.7.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%BD%E6%9C%AC%E6%BA%AF%E6%BA%90"><span class="nav-number">1.0.3.</span> <span class="nav-text">追本溯源</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%99%E5%B0%B1%E7%BB%93%E6%9D%9F%E4%BA%86%E5%90%97%EF%BC%9F"><span class="nav-number">1.0.3.0.1.</span> <span class="nav-text">这就结束了吗？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BB%88%E6%9E%81%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A"><span class="nav-number">1.0.3.0.2.</span> <span class="nav-text">终极解决方案：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%B0%E6%AD%A4%E4%B8%BA%E6%AD%A2%E4%BA%86%EF%BC%8C%E4%BD%86%E6%98%AF%E6%B2%A1%E6%9C%89%E5%AE%8C%E5%85%A8%E4%B8%BA%E6%AD%A2"><span class="nav-number">1.0.3.0.3.</span> <span class="nav-text">到此为止了，但是没有完全为止</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%99%84%E5%BD%95"><span class="nav-number">1.0.4.</span> <span class="nav-text">附录</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%BD%8D%E6%80%9D%E8%B7%AF"><span class="nav-number">2.</span> <span class="nav-text">定位思路</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A41"><span class="nav-number">2.1.</span> <span class="nav-text">步骤 1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A42"><span class="nav-number">2.2.</span> <span class="nav-text">步骤 2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A43"><span class="nav-number">2.3.</span> <span class="nav-text">步骤 3</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A44"><span class="nav-number">2.4.</span> <span class="nav-text">步骤 4</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A45"><span class="nav-number">2.5.</span> <span class="nav-text">步骤 5</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A46"><span class="nav-number">2.6.</span> <span class="nav-text">步骤 6</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">2.7.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%BD%E6%9C%AC%E6%BA%AF%E6%BA%90"><span class="nav-number">3.</span> <span class="nav-text">追本溯源</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%99%E5%B0%B1%E7%BB%93%E6%9D%9F%E4%BA%86%E5%90%97%EF%BC%9F"><span class="nav-number">3.0.1.</span> <span class="nav-text">这就结束了吗？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BB%88%E6%9E%81%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A"><span class="nav-number">3.0.2.</span> <span class="nav-text">终极解决方案：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%B0%E6%AD%A4%E4%B8%BA%E6%AD%A2%E4%BA%86%EF%BC%8C%E4%BD%86%E6%98%AF%E6%B2%A1%E6%9C%89%E5%AE%8C%E5%85%A8%E4%B8%BA%E6%AD%A2"><span class="nav-number">3.0.3.</span> <span class="nav-text">到此为止了，但是没有完全为止</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%99%84%E5%BD%95"><span class="nav-number">4.</span> <span class="nav-text">附录</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -271,7 +271,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-10-19 11:33:09" itemprop="dateModified" datetime="2022-10-19T11:33:09+08:00">2022-10-19</time>
+      <time title="修改时间：2022-10-19 15:56:14" itemprop="dateModified" datetime="2022-10-19T15:56:14+08:00">2022-10-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -315,54 +315,60 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h1 id="java内存泄露事故分析"><a href="#java内存泄露事故分析" class="headerlink" title="java内存泄露事故分析"></a>java 内存泄露事故分析</h1><h3 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h3><p><strong>电影票</strong>长期存在 <strong>ticket</strong> 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 <strong>ticket</strong> 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 <strong>ticket</strong> 模块。</p>
+        <h3 id="问题描述">问题描述</h3>
+<p><strong>电影票</strong>长期存在 <strong>ticket</strong> 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 <strong>ticket</strong> 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 <strong>ticket</strong> 模块。</p>
 <blockquote>
 <p><em>电影票 ticket 模块在 h5 用户下单时，会调用异步比价功能，此功能使用 @Async 注解实现，意味着每有一笔订单都会启用一个比价线程</em></p>
 </blockquote>
 <p>本问题历时一年才得以解决，这其中经历了四个问题分析阶段</p>
 <ol>
-<li><p><strong>ticket</strong> 模块崩溃，根据 dump 日志发现内存中存在大量比价功能生成的对象，初步判断是短时订单量过大导致的，未有较好的解决办法，选择多开 <strong>ticket</strong> 模块顶住大量订单的压力。</p>
+<li>
+<p><strong>ticket</strong> 模块崩溃，根据 dump 日志发现内存中存在大量比价功能生成的对象，初步判断是短时订单量过大导致的，未有较好的解决办法，选择多开 <strong>ticket</strong> 模块顶住大量订单的压力。</p>
 </li>
-<li><p>运维侧报告 <strong>ticket</strong> 模块存在凌晨崩溃的情况，排查日志发现凌晨订单只有几笔，此时怀疑是比价功能存在一定问题，导致其产生的对象停留较久，但是依旧未排查到问题。</p>
+<li>
+<p>运维侧报告 <strong>ticket</strong> 模块存在凌晨崩溃的情况，排查日志发现凌晨订单只有几笔，此时怀疑是比价功能存在一定问题，导致其产生的对象停留较久，但是依旧未排查到问题。</p>
 <blockquote>
 <p><em>因还是未定位到能导致内存溢出的问题，只能判断认为是虚拟机内存回收较慢导致的</em></p>
 </blockquote>
 </li>
-<li><p>技术侧发现 <code>@Async</code> 注解支持选择线程池来将异步线程改为用线程池来执行，可以防止大量调用 <code>@Async</code> 导致生成了海量线程从而内存溢出。但是在本功能上线后，依然出现了 <strong>ticket</strong> 模块崩溃的问题。</p>
+<li>
+<p>技术侧发现 <code>@Async</code> 注解支持选择线程池来将异步线程改为用线程池来执行，可以防止大量调用 <code>@Async</code> 导致生成了海量线程从而内存溢出。但是在本功能上线后，依然出现了 <strong>ticket</strong> 模块崩溃的问题。</p>
 </li>
-<li><p>经过以上三次排查，已基本确定本次问题是由代码问题引起的内存泄露，并不是因为电影票订单数据量过大导致的系统崩溃。随后重新开始排查问题，并最终定位到是因为 json 序列化引起的内存泄露。</p>
+<li>
+<p>经过以上三次排查，已基本确定本次问题是由代码问题引起的内存泄露，并不是因为电影票订单数据量过大导致的系统崩溃。随后重新开始排查问题，并最终定位到是因为 json 序列化引起的内存泄露。</p>
 </li>
 </ol>
-<h3 id="定位思路"><a href="#定位思路" class="headerlink" title="定位思路"></a>定位思路</h3><h4 id="步骤1"><a href="#步骤1" class="headerlink" title="步骤1"></a>步骤 1</h4><p>首先使用 <strong>JProfiler</strong> 工具查看 <strong>dump</strong> 日志，按照保留大小倒序排序，可以发现最多的是 <code>String</code> 对象，这是因为 <code>YtbShowListResponse</code> 内存溢出对象中存储有请求接口返回的字符串内容，此内容包含一个影院下面的所有场次，所以内容较大。</p>
-<p><img src="/2022/10/10/bugFix/JProfiler1.png" alt="avatar"></p>
+<h3 id="定位思路">定位思路</h3>
+<h4 id="步骤1">步骤 1</h4>
+<p>首先使用 <strong>JProfiler</strong> 工具查看 <strong>dump</strong> 日志，按照保留大小倒序排序，可以发现最多的是 <code>String</code> 对象，这是因为 <code>YtbShowListResponse</code> 内存溢出对象中存储有请求接口返回的字符串内容，此内容包含一个影院下面的所有场次，所以内容较大。</p>
+<p><img src="JProfiler1.png" alt="avatar"></p>
 <center>
 （JProfiler 工具查看 dump 日志）
 </center>
-
 <span id="more"></span>
-
-<h4 id="步骤2"><a href="#步骤2" class="headerlink" title="步骤2"></a>步骤 2</h4><p>查看对象的数据结构，发现本质是一个 <code>Map</code>，初步怀疑是不是 <strong>NutMap</strong> 第三方工具引起的</p>
-<p><img src="/2022/10/10/bugFix/YtbShowListResponse.png" alt="avatar"></p>
+<h4 id="步骤2">步骤 2</h4>
+<p>查看对象的数据结构，发现本质是一个 <code>Map</code>，初步怀疑是不是 <strong>NutMap</strong> 第三方工具引起的</p>
+<p><img src="YtbShowListResponse.png" alt="avatar"></p>
 <center>
 （YtbShowListResponse 数据结构）
 </center>
-
-<h4 id="步骤3"><a href="#步骤3" class="headerlink" title="步骤3"></a>步骤 3</h4><p>使用 <strong>JProfiler</strong> 工具的图表功能，查看对象到 GC 根 (root) 的路径，可以发现最终是被 <strong>org.nutz.lang.Mirror</strong> 对象所持有，导致无法被回收</p>
-<p><img src="/2022/10/10/bugFix/JProfiler2.png" alt="avatar"></p>
+<h4 id="步骤3">步骤 3</h4>
+<p>使用 <strong>JProfiler</strong> 工具的图表功能，查看对象到 GC 根 (root) 的路径，可以发现最终是被 <strong>org.nutz.lang.Mirror</strong> 对象所持有，导致无法被回收</p>
+<p><img src="JProfiler2.png" alt="avatar"></p>
 <center>
 （JProfiler 工具查看图标）
 </center>
-
-<h4 id="步骤4"><a href="#步骤4" class="headerlink" title="步骤4"></a>步骤 4</h4><p>此时查看比价功能代码，可以发现 <code>YtbShowListResponse</code> 对象的使用都是正常的，并没有放置到 java 静态变量中等操作，但是根据 <strong>dump</strong> 日志分析其中的 <code>YtbShowListResponse</code> 对象，<code>YtbShowListResponse</code> 中 <code>content</code> 字段都是成功，即请求失败就不会出现内存泄露问题，问题代码范围进一步缩小。</p>
-<p><img src="/2022/10/10/bugFix/queryYtbOrderInfo.png" alt="avatar"></p>
+<h4 id="步骤4">步骤 4</h4>
+<p>此时查看比价功能代码，可以发现 <code>YtbShowListResponse</code> 对象的使用都是正常的，并没有放置到 java 静态变量中等操作，但是根据 <strong>dump</strong> 日志分析其中的 <code>YtbShowListResponse</code> 对象，<code>YtbShowListResponse</code> 中 <code>content</code> 字段都是成功，即请求失败就不会出现内存泄露问题，问题代码范围进一步缩小。</p>
+<p><img src="queryYtbOrderInfo.png" alt="avatar"></p>
 <center>
 （比价功能代码）
 </center>
-
-<h4 id="步骤5"><a href="#步骤5" class="headerlink" title="步骤5"></a>步骤 5</h4><p>排查代码发现<em><strong> getResponse</strong></em> 方法有非常高的可疑性，使用了第三方序列化方式<em><strong> Json.fromJson</strong></em>，并且使用了 <strong>PType</strong> 第三方工具来标识序列化类型，更加可疑，此序列化方法和 <strong>org.nutz.lang.Mirror</strong> 同属于 <strong>nutz</strong> 第三方工具包，基本已锁定到问题代码。</p>
+<h4 id="步骤5">步骤 5</h4>
+<p>排查代码发现<em><strong> getResponse</strong></em> 方法有非常高的可疑性，使用了第三方序列化方式<em><strong> Json.fromJson</strong></em>，并且使用了 <strong>PType</strong> 第三方工具来标识序列化类型，更加可疑，此序列化方法和 <strong>org.nutz.lang.Mirror</strong> 同属于 <strong>nutz</strong> 第三方工具包，基本已锁定到问题代码。</p>
 <figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">   <span class="keyword">public</span> List&lt;YtbShowBo&gt; <span class="title function_">getResponse</span><span class="params">()</span> {</span><br><span class="line">       <span class="type">String</span> <span class="variable">data</span> <span class="operator">=</span> <span class="built_in">this</span>.getData();</span><br><span class="line">       <span class="keyword">if</span> (Strings.isBlank(data)) {</span><br><span class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">YtbException</span>(<span class="string">"影托邦场次列表响应为空"</span>);</span><br><span class="line">       }</span><br><span class="line">       <span class="keyword">return</span> Json.fromJson(<span class="keyword">new</span> <span class="title class_">PType</span>&lt;List&lt;YtbShowBo&gt;&gt;() {</span><br><span class="line">       }, data);</span><br><span class="line">   }</span><br></pre></td></tr></tbody></table></figure>
-
-<h4 id="步骤6"><a href="#步骤6" class="headerlink" title="步骤6"></a>步骤 6</h4><p>为了验证是否是 json 序列化导致，在 <code>YtbShowListResponse</code> 上重写了<em><strong> finalize</strong></em> 方法，并在其中打印了日志，验证对象是否被回收了，采用对照法，使用 <strong>fastjson</strong> 包替换了序列化方法，执行相同比价功能，最终验证结果如下：</p>
+<h4 id="步骤6">步骤 6</h4>
+<p>为了验证是否是 json 序列化导致，在 <code>YtbShowListResponse</code> 上重写了<em><strong> finalize</strong></em> 方法，并在其中打印了日志，验证对象是否被回收了，采用对照法，使用 <strong>fastjson</strong> 包替换了序列化方法，执行相同比价功能，最终验证结果如下：</p>
 <ol>
 <li><em><strong>Json.fromJson</strong></em> 方法和 <strong>PType</strong> 共同使用情况下，会导致<em><strong> finalize</strong></em> 不被执行，也就意味着此对象不会被虚拟机回收</li>
 <li><em><strong> JSON.parseObject</strong></em> 方法和 <strong>TypeReference</strong> 共同使用情况下，<em><strong>finalize</strong></em> 很快就执行了，意味着对象被回收了</li>
@@ -373,19 +379,20 @@
 <blockquote>
 <p><em>其实 java 虚拟机垃圾回收执行的很快</em></p>
 </blockquote>
-<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>到这里，其实问题已经得到了解决，但是为了提现我们热爱技术的一面，也为了彰显我们的钻研精神，那么还要提出疑问，为什么这会导致内存泄露？总结出以下几个问题：</p>
+<h4 id="总结">总结</h4>
+<p>到这里，其实问题已经得到了解决，但是为了提现我们热爱技术的一面，也为了彰显我们的钻研精神，那么还要提出疑问，为什么这会导致内存泄露？总结出以下几个问题：</p>
 <ul>
 <li>为什么 <strong>fastjson</strong> 不会出现内存泄露的问题？</li>
 <li>明明序列化的对象是字符串 <strong>data</strong> 数据，生成后的对象也是 <code>List&lt;YtbShowBo&gt;</code>，怎么结果就成了 <code>YtbShowListResponse</code> 存到了虚拟机中无法被回收？</li>
 <li>json 序列化的原理是什么？</li>
 </ul>
 <p>本着以上几个问题，我们进入了下一阶段，我们要找到问题本质～我们要搞清楚到底是什么东西，影响了虚拟机内存回收？</p>
-<h3 id="追本溯源"><a href="#追本溯源" class="headerlink" title="追本溯源"></a>追本溯源</h3><p>进入 <strong>nutz</strong> 的 jar 包源码，可以发现他使用了 <code>mirrorCache</code> 把所有使用到的序列化类型都缓存了起来，问题就出在了这里</p>
-<p><img src="/2022/10/10/bugFix/Mirror.png" alt="avatar"></p>
+<h3 id="追本溯源">追本溯源</h3>
+<p>进入 <strong>nutz</strong> 的 jar 包源码，可以发现他使用了 <code>mirrorCache</code> 把所有使用到的序列化类型都缓存了起来，问题就出在了这里</p>
+<p><img src="Mirror.png" alt="avatar"></p>
 <center>
 （json 序列化源码）
 </center>
-
 <p>这时就要开始使用我们的好帮手百度了，<strong>PType</strong> 实现了 <strong>ParameterizedType</strong> 接口，使用 <strong>ParameterizedType</strong> + 内存溢出为标题查到一篇文章<sup>①</sup>，说明 <strong>fastjson</strong> 也存在使用 <strong>ParameterizedType</strong> 不当导致的内存泄露问题，此问题已经被 <strong>fastjson</strong> 修复了。不过 <strong>nutz</strong> 包和 <strong>fastjson</strong> 包并不相同，但是这也印证了我们的观点，json 序列化如果使用不当确实会导致内存泄露的问题。</p>
 <blockquote>
 <p><strong>ParameterizedType</strong> 是 jdk 提供的用于处理带泛型类型的类的序列化方式<sup>②</sup></p>
@@ -395,35 +402,36 @@
 <li><strong>fastjson</strong> 采用了在 <strong>Type</strong> 中重新生成子序列化类型的方式，避免了内存泄露的问题</li>
 <li> json 序列化的原理就是通过声明一个序列化类型，然后将字符串内容进行转换的过程</li>
 </ul>
-<p><img src="/2022/10/10/bugFix/nuztAndFastjson.png" alt="avatar"></p>
+<p><img src="nuztAndFastjson.png" alt="avatar"></p>
 <center>
 （**nutz** 包和 **fastjson** 源码比较，左 **nutz**，右 **fastjson**）
 </center>
-
 <p>但是，第二个问题没有得到解答，为什么最终在内存中存储了大量的 <code>YtbShowListResponse</code> 而不是 <code>List&lt;YtbShowBo&gt;</code> 呢？</p>
 <p>这个问题最终通过研究 <code>new TypeReference</code> 和 <code>new PType</code> 两者之间的区别得以解决</p>
 <p>先看下声明序列化类型的写法，<code>new xxx(){}</code> 是 java 匿名内部类的写法。</p>
 <figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">List&lt;YtbShowBo&gt; ytbShowBos = Json.fromJson(<span class="keyword">new</span> <span class="title class_">PType</span>&lt;List&lt;YtbShowBo&gt;&gt;() {</span><br><span class="line">}, data);</span><br></pre></td></tr></tbody></table></figure>
-
 <p>此时，你只需要回想下学过的 java 基础，就能明白一点，java 的匿名内部类是依赖于其父类的，这就导致你在 dump 日志或者 debug 模式下查看匿名内部类对象时，都会惊奇的发现他的指针并不是指向他的内存地址，而是直接指向其父类</p>
 <blockquote>
 <p><em>匿名内部类其实极易导致内存泄露问题<sup>③</sup></em></p>
 </blockquote>
-<p><img src="/2022/10/10/bugFix/debug.png" alt="avatar"></p>
+<p><img src="debug.png" alt="avatar"></p>
 <center>
 （debug）
 </center>
-
 <p>到这里，你也就明白了为什么会出现内存泄露的问题，为什么内存中会有大量的 <code>YtbShowListResponse</code> 对象，因为每一个 <code>new PType</code> 都持有了其父类对象，当 <strong>PType</strong> 被放置到 <code>mirrorCache</code> 中缓存起来时，也就导致他持有的父对象再也无法被回收了，我们也就解答了前面第二个问题，也就明白了这次内存泄露的本质</p>
-<h5 id="这就结束了吗？"><a href="#这就结束了吗？" class="headerlink" title="这就结束了吗？"></a>这就结束了吗？</h5><p>问题找到了，但是我们还没有去解决问题，前面好像已经找到了解决办法，就是替换第三方序列化工具，使用 <strong>fastjson</strong> 替代 <strong>nutz</strong>，但是这样好像我们学到的知识没用上，如何使用 java 基础解决这个问题？让我们倒回前文有关匿名内部类的部分，解决办法就藏在这里面 ↑</p>
-<h5 id="终极解决方案："><a href="#终极解决方案：" class="headerlink" title="终极解决方案："></a>终极解决方案：</h5><p>将在方法内部创建的 <strong>Type</strong> 改为静态变量</p>
+<h5 id="这就结束了吗？">这就结束了吗？</h5>
+<p>问题找到了，但是我们还没有去解决问题，前面好像已经找到了解决办法，就是替换第三方序列化工具，使用 <strong>fastjson</strong> 替代 <strong>nutz</strong>，但是这样好像我们学到的知识没用上，如何使用 java 基础解决这个问题？让我们倒回前文有关匿名内部类的部分，解决办法就藏在这里面 ↑</p>
+<h5 id="终极解决方案：">终极解决方案：</h5>
+<p>将在方法内部创建的 <strong>Type</strong> 改为静态变量</p>
 <p><code>private static final PType&lt;List&lt;YtbShowBo&gt;&gt; YTB_SHOW_BO_TYPE = new PType&lt;List&lt;YtbShowBo&gt;&gt;() {};</code></p>
 <p>本问题随即解决</p>
 <blockquote>
 <p>当匿名内部类成为静态变量时，根据我们学过的 java 基础知识，java 类下的静态变量属于类，被所有类实例对象所共享，当且仅当在类初次加载时会被初始化</p>
 </blockquote>
-<h5 id="到此为止了，但是没有完全为止"><a href="#到此为止了，但是没有完全为止" class="headerlink" title="到此为止了，但是没有完全为止"></a>到此为止了，但是没有完全为止</h5><p>本次内存泄露问题已经圆满解决，大家也跟着本文档学习了解了如何排查问题，如何分析问题，如何解决问题。但是本文档只是个引子，希望在以后的工作中大家都能保持钻研精神，不怕问题，解决问题。</p>
-<h3 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h3><p>收录相关在排查问题时查询到的有参考意义的博客内容</p>
+<h5 id="到此为止了，但是没有完全为止">到此为止了，但是没有完全为止</h5>
+<p>本次内存泄露问题已经圆满解决，大家也跟着本文档学习了解了如何排查问题，如何分析问题，如何解决问题。但是本文档只是个引子，希望在以后的工作中大家都能保持钻研精神，不怕问题，解决问题。</p>
+<h3 id="附录">附录</h3>
+<p>收录相关在排查问题时查询到的有参考意义的博客内容</p>
 <p>附录① <a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_33358099/article/details/114828657">Java 反序列化 json 内存溢出_fastjson 反序列化使用不当导致内存泄露</a></p>
 <p>附录② <a target="_blank" rel="noopener" href="https://blog.csdn.net/JustBeauty/article/details/81116144">ParameterizedType 详解</a></p>
 <p>附录③ <a target="_blank" rel="noopener" href="https://blog.csdn.net/feiying0canglang/article/details/124946774">JVM–Java 内存泄露–匿名内部类–原因 / 解决方案</a></p>
@@ -505,7 +513,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">12 分钟</span>
+    <span title="站点阅读时长">11 分钟</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动

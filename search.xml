@@ -5,30 +5,30 @@
     <url>/2022/10/16/UseHexoOne/</url>
     <content><![CDATA[<p>第一次使用 Hexo 还是在 2017 年，那时候到处了解学习新兴技术，go 也是在那段时间听说并进行了简单学习；当时应该是在搜如何建一个个人博客，然后就搜到了 Hexo 的相关文章，因为其借用 GitPage 相关特性无需自建服务器，直接依托 github 就能建立个人博客，并且也能支持搜索引擎收录，这些亮点在当时的我看来还是很酷的（现在依然觉得很酷～），但是当时在研究完如何安装并成功放到 GitPage 之后，因为没有良好的书写文档的习惯，个人博客也就搁置了，不过当时还是很惊叹于 Hexo 运行后的博客页面，风格很吸引人。</p>
 <p>最近使用 github 时，看了看自己的仓库发现了这个被遗弃的博客仓库，正好最近意识到了文档的重要性，并且也在尝试书写一些，而且用的也是 markdown 格式，能够无缝衔接到 Hexo 上，就准备把这个仓库重新用起来，希望不算太晚吧。</p>
-<blockquote>
-<p>说起来，markdown 也是 2017 那年学习使用的，因为当时正值毕业季，需要写个人简历，可能大部分人都是用的智联吧，后来我同学推荐我用乔布简历，写完效果拔群～比智联不知道高到哪里去了，后来同学又推荐我使用 markdown，简单的编写规则加上自由的样式控制可以写出非常好看的简历，并且也足够小众足够酷（但是现在基本程序员已经都会用这个工具了），这才是程序员写个人简历的工具～从此之后我写文档基本都是用 markdown 来写</p>
-</blockquote>
+<div class="note info"><p>说起来，markdown 也是 2017 那年学习使用的，因为当时正值毕业季，需要写个人简历，可能大部分人都是用的智联吧，后来我同学推荐我用乔布简历，写完效果拔群～比智联不知道高到哪里去了，后来同学又推荐我使用 markdown，简单的编写规则加上自由的样式控制可以写出非常好看的简历，并且也足够小众足够酷（但是现在基本程序员已经都会用这个工具了），这才是程序员写个人简历的工具～从此之后我写文档基本都是用 markdown 来写</p>
+</div>
 <span id="more"></span>
-
-<h2 id="Hexo"><a href="#Hexo" class="headerlink" title="Hexo"></a>Hexo</h2><h3 id="Hexo安装方式"><a href="#Hexo安装方式" class="headerlink" title="Hexo安装方式"></a>Hexo 安装方式</h3><p>鉴于国情，很多人学习技术更多的是在 csdn 或者其他个人博客，通过别人学习后总结的文章来学习，确实这样学起来更快，并且很多官方网站都是英文的，而 csdn 或者个人博客相当于一个汉化的过程，但是 csdn 会存在一个问题就是文章中的内容会出现过时的情况，所以还是建议直接前往官网学习，并且 <a href="https://hexo.io/zh-cn/docs/" title="Hexo官网">Hexo 官网</a>是有简体中文的。</p>
-<h4 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装 git</h4><p>直接去 git 官网下载 64 位的 exe 安装文件即可</p>
-<h4 id="安装node"><a href="#安装node" class="headerlink" title="安装node"></a>安装 node</h4><p>node 版本是个坑，很多 npm 包是对 node 版本有要求的，并且有的时候过新的 node 版本也会导致 npm 包失败，我尝试 Hexo 安装成功的 node 环境版本是 <em>14.16.1</em></p>
-<h4 id="安装Hexo"><a href="#安装Hexo" class="headerlink" title="安装Hexo"></a>安装 Hexo</h4><p>npm 全局安装 Hexo</p>
+<h2 id="Hexo">Hexo</h2>
+<h3 id="Hexo安装方式">Hexo 安装方式</h3>
+<p>鉴于国情，很多人学习技术更多的是在 csdn 或者其他个人博客，通过别人学习后总结的文章来学习，确实这样学起来更快，并且很多官方网站都是英文的，而 csdn 或者个人博客相当于一个汉化的过程，但是 csdn 会存在一个问题就是文章中的内容会出现过时的情况，所以还是建议直接前往官网学习，并且 <a href="https://hexo.io/zh-cn/docs/" title="Hexo官网">Hexo 官网</a>是有简体中文的。</p>
+<h4 id="安装git">安装 git</h4>
+<p>直接去 git 官网下载 64 位的 exe 安装文件即可</p>
+<h4 id="安装node">安装 node</h4>
+<p>node 版本是个坑，很多 npm 包是对 node 版本有要求的，并且有的时候过新的 node 版本也会导致 npm 包失败，我尝试 Hexo 安装成功的 node 环境版本是 <em>14.16.1</em></p>
+<h4 id="安装Hexo">安装 Hexo</h4>
+<p>npm 全局安装 Hexo</p>
 <figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install -g hexo-cli</span></span><br></pre></td></tr></tbody></table></figure>
-
 <p>Hexo 初始化</p>
 <figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">hexo init</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install</span></span><br></pre></td></tr></tbody></table></figure>
-
 <p>配置文件</p>
 <p>_config.yml 是 Hexo 的配置文件，可以在其中设置一些基本参数，例如博客名称、作者名称及一些插件的配置信息</p>
-<h4 id="安装主题NEXT"><a href="#安装主题NEXT" class="headerlink" title="安装主题NEXT"></a>安装主题 NEXT</h4><p>Hexo 默认主题外观还是比较一般的，Hexo 支持很多扩展主题，我使用的是 NexT 主题，国内大部分网站也是推荐使用这个</p>
+<h4 id="安装主题NEXT">安装主题 NEXT</h4>
+<p>Hexo 默认主题外观还是比较一般的，Hexo 支持很多扩展主题，我使用的是 NexT 主题，国内大部分网站也是推荐使用这个</p>
 <p>但是这就引出了一个坑，因国内大部分介绍 Hexo 的博客文章都停留在 2020 年或 2020 年以前了，假如没有去 Hexo 官方学习安装方式，而是直接按照国内博客来，那么你安装主题的命令一定是</p>
 <figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> https://github.com/theme-next/hexo-theme-next themes/next</span></span><br></pre></td></tr></tbody></table></figure>
-
 <p>在安装完这个主题后，你会发现使用起来都很正常，但是几个第三方插件却会出现不好使的情况，并且也没有任何参考解决方案，例如当你要用 leancloud 来当浏览量插件时，页面会出现报错的情况。这实际上是因为 NexT 原作者出现了长期不在线的情况，导致其他成员无法管理已有仓库，所以重新创建了新的分支<a href="https://github.com/next-theme/hexo-theme-next/issues/4" title="解释博客">解释博客</a></p>
 <p>正确的安装主题命令</p>
 <figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> https://github.com/next-theme/hexo-theme-next themes/next</span></span><br></pre></td></tr></tbody></table></figure>
-
 <blockquote>
 <p>命令后缀的 themes/next 不必须按照示例来，next 是指 clone 后的所在文件夹名，这个可以任意命名，只需要 clone 后，将根目录下的_config.yml 中 theme 参数配置为对应的文件夹名就可以了</p>
 </blockquote>
@@ -44,54 +44,60 @@
   <entry>
     <title>java 内存泄露事故分析</title>
     <url>/2022/10/10/bugFix/</url>
-    <content><![CDATA[<h1 id="java内存泄露事故分析"><a href="#java内存泄露事故分析" class="headerlink" title="java内存泄露事故分析"></a>java 内存泄露事故分析</h1><h3 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h3><p><strong>电影票</strong>长期存在 <strong>ticket</strong> 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 <strong>ticket</strong> 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 <strong>ticket</strong> 模块。</p>
+    <content><![CDATA[<h3 id="问题描述">问题描述</h3>
+<p><strong>电影票</strong>长期存在 <strong>ticket</strong> 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 <strong>ticket</strong> 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 <strong>ticket</strong> 模块。</p>
 <blockquote>
 <p><em>电影票 ticket 模块在 h5 用户下单时，会调用异步比价功能，此功能使用 @Async 注解实现，意味着每有一笔订单都会启用一个比价线程</em></p>
 </blockquote>
 <p>本问题历时一年才得以解决，这其中经历了四个问题分析阶段</p>
 <ol>
-<li><p><strong>ticket</strong> 模块崩溃，根据 dump 日志发现内存中存在大量比价功能生成的对象，初步判断是短时订单量过大导致的，未有较好的解决办法，选择多开 <strong>ticket</strong> 模块顶住大量订单的压力。</p>
+<li>
+<p><strong>ticket</strong> 模块崩溃，根据 dump 日志发现内存中存在大量比价功能生成的对象，初步判断是短时订单量过大导致的，未有较好的解决办法，选择多开 <strong>ticket</strong> 模块顶住大量订单的压力。</p>
 </li>
-<li><p>运维侧报告 <strong>ticket</strong> 模块存在凌晨崩溃的情况，排查日志发现凌晨订单只有几笔，此时怀疑是比价功能存在一定问题，导致其产生的对象停留较久，但是依旧未排查到问题。</p>
+<li>
+<p>运维侧报告 <strong>ticket</strong> 模块存在凌晨崩溃的情况，排查日志发现凌晨订单只有几笔，此时怀疑是比价功能存在一定问题，导致其产生的对象停留较久，但是依旧未排查到问题。</p>
 <blockquote>
 <p><em>因还是未定位到能导致内存溢出的问题，只能判断认为是虚拟机内存回收较慢导致的</em></p>
 </blockquote>
 </li>
-<li><p>技术侧发现 <code>@Async</code> 注解支持选择线程池来将异步线程改为用线程池来执行，可以防止大量调用 <code>@Async</code> 导致生成了海量线程从而内存溢出。但是在本功能上线后，依然出现了 <strong>ticket</strong> 模块崩溃的问题。</p>
+<li>
+<p>技术侧发现 <code>@Async</code> 注解支持选择线程池来将异步线程改为用线程池来执行，可以防止大量调用 <code>@Async</code> 导致生成了海量线程从而内存溢出。但是在本功能上线后，依然出现了 <strong>ticket</strong> 模块崩溃的问题。</p>
 </li>
-<li><p>经过以上三次排查，已基本确定本次问题是由代码问题引起的内存泄露，并不是因为电影票订单数据量过大导致的系统崩溃。随后重新开始排查问题，并最终定位到是因为 json 序列化引起的内存泄露。</p>
+<li>
+<p>经过以上三次排查，已基本确定本次问题是由代码问题引起的内存泄露，并不是因为电影票订单数据量过大导致的系统崩溃。随后重新开始排查问题，并最终定位到是因为 json 序列化引起的内存泄露。</p>
 </li>
 </ol>
-<h3 id="定位思路"><a href="#定位思路" class="headerlink" title="定位思路"></a>定位思路</h3><h4 id="步骤1"><a href="#步骤1" class="headerlink" title="步骤1"></a>步骤 1</h4><p>首先使用 <strong>JProfiler</strong> 工具查看 <strong>dump</strong> 日志，按照保留大小倒序排序，可以发现最多的是 <code>String</code> 对象，这是因为 <code>YtbShowListResponse</code> 内存溢出对象中存储有请求接口返回的字符串内容，此内容包含一个影院下面的所有场次，所以内容较大。</p>
-<p><img src="/2022/10/10/bugFix/JProfiler1.png" alt="avatar"></p>
+<h3 id="定位思路">定位思路</h3>
+<h4 id="步骤1">步骤 1</h4>
+<p>首先使用 <strong>JProfiler</strong> 工具查看 <strong>dump</strong> 日志，按照保留大小倒序排序，可以发现最多的是 <code>String</code> 对象，这是因为 <code>YtbShowListResponse</code> 内存溢出对象中存储有请求接口返回的字符串内容，此内容包含一个影院下面的所有场次，所以内容较大。</p>
+<p><img src="JProfiler1.png" alt="avatar"></p>
 <center>
 （JProfiler 工具查看 dump 日志）
 </center>
-
 <span id="more"></span>
-
-<h4 id="步骤2"><a href="#步骤2" class="headerlink" title="步骤2"></a>步骤 2</h4><p>查看对象的数据结构，发现本质是一个 <code>Map</code>，初步怀疑是不是 <strong>NutMap</strong> 第三方工具引起的</p>
-<p><img src="/2022/10/10/bugFix/YtbShowListResponse.png" alt="avatar"></p>
+<h4 id="步骤2">步骤 2</h4>
+<p>查看对象的数据结构，发现本质是一个 <code>Map</code>，初步怀疑是不是 <strong>NutMap</strong> 第三方工具引起的</p>
+<p><img src="YtbShowListResponse.png" alt="avatar"></p>
 <center>
 （YtbShowListResponse 数据结构）
 </center>
-
-<h4 id="步骤3"><a href="#步骤3" class="headerlink" title="步骤3"></a>步骤 3</h4><p>使用 <strong>JProfiler</strong> 工具的图表功能，查看对象到 GC 根 (root) 的路径，可以发现最终是被 <strong>org.nutz.lang.Mirror</strong> 对象所持有，导致无法被回收</p>
-<p><img src="/2022/10/10/bugFix/JProfiler2.png" alt="avatar"></p>
+<h4 id="步骤3">步骤 3</h4>
+<p>使用 <strong>JProfiler</strong> 工具的图表功能，查看对象到 GC 根 (root) 的路径，可以发现最终是被 <strong>org.nutz.lang.Mirror</strong> 对象所持有，导致无法被回收</p>
+<p><img src="JProfiler2.png" alt="avatar"></p>
 <center>
 （JProfiler 工具查看图标）
 </center>
-
-<h4 id="步骤4"><a href="#步骤4" class="headerlink" title="步骤4"></a>步骤 4</h4><p>此时查看比价功能代码，可以发现 <code>YtbShowListResponse</code> 对象的使用都是正常的，并没有放置到 java 静态变量中等操作，但是根据 <strong>dump</strong> 日志分析其中的 <code>YtbShowListResponse</code> 对象，<code>YtbShowListResponse</code> 中 <code>content</code> 字段都是成功，即请求失败就不会出现内存泄露问题，问题代码范围进一步缩小。</p>
-<p><img src="/2022/10/10/bugFix/queryYtbOrderInfo.png" alt="avatar"></p>
+<h4 id="步骤4">步骤 4</h4>
+<p>此时查看比价功能代码，可以发现 <code>YtbShowListResponse</code> 对象的使用都是正常的，并没有放置到 java 静态变量中等操作，但是根据 <strong>dump</strong> 日志分析其中的 <code>YtbShowListResponse</code> 对象，<code>YtbShowListResponse</code> 中 <code>content</code> 字段都是成功，即请求失败就不会出现内存泄露问题，问题代码范围进一步缩小。</p>
+<p><img src="queryYtbOrderInfo.png" alt="avatar"></p>
 <center>
 （比价功能代码）
 </center>
-
-<h4 id="步骤5"><a href="#步骤5" class="headerlink" title="步骤5"></a>步骤 5</h4><p>排查代码发现<em><strong> getResponse</strong></em> 方法有非常高的可疑性，使用了第三方序列化方式<em><strong> Json.fromJson</strong></em>，并且使用了 <strong>PType</strong> 第三方工具来标识序列化类型，更加可疑，此序列化方法和 <strong>org.nutz.lang.Mirror</strong> 同属于 <strong>nutz</strong> 第三方工具包，基本已锁定到问题代码。</p>
+<h4 id="步骤5">步骤 5</h4>
+<p>排查代码发现<em><strong> getResponse</strong></em> 方法有非常高的可疑性，使用了第三方序列化方式<em><strong> Json.fromJson</strong></em>，并且使用了 <strong>PType</strong> 第三方工具来标识序列化类型，更加可疑，此序列化方法和 <strong>org.nutz.lang.Mirror</strong> 同属于 <strong>nutz</strong> 第三方工具包，基本已锁定到问题代码。</p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">   <span class="keyword">public</span> List&lt;YtbShowBo&gt; <span class="title function_">getResponse</span><span class="params">()</span> {</span><br><span class="line">       <span class="type">String</span> <span class="variable">data</span> <span class="operator">=</span> <span class="built_in">this</span>.getData();</span><br><span class="line">       <span class="keyword">if</span> (Strings.isBlank(data)) {</span><br><span class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">YtbException</span>(<span class="string">"影托邦场次列表响应为空"</span>);</span><br><span class="line">       }</span><br><span class="line">       <span class="keyword">return</span> Json.fromJson(<span class="keyword">new</span> <span class="title class_">PType</span>&lt;List&lt;YtbShowBo&gt;&gt;() {</span><br><span class="line">       }, data);</span><br><span class="line">   }</span><br></pre></td></tr></tbody></table></figure>
-
-<h4 id="步骤6"><a href="#步骤6" class="headerlink" title="步骤6"></a>步骤 6</h4><p>为了验证是否是 json 序列化导致，在 <code>YtbShowListResponse</code> 上重写了<em><strong> finalize</strong></em> 方法，并在其中打印了日志，验证对象是否被回收了，采用对照法，使用 <strong>fastjson</strong> 包替换了序列化方法，执行相同比价功能，最终验证结果如下：</p>
+<h4 id="步骤6">步骤 6</h4>
+<p>为了验证是否是 json 序列化导致，在 <code>YtbShowListResponse</code> 上重写了<em><strong> finalize</strong></em> 方法，并在其中打印了日志，验证对象是否被回收了，采用对照法，使用 <strong>fastjson</strong> 包替换了序列化方法，执行相同比价功能，最终验证结果如下：</p>
 <ol>
 <li><em><strong>Json.fromJson</strong></em> 方法和 <strong>PType</strong> 共同使用情况下，会导致<em><strong> finalize</strong></em> 不被执行，也就意味着此对象不会被虚拟机回收</li>
 <li><em><strong> JSON.parseObject</strong></em> 方法和 <strong>TypeReference</strong> 共同使用情况下，<em><strong>finalize</strong></em> 很快就执行了，意味着对象被回收了</li>
@@ -102,19 +108,20 @@
 <blockquote>
 <p><em>其实 java 虚拟机垃圾回收执行的很快</em></p>
 </blockquote>
-<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>到这里，其实问题已经得到了解决，但是为了提现我们热爱技术的一面，也为了彰显我们的钻研精神，那么还要提出疑问，为什么这会导致内存泄露？总结出以下几个问题：</p>
+<h4 id="总结">总结</h4>
+<p>到这里，其实问题已经得到了解决，但是为了提现我们热爱技术的一面，也为了彰显我们的钻研精神，那么还要提出疑问，为什么这会导致内存泄露？总结出以下几个问题：</p>
 <ul>
 <li>为什么 <strong>fastjson</strong> 不会出现内存泄露的问题？</li>
 <li>明明序列化的对象是字符串 <strong>data</strong> 数据，生成后的对象也是 <code>List&lt;YtbShowBo&gt;</code>，怎么结果就成了 <code>YtbShowListResponse</code> 存到了虚拟机中无法被回收？</li>
 <li>json 序列化的原理是什么？</li>
 </ul>
 <p>本着以上几个问题，我们进入了下一阶段，我们要找到问题本质～我们要搞清楚到底是什么东西，影响了虚拟机内存回收？</p>
-<h3 id="追本溯源"><a href="#追本溯源" class="headerlink" title="追本溯源"></a>追本溯源</h3><p>进入 <strong>nutz</strong> 的 jar 包源码，可以发现他使用了 <code>mirrorCache</code> 把所有使用到的序列化类型都缓存了起来，问题就出在了这里</p>
-<p><img src="/2022/10/10/bugFix/Mirror.png" alt="avatar"></p>
+<h3 id="追本溯源">追本溯源</h3>
+<p>进入 <strong>nutz</strong> 的 jar 包源码，可以发现他使用了 <code>mirrorCache</code> 把所有使用到的序列化类型都缓存了起来，问题就出在了这里</p>
+<p><img src="Mirror.png" alt="avatar"></p>
 <center>
 （json 序列化源码）
 </center>
-
 <p>这时就要开始使用我们的好帮手百度了，<strong>PType</strong> 实现了 <strong>ParameterizedType</strong> 接口，使用 <strong>ParameterizedType</strong> + 内存溢出为标题查到一篇文章<sup>①</sup>，说明 <strong>fastjson</strong> 也存在使用 <strong>ParameterizedType</strong> 不当导致的内存泄露问题，此问题已经被 <strong>fastjson</strong> 修复了。不过 <strong>nutz</strong> 包和 <strong>fastjson</strong> 包并不相同，但是这也印证了我们的观点，json 序列化如果使用不当确实会导致内存泄露的问题。</p>
 <blockquote>
 <p><strong>ParameterizedType</strong> 是 jdk 提供的用于处理带泛型类型的类的序列化方式<sup>②</sup></p>
@@ -124,35 +131,36 @@
 <li><strong>fastjson</strong> 采用了在 <strong>Type</strong> 中重新生成子序列化类型的方式，避免了内存泄露的问题</li>
 <li> json 序列化的原理就是通过声明一个序列化类型，然后将字符串内容进行转换的过程</li>
 </ul>
-<p><img src="/2022/10/10/bugFix/nuztAndFastjson.png" alt="avatar"></p>
+<p><img src="nuztAndFastjson.png" alt="avatar"></p>
 <center>
 （**nutz** 包和 **fastjson** 源码比较，左 **nutz**，右 **fastjson**）
 </center>
-
 <p>但是，第二个问题没有得到解答，为什么最终在内存中存储了大量的 <code>YtbShowListResponse</code> 而不是 <code>List&lt;YtbShowBo&gt;</code> 呢？</p>
 <p>这个问题最终通过研究 <code>new TypeReference</code> 和 <code>new PType</code> 两者之间的区别得以解决</p>
 <p>先看下声明序列化类型的写法，<code>new xxx(){}</code> 是 java 匿名内部类的写法。</p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">List&lt;YtbShowBo&gt; ytbShowBos = Json.fromJson(<span class="keyword">new</span> <span class="title class_">PType</span>&lt;List&lt;YtbShowBo&gt;&gt;() {</span><br><span class="line">}, data);</span><br></pre></td></tr></tbody></table></figure>
-
 <p>此时，你只需要回想下学过的 java 基础，就能明白一点，java 的匿名内部类是依赖于其父类的，这就导致你在 dump 日志或者 debug 模式下查看匿名内部类对象时，都会惊奇的发现他的指针并不是指向他的内存地址，而是直接指向其父类</p>
 <blockquote>
 <p><em>匿名内部类其实极易导致内存泄露问题<sup>③</sup></em></p>
 </blockquote>
-<p><img src="/2022/10/10/bugFix/debug.png" alt="avatar"></p>
+<p><img src="debug.png" alt="avatar"></p>
 <center>
 （debug）
 </center>
-
 <p>到这里，你也就明白了为什么会出现内存泄露的问题，为什么内存中会有大量的 <code>YtbShowListResponse</code> 对象，因为每一个 <code>new PType</code> 都持有了其父类对象，当 <strong>PType</strong> 被放置到 <code>mirrorCache</code> 中缓存起来时，也就导致他持有的父对象再也无法被回收了，我们也就解答了前面第二个问题，也就明白了这次内存泄露的本质</p>
-<h5 id="这就结束了吗？"><a href="#这就结束了吗？" class="headerlink" title="这就结束了吗？"></a>这就结束了吗？</h5><p>问题找到了，但是我们还没有去解决问题，前面好像已经找到了解决办法，就是替换第三方序列化工具，使用 <strong>fastjson</strong> 替代 <strong>nutz</strong>，但是这样好像我们学到的知识没用上，如何使用 java 基础解决这个问题？让我们倒回前文有关匿名内部类的部分，解决办法就藏在这里面 ↑</p>
-<h5 id="终极解决方案："><a href="#终极解决方案：" class="headerlink" title="终极解决方案："></a>终极解决方案：</h5><p>将在方法内部创建的 <strong>Type</strong> 改为静态变量</p>
+<h5 id="这就结束了吗？">这就结束了吗？</h5>
+<p>问题找到了，但是我们还没有去解决问题，前面好像已经找到了解决办法，就是替换第三方序列化工具，使用 <strong>fastjson</strong> 替代 <strong>nutz</strong>，但是这样好像我们学到的知识没用上，如何使用 java 基础解决这个问题？让我们倒回前文有关匿名内部类的部分，解决办法就藏在这里面 ↑</p>
+<h5 id="终极解决方案：">终极解决方案：</h5>
+<p>将在方法内部创建的 <strong>Type</strong> 改为静态变量</p>
 <p><code>private static final PType&lt;List&lt;YtbShowBo&gt;&gt; YTB_SHOW_BO_TYPE = new PType&lt;List&lt;YtbShowBo&gt;&gt;() {};</code></p>
 <p>本问题随即解决</p>
 <blockquote>
 <p>当匿名内部类成为静态变量时，根据我们学过的 java 基础知识，java 类下的静态变量属于类，被所有类实例对象所共享，当且仅当在类初次加载时会被初始化</p>
 </blockquote>
-<h5 id="到此为止了，但是没有完全为止"><a href="#到此为止了，但是没有完全为止" class="headerlink" title="到此为止了，但是没有完全为止"></a>到此为止了，但是没有完全为止</h5><p>本次内存泄露问题已经圆满解决，大家也跟着本文档学习了解了如何排查问题，如何分析问题，如何解决问题。但是本文档只是个引子，希望在以后的工作中大家都能保持钻研精神，不怕问题，解决问题。</p>
-<h3 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h3><p>收录相关在排查问题时查询到的有参考意义的博客内容</p>
+<h5 id="到此为止了，但是没有完全为止">到此为止了，但是没有完全为止</h5>
+<p>本次内存泄露问题已经圆满解决，大家也跟着本文档学习了解了如何排查问题，如何分析问题，如何解决问题。但是本文档只是个引子，希望在以后的工作中大家都能保持钻研精神，不怕问题，解决问题。</p>
+<h3 id="附录">附录</h3>
+<p>收录相关在排查问题时查询到的有参考意义的博客内容</p>
 <p>附录① <a href="https://blog.csdn.net/weixin_33358099/article/details/114828657">Java 反序列化 json 内存溢出_fastjson 反序列化使用不当导致内存泄露</a></p>
 <p>附录② <a href="https://blog.csdn.net/JustBeauty/article/details/81116144">ParameterizedType 详解</a></p>
 <p>附录③ <a href="https://blog.csdn.net/feiying0canglang/article/details/124946774">JVM–Java 内存泄露–匿名内部类–原因 / 解决方案</a></p>
@@ -165,40 +173,21 @@
       </tags>
   </entry>
   <entry>
-    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
-    <url>/2022/10/10/chromeTranslate/</url>
-    <content><![CDATA[<h1 id="chrome浏览器内置谷歌翻译无法使用解决方案"><a href="#chrome浏览器内置谷歌翻译无法使用解决方案" class="headerlink" title="chrome浏览器内置谷歌翻译无法使用解决方案"></a>chrome 浏览器内置谷歌翻译无法使用解决方案</h1><p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
-<h3 id="修改host教程"><a href="#修改host教程" class="headerlink" title="修改host教程"></a>修改 host 教程</h3><h4 id="进入etc文件夹"><a href="#进入etc文件夹" class="headerlink" title="进入etc文件夹"></a>进入 etc 文件夹</h4><ul>
-<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
-<li>windows: C:\Windows\System32\drivers\etc</li>
-</ul>
-<p>修改文件，添加以下内容：</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">203.208.40.66 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
-
-<p>保存修改后，chrome 即可正常使用</p>
-]]></content>
-      <categories>
-        <category>开发工具</category>
-      </categories>
-      <tags>
-        <tag>chrome</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hello World</title>
     <url>/2022/05/19/hello-world/</url>
     <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></tbody></table></figure>
-
+<h2 id="Quick-Start">Quick Start</h2>
+<h3 id="Create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></tbody></table></figure>
 <p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></tbody></table></figure>
-
+<h3 id="Run-server">Run server</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></tbody></table></figure>
 <p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></tbody></table></figure>
-
+<h3 id="Generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></tbody></table></figure>
 <p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></tbody></table></figure>
-
+<h3 id="Deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></tbody></table></figure>
 <p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 ]]></content>
       <categories>
@@ -209,18 +198,42 @@
       </tags>
   </entry>
   <entry>
+    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
+    <url>/2022/10/10/chromeTranslate/</url>
+    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
+<h3 id="修改host教程">修改 host 教程</h3>
+<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
+<ul>
+<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
+<li>windows: C:\Windows\System32\drivers\etc</li>
+</ul>
+<p>修改文件，添加以下内容：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">203.208.40.66 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
+<p>保存修改后，chrome 即可正常使用</p>
+]]></content>
+      <categories>
+        <category>开发工具</category>
+      </categories>
+      <tags>
+        <tag>chrome</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>spotbugs 使用指南</title>
     <url>/2022/10/10/spotbugs/</url>
-    <content><![CDATA[<h1 id="代码规范"><a href="#代码规范" class="headerlink" title="代码规范"></a>代码规范</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>代码质量主要依靠代码检查来进行，但当前代码检查占用较多工时。现推荐一个比较成熟的代码检查插件，要求 JAVA 开发每次提交代码前都应使用插件自检，可以一定程度上减少代码检查所用的时间，帮助开发人员规范编码习惯，提高编码水平，本插件不能替代阿里巴巴开发规范插件，只是对其的补充。</p>
-<h2 id="SpotBugs使用说明"><a href="#SpotBugs使用说明" class="headerlink" title="SpotBugs使用说明"></a>SpotBugs 使用说明</h2><h3 id="安装方法"><a href="#安装方法" class="headerlink" title="安装方法"></a>安装方法</h3><p>在 IDEA 中，点击工具类 <strong>File-&gt;Settings-&gt;Plugins</strong> 后，切换到 <strong>Marketplace</strong> 标签，在输入框中输入 spotbugs，查询到 <strong>SpotBugs</strong> 插件，点击 <strong>install</strong> 按钮安装插件，如图所示：</p>
-<p><img src="/2022/10/10/spotbugs/SpotBugsInstall.png" alt="avatar"></p>
+    <content><![CDATA[<h2 id="前言">前言</h2>
+<p>代码质量主要依靠代码检查来进行，但当前代码检查占用较多工时。现推荐一个比较成熟的代码检查插件，要求 JAVA 开发每次提交代码前都应使用插件自检，可以一定程度上减少代码检查所用的时间，帮助开发人员规范编码习惯，提高编码水平，本插件不能替代阿里巴巴开发规范插件，只是对其的补充。</p>
+<h2 id="SpotBugs使用说明">SpotBugs 使用说明</h2>
+<h3 id="安装方法">安装方法</h3>
+<p>在 IDEA 中，点击工具类 <strong>File-&gt;Settings-&gt;Plugins</strong> 后，切换到 <strong>Marketplace</strong> 标签，在输入框中输入 spotbugs，查询到 <strong>SpotBugs</strong> 插件，点击 <strong>install</strong> 按钮安装插件，如图所示：</p>
+<p><img src="SpotBugsInstall.png" alt="avatar"></p>
 <center>
 SpotBugs 安装
 </center>
-
 <span id="more"></span>
-
-<h3 id="使用手册"><a href="#使用手册" class="headerlink" title="使用手册"></a>使用手册</h3><h4 id="使用步骤"><a href="#使用步骤" class="headerlink" title="使用步骤"></a>使用步骤</h4><p>SpotBugs 的使用方式是通过插件扫描代码的方式来检查出代码中隐含的 bug，首先切换 idea 任务栏到 SpotBugs 下（截图红字 3）。SpotBugs 主要有两种扫描方式，可全项目扫描或单模块扫描：</p>
+<h3 id="使用手册">使用手册</h3>
+<h4 id="使用步骤">使用步骤</h4>
+<p>SpotBugs 的使用方式是通过插件扫描代码的方式来检查出代码中隐含的 bug，首先切换 idea 任务栏到 SpotBugs 下（截图红字 3）。SpotBugs 主要有两种扫描方式，可全项目扫描或单模块扫描：</p>
 <ul>
 <li>全项目扫描使用截图红字 2 中第三个按钮</li>
 <li>单模块扫描首先选择需要扫描的模块（截图红字 1），然后点击截图红字 2 中第一个按钮</li>
@@ -228,75 +241,126 @@ SpotBugs 安装
 <blockquote>
 <p>说明：截图红字 3 中三个按钮依次为：扫描选中模块不包含 TEST 类；扫描选中模块包含 TEST 类；扫描全项目</p>
 </blockquote>
-<p><img src="/2022/10/10/spotbugs/SpotBugsUseStepOne.png" alt="avatar"></p>
+<p><img src="SpotBugsUseStepOne.png" alt="avatar"></p>
 <center>
 SpotBugs 使用步骤
 </center>
-
-<h4 id="BUG说明"><a href="#BUG说明" class="headerlink" title="BUG说明"></a>BUG 说明</h4><p>SpotBugs 扫描出的问题主要分为几个大类，每个大类中包含多个具体问题，具体问题有自己对应的处理优先级，分为高中低三级。现针对具体问题做解释说明，方便修改错误代码。本文档并未描述 SpotBugs 支持的全部问题，只针对每个大类列举有特点且较难理解的问题，未在本文档中出现但是被 SpotBugs 扫描出的问题，开发者也应自行查找处理，附 <a href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html" title="SpotBugs官方校验规则文档">SpotBugs 官方校验规则文档</a></p>
-<h5 id="高危（强制修改）"><a href="#高危（强制修改）" class="headerlink" title="高危（强制修改）"></a>高危（强制修改）</h5><h6 id="1-1-No-relationship-between-generic-parameter-and-method-argument"><a href="#1-1-No-relationship-between-generic-parameter-and-method-argument" class="headerlink" title="1.1 No relationship between generic parameter and method argument"></a>1.1 No relationship between generic parameter and method argument</h6><p>方法参数和传入参数存在泛型不一致的情况<br><br><br><font color="#FF0000">反例：</font></p>
+<h4 id="BUG说明">BUG 说明</h4>
+<p>SpotBugs 扫描出的问题主要分为几个大类，每个大类中包含多个具体问题，具体问题有自己对应的处理优先级，分为高中低三级。现针对具体问题做解释说明，方便修改错误代码。本文档并未描述 SpotBugs 支持的全部问题，只针对每个大类列举有特点且较难理解的问题，未在本文档中出现但是被 SpotBugs 扫描出的问题，开发者也应自行查找处理，附 <a href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html" title="SpotBugs官方校验规则文档">SpotBugs 官方校验规则文档</a></p>
+<h5 id="高危（强制修改）">高危（强制修改）</h5>
+<h6 id="1-1-No-relationship-between-generic-parameter-and-method-argument">1.1 No relationship between generic parameter and method argument</h6>
+<p>方法参数和传入参数存在泛型不一致的情况<br>
+<br><br>
+<font color="#FF0000">反例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">List&lt;String&gt; strList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">strList.add(<span class="string">"1"</span>);</span><br><span class="line">List&lt;Long&gt; idList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">idList.add(<span class="number">1L</span>);</span><br><span class="line">idList.add(<span class="number">2L</span>);</span><br><span class="line">idList.add(<span class="number">3L</span>);</span><br><span class="line">idList.removeAll(strList);</span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="1-2-Call-to-equals-comparing-different-types"><a href="#1-2-Call-to-equals-comparing-different-types" class="headerlink" title="1.2 Call to equals() comparing different types"></a>1.2 Call to equals() comparing different types</h6><p>equals 方法比较的双方不是相同类型<br><br><br><font color="#FF0000">反例：</font></p>
+<h6 id="1-2-Call-to-equals-comparing-different-types">1.2 Call to equals() comparing different types</h6>
+<p>equals 方法比较的双方不是相同类型<br>
+<br><br>
+<font color="#FF0000">反例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">cn.common.enums.OrderStatusEnum.REFUNDED.equals(cn.common.kentucky.enums.OrderStatusEnum.REFUNDED)</span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="1-3-Nullcheck-of-value-previously-dereferenced"><a href="#1-3-Nullcheck-of-value-previously-dereferenced" class="headerlink" title="1.3 Nullcheck of value previously dereferenced"></a>1.3 Nullcheck of value previously dereferenced</h6><p>空值检查顺序错误<br><br><br><font color="#FF0000">反例：</font></p>
+<h6 id="1-3-Nullcheck-of-value-previously-dereferenced">1.3 Nullcheck of value previously dereferenced</h6>
+<p>空值检查顺序错误<br>
+<br><br>
+<font color="#FF0000">反例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">Order</span> <span class="variable">order</span> <span class="operator">=</span> OrderDao.getOrder(dto.getId());</span><br><span class="line"><span class="keyword">if</span> (BreakUpType.CHILD.equals(order.getBreakUpType())) {</span><br><span class="line">    <span class="comment">// do something</span></span><br><span class="line">}</span><br><span class="line"><span class="keyword">if</span> (order == <span class="literal">null</span>) {</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">SimpleMessage</span>(ErrorCodeEnum.NO, <span class="string">"订单不存在"</span>);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="1-4-A-parameter-is-dead-upon-entry-to-a-method-but-overwritten"><a href="#1-4-A-parameter-is-dead-upon-entry-to-a-method-but-overwritten" class="headerlink" title="1.4 A parameter is dead upon entry to a method but overwritten"></a>1.4 A parameter is dead upon entry to a method but overwritten</h6><p>错误的认为对参数的覆盖会回传给调用者<br><br><br><font color="#FF0000">反例：</font></p>
+<h6 id="1-4-A-parameter-is-dead-upon-entry-to-a-method-but-overwritten">1.4 A parameter is dead upon entry to a method but overwritten</h6>
+<p>错误的认为对参数的覆盖会回传给调用者<br>
+<br><br>
+<font color="#FF0000">反例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">partialH5Refund</span><span class="params">(Long id, String refundNo, String content, OrderRefund orderRefund)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">	<span class="comment">// String类型采用值传递，在方法中修改参数并不会影响原参数</span></span><br><span class="line">    content = String.format(<span class="string">"系统同步部分退款, 退款交易流水号[%s]"</span>, refundNo);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-
 <p><span><font color="#D2B48C">说明：</font>JAVA 中当传入参数是对象时，修改对象属性是可以生效的，但是直接赋值覆盖对象的操作，是不会影响原参数的；String 类在 JAVA 中是值传递，对其的修改不会影响原参数。具体有关 JAVA 值传递和引用传递的相关介绍可参考文章 <a href="https://zhuanlan.zhihu.com/p/388486387" title="JAVA值传递和引用传递">JAVA 值传递和引用传递</a></span></p>
-<h6 id="1-5-Self-assignment-of-clearInterval-rather-than-assigned-to-field"><a href="#1-5-Self-assignment-of-clearInterval-rather-than-assigned-to-field" class="headerlink" title="1.5 Self assignment of clearInterval rather than assigned to field"></a>1.5 Self assignment of clearInterval rather than assigned to field</h6><p>在 setValue 中错误的将传参的值赋值给传参<br><br><br><font color="#FF0000">反例：</font></p>
+<h6 id="1-5-Self-assignment-of-clearInterval-rather-than-assigned-to-field">1.5 Self assignment of clearInterval rather than assigned to field</h6>
+<p>在 setValue 中错误的将传参的值赋值给传参<br>
+<br><br>
+<font color="#FF0000">反例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setClearInterval</span><span class="params">(Long clearInterval)</span> {</span><br><span class="line">	<span class="comment">// 应该使用this引用</span></span><br><span class="line">    clearInterval = clearInterval;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="1-6-Class-names-shouldn’t-shadow-simple-name-of-superclass"><a href="#1-6-Class-names-shouldn’t-shadow-simple-name-of-superclass" class="headerlink" title="1.6 Class names shouldn’t shadow simple name of superclass"></a>1.6 Class names shouldn’t shadow simple name of superclass</h6><p>子类名称不应和父类相同<br><br><br><font color="#FF0000">反例：</font></p>
+<h6 id="1-6-Class-names-shouldn’t-shadow-simple-name-of-superclass">1.6 Class names shouldn’t shadow simple name of superclass</h6>
+<p>子类名称不应和父类相同<br>
+<br><br>
+<font color="#FF0000">反例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OrderConfig</span> <span class="keyword">extends</span> <span class="title class_">cn</span>.kentucky.order.config.OrderConfig</span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="1-7-Random-object-created-and-used-only-once"><a href="#1-7-Random-object-created-and-used-only-once" class="headerlink" title="1.7 Random object created and used only once"></a>1.7 Random object created and used only once</h6><p>推荐使用 java.security.SecureRandom 代替 Random</p>
-<h6 id="1-8-Boxing-x2F-unboxing-to-parse-a-primitive"><a href="#1-8-Boxing-x2F-unboxing-to-parse-a-primitive" class="headerlink" title="1.8 Boxing/unboxing to parse a primitive"></a>1.8 Boxing/unboxing to parse a primitive</h6><p>使用 Integer.parse 代替 Integer.valueOf；Integer.valueOf 会涉及多次拆箱装箱操作，经历了 String - int - Integer - int 的过程</p>
-<h6 id="1-9-Reliance-on-default-encoding"><a href="#1-9-Reliance-on-default-encoding" class="headerlink" title="1.9 Reliance on default encoding"></a>1.9 Reliance on default encoding</h6><p>使用 new String、 getBytes 等方法需要指定编码格式，默认编码格式会因服务所在平台发生改变，这会产生意想不到的问题<br><br><br><font color="#006666">正例：</font></p>
+<h6 id="1-7-Random-object-created-and-used-only-once">1.7 Random object created and used only once</h6>
+<p>推荐使用 java.security.SecureRandom 代替 Random</p>
+<h6 id="1-8-Boxing-unboxing-to-parse-a-primitive">1.8 Boxing/unboxing to parse a primitive</h6>
+<p>使用 Integer.parse 代替 Integer.valueOf；Integer.valueOf 会涉及多次拆箱装箱操作，经历了 String - int - Integer - int 的过程</p>
+<h6 id="1-9-Reliance-on-default-encoding">1.9 Reliance on default encoding</h6>
+<p>使用 new String、 getBytes 等方法需要指定编码格式，默认编码格式会因服务所在平台发生改变，这会产生意想不到的问题<br>
+<br><br>
+<font color="#006666">正例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">byte</span>[] data = plainText.getBytes(StandardCharsets.UTF_8);</span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="1-10-HTTP-Response-splitting-vulnerability"><a href="#1-10-HTTP-Response-splitting-vulnerability" class="headerlink" title="1.10 HTTP Response splitting vulnerability"></a>1.10 HTTP Response splitting vulnerability</h6><p>禁止将用户提交的参数直接放置到 response header 上或作为重定向参数，这可能会出现安全漏洞，具体描述参考 <a href="https://blog.csdn.net/qq_35976271/article/details/103276682" title="HTTP Response Splitting">HTTP Response Splitting</a><br><br><br><font color="#FF0000">反例：</font></p>
+<h6 id="1-10-HTTP-Response-splitting-vulnerability">1.10 HTTP Response splitting vulnerability</h6>
+<p>禁止将用户提交的参数直接放置到 response header 上或作为重定向参数，这可能会出现安全漏洞，具体描述参考 <a href="https://blog.csdn.net/qq_35976271/article/details/103276682" title="HTTP Response Splitting">HTTP Response Splitting</a><br>
+<br><br>
+<font color="#FF0000">反例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">String</span> <span class="variable">referer</span> <span class="operator">=</span> request.getHeader(<span class="string">"REFERER"</span>);</span><br><span class="line">response.sendRedirect(referer);</span><br></pre></td></tr></tbody></table></figure>
-
-<h5 id="中等（强制修改）"><a href="#中等（强制修改）" class="headerlink" title="中等（强制修改）"></a>中等（强制修改）</h5><h6 id="2-1-equals-method-overrides-equals-in-superclass-and-may-not-be-symmetric"><a href="#2-1-equals-method-overrides-equals-in-superclass-and-may-not-be-symmetric" class="headerlink" title="2.1 equals method overrides equals in superclass and may not be symmetric"></a>2.1 equals method overrides equals in superclass and may not be symmetric</h6><p>JAVA 中当子类使用 lombok 插件的 @Data 注解时，必须配上 @EqualsAndHashCode (callSuper = true)<br><br><br><font color="#D2B48C">说明：</font>@Data 默认使用 @EqualsAndHashCode (callSuper = false)，当在子类中使用此属性时，调用 equals 方法只会比较子类的属性，不会比较继承自父类的属性，极易产生不符合预期的结果（网上提示，此注解同时会产生父子类互相调用 equals 方法结果不相同的问题，即（a.equals (b) == b.equals (a)），但是实测不会产生本问题，因 lombok 同时生成了 canEqual 方法）</p>
+<h5 id="中等（强制修改）">中等（强制修改）</h5>
+<h6 id="2-1-equals-method-overrides-equals-in-superclass-and-may-not-be-symmetric">2.1 equals method overrides equals in superclass and may not be symmetric</h6>
+<p>JAVA 中当子类使用 lombok 插件的 @Data 注解时，必须配上 @EqualsAndHashCode (callSuper = true)<br>
+<br><br>
+<font color="#D2B48C">说明：</font>@Data 默认使用 @EqualsAndHashCode (callSuper = false)，当在子类中使用此属性时，调用 equals 方法只会比较子类的属性，不会比较继承自父类的属性，极易产生不符合预期的结果（网上提示，此注解同时会产生父子类互相调用 equals 方法结果不相同的问题，即（a.equals (b) == b.equals (a)），但是实测不会产生本问题，因 lombok 同时生成了 canEqual 方法）</p>
 <p><font color="#006666">正例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@EqualsAndHashCode(callSuper = true)</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">McOrderVO</span> <span class="keyword">extends</span> <span class="title class_">McOrder</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span></span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="2-2-Possible-null-pointer-dereference-in-method-on-exception-path"><a href="#2-2-Possible-null-pointer-dereference-in-method-on-exception-path" class="headerlink" title="2.2 Possible null pointer dereference in method on exception path"></a>2.2 Possible null pointer dereference in method on exception path</h6><p>当代码经过 exception 异常处理时，存在可能的空值引用<br><br><br><font color="#FF0000">反例：</font></p>
+<h6 id="2-2-Possible-null-pointer-dereference-in-method-on-exception-path">2.2 Possible null pointer dereference in method on exception path</h6>
+<p>当代码经过 exception 异常处理时，存在可能的空值引用<br>
+<br><br>
+<font color="#FF0000">反例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">Map&lt;String, Object&gt; paramMap = <span class="literal">null</span>;</span><br><span class="line"><span class="keyword">try</span> {</span><br><span class="line">    paramMap = commonDingTalkPayService.payForApplet(aliConfig.getAppId());</span><br><span class="line">} <span class="keyword">catch</span> (Exception e) {</span><br><span class="line">    <span class="comment">// do something</span></span><br><span class="line">}</span><br><span class="line"><span class="type">MessageBean</span> <span class="variable">payInfoData</span> <span class="operator">=</span> wechatPayService.getPayInfo(orderNo, order.getUserId());</span><br><span class="line"><span class="type">PayInfoVo</span> <span class="variable">data</span> <span class="operator">=</span> (PayInfoVo)payInfoData.getData();</span><br><span class="line"><span class="comment">// paramMap 默认声明是null值，当在try中抛出错误时，会经过异常处理但是paramMap依然保持null值，会在后续put时引发空指针问题</span></span><br><span class="line">paramMap.put(<span class="string">"payInfo"</span>, data);</span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="2-3【推荐】May-expose-internal-representation-by-incorporating-reference-to-mutable-object"><a href="#2-3【推荐】May-expose-internal-representation-by-incorporating-reference-to-mutable-object" class="headerlink" title="2.3【推荐】May expose internal representation by incorporating reference to mutable object"></a>2.3【推荐】May expose internal representation by incorporating reference to mutable object</h6><p>不建议当对象中的属性也是对象时，其 get 和 set 方法直接进行赋值操作或返回操作，而是 set 时将传入参数进行拷贝并返回，get 时将属性拷贝并返回；如果直接使用传参赋值，会造成修改传参的效果被同步，引起与开发预期不符的问题。具体问题案例可参考<a href="https://www.cnblogs.com/hyddd/articles/1391098.html" title="属性拷贝">属性拷贝</a><br><br><br><font color="#006666">正例：</font></p>
+<h6 id="2-3【推荐】May-expose-internal-representation-by-incorporating-reference-to-mutable-object">2.3【推荐】May expose internal representation by incorporating reference to mutable object</h6>
+<p>不建议当对象中的属性也是对象时，其 get 和 set 方法直接进行赋值操作或返回操作，而是 set 时将传入参数进行拷贝并返回，get 时将属性拷贝并返回；如果直接使用传参赋值，会造成修改传参的效果被同步，引起与开发预期不符的问题。具体问题案例可参考<a href="https://www.cnblogs.com/hyddd/articles/1391098.html" title="属性拷贝">属性拷贝</a><br>
+<br><br>
+<font color="#006666">正例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Test3</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Date regDate ;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setRegDate</span><span class="params">(Date regDate)</span> {</span><br><span class="line">		<span class="comment">// 将传参的拷贝赋值给当前属性</span></span><br><span class="line">        <span class="built_in">this</span>.regDate = (Date) regDate.clone();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Date <span class="title function_">getRegDate</span><span class="params">()</span> {</span><br><span class="line">		<span class="comment">// 将当前属性拷贝返回出去</span></span><br><span class="line">        <span class="keyword">return</span> (Date) regDate.clone();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="2-4【推荐】May-expose-internal-representation-by-returning-reference-to-mutable-object"><a href="#2-4【推荐】May-expose-internal-representation-by-returning-reference-to-mutable-object" class="headerlink" title="2.4【推荐】May expose internal representation by returning reference to mutable object"></a>2.4【推荐】May expose internal representation by returning reference to mutable object</h6><p>问题同 2.3，本问题是不建议直接返回原属性，而是返回属性的拷贝值</p>
-<h6 id="2-5-May-expose-internal-representation-by-returning-reference-to-mutable-object"><a href="#2-5-May-expose-internal-representation-by-returning-reference-to-mutable-object" class="headerlink" title="2.5 May expose internal representation by returning reference to mutable object"></a>2.5 May expose internal representation by returning reference to mutable object</h6><p>静态集合常量应该是 final 型的，不允许修改</p>
-<h6 id="2-6-Field-isn’t-final-and-can’t-be-protected-from-malicious-code"><a href="#2-6-Field-isn’t-final-and-can’t-be-protected-from-malicious-code" class="headerlink" title="2.6 Field isn’t final and can’t be protected from malicious code"></a>2.6 Field isn’t final and can’t be protected from malicious code</h6><p>字段未被 final 修饰，存在被修改的风险</p>
-<h6 id="2-7-Field-should-be-package-protected"><a href="#2-7-Field-should-be-package-protected" class="headerlink" title="2.7 Field should be package protected"></a>2.7 Field should be package protected</h6><p>属性应该用 protected 保护</p>
-<h6 id="2-8-Field-is-a-mutable-collection-which-should-be-package-protected"><a href="#2-8-Field-is-a-mutable-collection-which-should-be-package-protected" class="headerlink" title="2.8 Field is a mutable collection which should be package protected"></a>2.8 Field is a mutable collection which should be package protected</h6><p>集合属性应该使用 protected 保护</p>
-<h6 id="2-9-Field-isn’t-final-but-should-be"><a href="#2-9-Field-isn’t-final-but-should-be" class="headerlink" title="2.9 Field isn’t final but should be"></a>2.9 Field isn’t final but should be</h6><p>属性应该被设置为 final</p>
-<h6 id="2-10-Field-is-a-mutable-array"><a href="#2-10-Field-is-a-mutable-array" class="headerlink" title="2.10 Field is a mutable array"></a>2.10 Field is a mutable array</h6><p>集合属性存在被修改的风险<br><br><br><span><font color="#006666">正例：</font>涉及 2.3-2.8</span></p>
+<h6 id="2-4【推荐】May-expose-internal-representation-by-returning-reference-to-mutable-object">2.4【推荐】May expose internal representation by returning reference to mutable object</h6>
+<p>问题同 2.3，本问题是不建议直接返回原属性，而是返回属性的拷贝值</p>
+<h6 id="2-5-May-expose-internal-representation-by-returning-reference-to-mutable-object">2.5 May expose internal representation by returning reference to mutable object</h6>
+<p>静态集合常量应该是 final 型的，不允许修改</p>
+<h6 id="2-6-Field-isn’t-final-and-can’t-be-protected-from-malicious-code">2.6 Field isn’t final and can’t be protected from malicious code</h6>
+<p>字段未被 final 修饰，存在被修改的风险</p>
+<h6 id="2-7-Field-should-be-package-protected">2.7 Field should be package protected</h6>
+<p>属性应该用 protected 保护</p>
+<h6 id="2-8-Field-is-a-mutable-collection-which-should-be-package-protected">2.8 Field is a mutable collection which should be package protected</h6>
+<p>集合属性应该使用 protected 保护</p>
+<h6 id="2-9-Field-isn’t-final-but-should-be">2.9 Field isn’t final but should be</h6>
+<p>属性应该被设置为 final</p>
+<h6 id="2-10-Field-is-a-mutable-array">2.10 Field is a mutable array</h6>
+<p>集合属性存在被修改的风险<br>
+<br><br>
+<span><font color="#006666">正例：</font>涉及 2.3-2.8</span></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TestMap</span> {</span><br><span class="line">  <span class="comment">// list也应设置为不可修改的类型，并且建议使用list替换array格式，array只能通过protected修改来防止修改。</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> List&lt;String&gt; UPLOAD_IMAGE_TYPES = ImmutableList.of(<span class="string">"image/jpeg"</span>, <span class="string">"image/png"</span>, <span class="string">"image/bmp"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">CANCEL</span> <span class="operator">=</span> <span class="string">"CANCEL"</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Map&lt;Integer,String&gt; map ;</span><br><span class="line">  <span class="keyword">static</span> {</span><br><span class="line">    Map&lt;Integer,String&gt; tempMap  = <span class="keyword">new</span> <span class="title class_">HashMap</span>();</span><br><span class="line">    tempMap.put(<span class="number">1</span>, <span class="string">"one"</span>);</span><br><span class="line">    tempMap.put(<span class="number">2</span>, <span class="string">"two"</span>);</span><br><span class="line">	<span class="comment">// 禁止修改集合</span></span><br><span class="line">    map = Collections.unmodifiableMap(tempMap);</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="2-11-Non-transient-non-serializable-instance-field-in-serializable-class"><a href="#2-11-Non-transient-non-serializable-instance-field-in-serializable-class" class="headerlink" title="2.11 Non-transient non-serializable instance field in serializable class"></a>2.11 Non-transient non-serializable instance field in serializable class</h6><p>实现序列化的类中存在未实现序列化的属性，推荐类中添加系列化标识</p>
-<h6 id="2-12-Serializable-inner-class"><a href="#2-12-Serializable-inner-class" class="headerlink" title="2.12 Serializable inner class"></a>2.12 Serializable inner class</h6><p>实现了序列化标识的内部类建议都为静态内部类，可以减少序列化时必须要关联外部类的问题</p>
-<h6 id="2-13-Method-may-fail-to-close-stream"><a href="#2-13-Method-may-fail-to-close-stream" class="headerlink" title="2.13 Method may fail to close stream"></a>2.13 Method may fail to close stream</h6><p>使用 JAVA 的 IO 流时，必须在 finally 块中对流进行关闭</p>
-<h6 id="2-14-Format-string-should-use-n-rather-than-n"><a href="#2-14-Format-string-should-use-n-rather-than-n" class="headerlink" title="2.14 Format string should use %n rather than \n"></a>2.14 Format string should use %n rather than \n</h6><p>String 的 format 方法应该使用 % n 来进行换行</p>
-<h6 id="2-15-Useless-object-created"><a href="#2-15-Useless-object-created" class="headerlink" title="2.15 Useless object created"></a>2.15 Useless object created</h6><p>问题同 3.2</p>
-<h6 id="2-16-Method-may-fail-to-clean-up-stream-or-resource-on-checked-exception"><a href="#2-16-Method-may-fail-to-clean-up-stream-or-resource-on-checked-exception" class="headerlink" title="2.16 Method may fail to clean up stream or resource on checked exception"></a>2.16 Method may fail to clean up stream or resource on checked exception</h6><p>JAVA 的 IO 流使用后必须调用关闭方法</p>
-<h6 id="2-17-Boxed-value-is-unboxed-and-then-immediately-reboxed"><a href="#2-17-Boxed-value-is-unboxed-and-then-immediately-reboxed" class="headerlink" title="2.17 Boxed value is unboxed and then immediately reboxed"></a>2.17 Boxed value is unboxed and then immediately reboxed</h6><p>JAVA 中三目运算时，如果同时存在基本类型和包装类型，JAVA 会自动向下转型拆箱，然后最后进行赋值操作时重新装箱<br><br><br><font color="#006666">正例：</font></p>
+<h6 id="2-11-Non-transient-non-serializable-instance-field-in-serializable-class">2.11 Non-transient non-serializable instance field in serializable class</h6>
+<p>实现序列化的类中存在未实现序列化的属性，推荐类中添加系列化标识</p>
+<h6 id="2-12-Serializable-inner-class">2.12 Serializable inner class</h6>
+<p>实现了序列化标识的内部类建议都为静态内部类，可以减少序列化时必须要关联外部类的问题</p>
+<h6 id="2-13-Method-may-fail-to-close-stream">2.13 Method may fail to close stream</h6>
+<p>使用 JAVA 的 IO 流时，必须在 finally 块中对流进行关闭</p>
+<h6 id="2-14-Format-string-should-use-n-rather-than-n">2.14 Format string should use %n rather than \n</h6>
+<p>String 的 format 方法应该使用 % n 来进行换行</p>
+<h6 id="2-15-Useless-object-created">2.15 Useless object created</h6>
+<p>问题同 3.2</p>
+<h6 id="2-16-Method-may-fail-to-clean-up-stream-or-resource-on-checked-exception">2.16 Method may fail to clean up stream or resource on checked exception</h6>
+<p>JAVA 的 IO 流使用后必须调用关闭方法</p>
+<h6 id="2-17-Boxed-value-is-unboxed-and-then-immediately-reboxed">2.17 Boxed value is unboxed and then immediately reboxed</h6>
+<p>JAVA 中三目运算时，如果同时存在基本类型和包装类型，JAVA 会自动向下转型拆箱，然后最后进行赋值操作时重新装箱<br>
+<br><br>
+<font color="#006666">正例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="built_in">this</span>.isTempDrug == <span class="literal">null</span> ? Integer.valueOf(<span class="number">0</span>) : <span class="built_in">this</span>.isTempDrug;</span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="2-18-Inefficient-use-of-keySet-iterator-instead-of-entrySet-iterator"><a href="#2-18-Inefficient-use-of-keySet-iterator-instead-of-entrySet-iterator" class="headerlink" title="2.18 Inefficient use of keySet iterator instead of entrySet iterator"></a>2.18 Inefficient use of keySet iterator instead of entrySet iterator</h6><p>遍历 map 时，如果需要使用到 value 值时，推荐使用 entrySet 而不是 keySet<br><br><br><font color="#FF0000">反例：</font></p>
+<h6 id="2-18-Inefficient-use-of-keySet-iterator-instead-of-entrySet-iterator">2.18 Inefficient use of keySet iterator instead of entrySet iterator</h6>
+<p>遍历 map 时，如果需要使用到 value 值时，推荐使用 entrySet 而不是 keySet<br>
+<br><br>
+<font color="#FF0000">反例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">Map&lt;String, String&gt; param = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (String key : param.keySet()) {</span><br><span class="line">	<span class="comment">// 从map中根据key获取value会浪费性能</span></span><br><span class="line">    list.add(<span class="keyword">new</span> <span class="title class_">BasicNameValuePair</span>(key, param.get(key)));</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-
-<h5 id="低危（建议修改）"><a href="#低危（建议修改）" class="headerlink" title="低危（建议修改）"></a>低危（建议修改）</h5><h6 id="3-1-Exception-is-caught-when-Exception-is-not-thrown"><a href="#3-1-Exception-is-caught-when-Exception-is-not-thrown" class="headerlink" title="3.1 Exception is caught when Exception is not thrown"></a>3.1 Exception is caught when Exception is not thrown</h6><p>针对已知异常，根据业务需要分开处理，而不是直接全部归为 Exception<br><br><br><font color="#006666">正例：</font></p>
+<h5 id="低危（建议修改）">低危（建议修改）</h5>
+<h6 id="3-1-Exception-is-caught-when-Exception-is-not-thrown">3.1 Exception is caught when Exception is not thrown</h6>
+<p>针对已知异常，根据业务需要分开处理，而不是直接全部归为 Exception<br>
+<br><br>
+<font color="#006666">正例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">try</span>{</span><br><span class="line">　　　　<span class="comment">// do something</span></span><br><span class="line">　　}</span><br><span class="line">　　<span class="keyword">catch</span>(SQLException ex){</span><br><span class="line">　　　　<span class="comment">// do something</span></span><br><span class="line">　　}</span><br><span class="line">　　<span class="keyword">catch</span>(IOException ex){</span><br><span class="line">　　　　<span class="comment">// do something</span></span><br><span class="line">　　}</span><br><span class="line">　　<span class="keyword">catch</span>(Exception ex){</span><br><span class="line">　　　　<span class="comment">// do something</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-
-<h6 id="3-2-Dead-store-to-local-variable"><a href="#3-2-Dead-store-to-local-variable" class="headerlink" title="3.2 Dead store to local variable"></a>3.2 Dead store to local variable</h6><p>禁止局部变量创建却未使用</p>
-<h6 id="3-3-Switch-statement-found-where-default-case-is-missing"><a href="#3-3-Switch-statement-found-where-default-case-is-missing" class="headerlink" title="3.3 Switch statement found where default case is missing"></a>3.3 Switch statement found where default case is missing</h6><p>switch 出现条件中未添加 break 导致进入 default 的情况<br><br><br><font color="#FF0000">反例：</font></p>
+<h6 id="3-2-Dead-store-to-local-variable">3.2 Dead store to local variable</h6>
+<p>禁止局部变量创建却未使用</p>
+<h6 id="3-3-Switch-statement-found-where-default-case-is-missing">3.3 Switch statement found where default case is missing</h6>
+<p>switch 出现条件中未添加 break 导致进入 default 的情况<br>
+<br><br>
+<font color="#FF0000">反例：</font></p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">switch</span> (sendOrderRequest.getOrderStatus()) {</span><br><span class="line">    <span class="keyword">case</span> SUCCESS:</span><br><span class="line">        dealSuccess(order, sendOrderRequest);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> FAIL:</span><br><span class="line">        dealFail(order, sendOrderRequest);</span><br><span class="line">		<span class="comment">// 此处应该添加break， 防止后续修改时添加default操作导致与预期不符的情况出现</span></span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 ]]></content>
       <categories>
