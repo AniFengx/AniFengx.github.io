@@ -11,6 +11,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
   <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-84jI6cSOsn">
 
 <link rel="stylesheet" href="/css/main.css">
 
@@ -36,7 +37,7 @@
 <meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/nuztAndFastjson.png">
 <meta property="og:image" content="https://anifengx.github.io/2022/10/10/bugFix/debug.png">
 <meta property="article:published_time" content="2022-10-10T06:06:33.000Z">
-<meta property="article:modified_time" content="2022-10-12T07:10:30.332Z">
+<meta property="article:modified_time" content="2022-10-19T03:33:09.030Z">
 <meta property="article:author" content="AniFengx">
 <meta property="article:tag" content="bug">
 <meta name="twitter:card" content="summary">
@@ -269,7 +270,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-10-12 15:10:30" itemprop="dateModified" datetime="2022-10-12T15:10:30+08:00">2022-10-12</time>
+      <time title="修改时间：2022-10-19 11:33:09" itemprop="dateModified" datetime="2022-10-19T11:33:09+08:00">2022-10-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -358,7 +359,7 @@
 </center>
 
 <h4 id="步骤5"><a href="#步骤5" class="headerlink" title="步骤5"></a>步骤 5</h4><p>排查代码发现<em><strong> getResponse</strong></em> 方法有非常高的可疑性，使用了第三方序列化方式<em><strong> Json.fromJson</strong></em>，并且使用了 <strong>PType</strong> 第三方工具来标识序列化类型，更加可疑，此序列化方法和 <strong>org.nutz.lang.Mirror</strong> 同属于 <strong>nutz</strong> 第三方工具包，基本已锁定到问题代码。</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">   public List&lt;YtbShowBo&gt; getResponse() {</span><br><span class="line">       String data = this.getData();</span><br><span class="line">       if (Strings.isBlank(data)) {</span><br><span class="line">           throw new YtbException("影托邦场次列表响应为空");</span><br><span class="line">       }</span><br><span class="line">       return Json.fromJson(new PType&lt;List&lt;YtbShowBo&gt;&gt;() {</span><br><span class="line">       }, data);</span><br><span class="line">   }</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">   <span class="keyword">public</span> List&lt;YtbShowBo&gt; <span class="title function_">getResponse</span><span class="params">()</span> {</span><br><span class="line">       <span class="type">String</span> <span class="variable">data</span> <span class="operator">=</span> <span class="built_in">this</span>.getData();</span><br><span class="line">       <span class="keyword">if</span> (Strings.isBlank(data)) {</span><br><span class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">YtbException</span>(<span class="string">"影托邦场次列表响应为空"</span>);</span><br><span class="line">       }</span><br><span class="line">       <span class="keyword">return</span> Json.fromJson(<span class="keyword">new</span> <span class="title class_">PType</span>&lt;List&lt;YtbShowBo&gt;&gt;() {</span><br><span class="line">       }, data);</span><br><span class="line">   }</span><br></pre></td></tr></tbody></table></figure>
 
 <h4 id="步骤6"><a href="#步骤6" class="headerlink" title="步骤6"></a>步骤 6</h4><p>为了验证是否是 json 序列化导致，在 <code>YtbShowListResponse</code> 上重写了<em><strong> finalize</strong></em> 方法，并在其中打印了日志，验证对象是否被回收了，采用对照法，使用 <strong>fastjson</strong> 包替换了序列化方法，执行相同比价功能，最终验证结果如下：</p>
 <ol>
