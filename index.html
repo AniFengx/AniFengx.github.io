@@ -159,18 +159,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">8</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">8</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -214,6 +214,157 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://anifengx.github.io/2022/11/12/mysqlLeftJoin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="AniFengx">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ani的第九艺术">
+      <meta itemprop="description" content="software">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Ani的第九艺术">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/11/12/mysqlLeftJoin/" class="post-title-link" itemprop="url">mysql 中多表 LeftJoin 的误区</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2022-11-12 17:06:47 / 修改时间：17:55:12" itemprop="dateCreated datePublished" datetime="2022-11-12T17:06:47+08:00">2022-11-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/mysql/" itemprop="url" rel="index"><span itemprop="name">mysql</span></a>
+        </span>
+    </span>
+
+  
+    <span id="/2022/11/12/mysqlLeftJoin/" class="post-meta-item leancloud_visitors" data-flag-title="mysql 中多表 LeftJoin 的误区" title="阅读次数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span class="leancloud-visitors-count"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>最近在日常看项目慢 SQL 日志的时候，发现项目里的用户管理查询 SQL 略慢，基本要在一秒以上，决定优化一下，结果优化了半天还优化出来个问题，研究了好久才发现原因，其实是我的使用姿势不对</p>
+<h4 id="背景介绍">背景介绍</h4>
+<p>用户列表查询使用了多表关联，其中使用了 7 张表做 LEFT JOIN 关联查询，拼接了很多查询条件，并且还穿插了几个子查询。所以做了一下优化，重新梳理了表逻辑</p>
+<p>其中有三张表分别是 <code>user</code> 用户表，<code>user_brand</code> 用户品牌表，<code>user_add_account</code> 用户加款账户表，查询逻辑是</p>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> u.name, group_concat(ub.name) brandName, group_concat(uac.account) account</span><br><span class="line"><span class="keyword">FROM</span> `<span class="keyword">user</span>` u </span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> `user_brand` ub <span class="keyword">ON</span> u.id <span class="operator">=</span> ub.user_id </span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> `user_add_account` uac <span class="keyword">ON</span> u.id <span class="operator">=</span> uac.user_id</span><br></pre></td></tr></tbody></table></figure>
+<p>结果出现了 brandName 和 account 相同内容重复的问题，之前 brandName 是通过子查询得出的，所以没有存在重复的情况，结果改成 LEFT JOIN 出现了重复问题，这个问题也是研究了好久才发现，其实是因为对 SQL 查询原理掌握不牢导致的</p>
+<h4 id="原因">原因</h4>
+<p>三表的关系是，<code>user</code> 和 <code>user_brand</code> 是一对多的关系，<code>user</code> 和 <code>user_add_account</code> 也是一对多的关系，在 mysql 中，如果多表使用 LEFT JOIN 来进行关联查询，并且存在多个左表和右表的一对多关系，mysql 会将多个右表的条数进行笛卡尔积对应到左表上，就导致了 <code>user_brand</code> 和 <code>user_add_account</code> 都存在重复出现的情况</p>
+<h5 id="问题SQL">问题 SQL</h5>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> u.id, ub.brand_id, uaa.account </span><br><span class="line"><span class="keyword">FROM</span> `<span class="keyword">user</span>` u </span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> `user_brand` ub <span class="keyword">ON</span> u.id <span class="operator">=</span> ub.user_id </span><br><span class="line"><span class="keyword">LEFT</span> <span class="keyword">JOIN</span> `user_add_account` uaa <span class="keyword">ON</span> uaa.user_id <span class="operator">=</span> u.id </span><br></pre></td></tr></tbody></table></figure>
+<h5 id="查询结果">查询结果</h5>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>brand_id</th>
+<th>account</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8</td>
+<td>1</td>
+<td>5719xxxxxxxx901</td>
+</tr>
+<tr>
+<td>8</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>11</td>
+<td>1</td>
+<td>1209xxxxxxxx902</td>
+</tr>
+<tr>
+<td>11</td>
+<td>2</td>
+<td>1209xxxxxxxx902</td>
+</tr>
+<tr>
+<td>11</td>
+<td>3</td>
+<td>1209xxxxxxxx902</td>
+</tr>
+</tbody>
+</table>
+<p>很明显的可以看出，id 为 8 的数据因为 <code>user_add_account</code> 存在两条数据，导致会查出来两条数据，id 为 11 的数据因为 <code>user_brand</code> 存在三条数据，导致会查出来三条数据，假如有一个 id 为 20 的数据，关联到 <code>user_brand</code>2 条，关联到 <code>user_add_account</code> 三条，那最终会查出 6 条数据</p>
+<h4 id="怎么解决？">怎么解决？</h4>
+<p>两种方案，第一种可以在 group_concat 中加 DISTINCT 关键词去重，因为实际业务查询只是为了看关联到 user_brand 的数据，去重并不会影响业务的展示</p>
+<p>第二种可以去除 LEFT JOIN 关联的表，采用单独查询后拼接的方式，也能避免本情况，顺便还能减少表关联，减轻数据库查询压力</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -382,7 +533,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-11-12 16:54:58" itemprop="dateModified" datetime="2022-11-12T16:54:58+08:00">2022-11-12</time>
+      <time title="修改时间：2022-11-12 16:58:36" itemprop="dateModified" datetime="2022-11-12T16:58:36+08:00">2022-11-12</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1094,13 +1245,13 @@ SpotBugs 安装
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">16k</span>
+    <span title="站点总字数">17k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">14 分钟</span>
+    <span title="站点阅读时长">15 分钟</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
