@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="baidu-site-verification" content="code-84jI6cSOsn">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha256-AbA177XfpSnFEvgpYu1jMygiLabzPCJCRIBtR5jGc0k=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"anifengx.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="本文记录一些比较贴合实际开发的常遇到的 java 面试题，方便后续面试 【易】StringBuilder 和 StringBuffer 区别是什么？ StringBuffer 是线程安全的，StringBuilder 是非线程安全的，但是 StringBuilder 性能高于 StringBuffer，单线程下推荐使用 StringBuilder，StringBuffer 内部采用 synchro">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java 面试题汇总">
+<meta property="og:url" content="https://anifengx.github.io/2022/11/02/javaAudition/index.html">
+<meta property="og:site_name" content="Ani的第九艺术">
+<meta property="og:description" content="本文记录一些比较贴合实际开发的常遇到的 java 面试题，方便后续面试 【易】StringBuilder 和 StringBuffer 区别是什么？ StringBuffer 是线程安全的，StringBuilder 是非线程安全的，但是 StringBuilder 性能高于 StringBuffer，单线程下推荐使用 StringBuilder，StringBuffer 内部采用 synchro">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-11-02T12:41:25.000Z">
+<meta property="article:modified_time" content="2022-11-10T02:54:45.572Z">
+<meta property="article:author" content="AniFengx">
+<meta property="article:tag" content="java">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://anifengx.github.io/2022/11/02/javaAudition/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://anifengx.github.io/2022/11/02/javaAudition/","path":"2022/11/02/javaAudition/","title":"java 面试题汇总"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>java 面试题汇总 | Ani的第九艺术</title>
+  
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?3b4053a66cb17ec41da6e611908be504"></script>
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Ani的第九艺术</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">blog from anifengx</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E6%98%93%E3%80%91StringBuilder%E5%92%8CStringBuffer%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">【易】StringBuilder 和 StringBuffer 区别是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E5%9C%A8-Java-%E7%A8%8B%E5%BA%8F%E4%B8%AD%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E8%BF%90%E8%A1%8C%E5%AE%89%E5%85%A8%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">【中】在 Java 程序中怎么保证多线程的运行安全？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E9%9A%BE%E3%80%91synchronized%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E9%94%81%E5%8D%87%E7%BA%A7%E5%8E%9F%E7%90%86%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">【难】synchronized 的底层实现原理是什么？锁升级原理是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E6%98%93%E3%80%91%E9%81%8D%E5%8E%86List%E6%93%8D%E4%BD%9C%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">【易】遍历 List 操作的几种方式？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E9%81%8D%E5%8E%86%E5%BE%AA%E7%8E%AF%E5%88%A0%E9%99%A4%E5%85%83%E7%B4%A0%E7%9A%84%E8%AF%9D%E4%BD%A0%E4%BC%9A%E7%94%A8%E9%82%A3%E7%A7%8D%E6%96%B9%E6%B3%95%E6%9D%A5%E6%93%8D%E4%BD%9C%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">【中】遍历循环删除元素的话你会用那种方法来操作？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E8%AF%B4%E4%B8%80%E4%B8%8B-session-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">【中】说一下 session 的工作原理？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91try-catch-finally-%E4%B8%AD%EF%BC%8C%E5%A6%82%E6%9E%9C-catch-%E4%B8%AD-return-%E4%BA%86%EF%BC%8Cfinally-%E8%BF%98%E4%BC%9A%E6%89%A7%E8%A1%8C%E5%90%97%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">【中】try-catch-finally 中，如果 catch 中 return 了，finally 还会执行吗？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%BD%8E%E3%80%91spring-%E4%BA%8B%E5%8A%A1%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%9F"><span class="nav-number">8.</span> <span class="nav-text">【低】spring 事务实现方式有哪些？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%BD%8E%E3%80%91MySQL-%E7%9A%84%E5%86%85%E8%BF%9E%E6%8E%A5%E3%80%81%E5%B7%A6%E8%BF%9E%E6%8E%A5%E3%80%81%E5%8F%B3%E8%BF%9E%E6%8E%A5%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">9.</span> <span class="nav-text">【低】MySQL 的内连接、左连接、右连接有什么区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%BD%8E%E3%80%91mysql%E9%BB%98%E8%AE%A4%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%EF%BC%9F"><span class="nav-number">10.</span> <span class="nav-text">【低】mysql 默认事务隔离级别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">11.</span> <span class="nav-text">【中】乐观锁和悲观锁的区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E9%9A%BE%E3%80%91%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%8E%A5%E5%8F%A3%E5%B9%82%E7%AD%89%E6%80%A7%EF%BC%9F"><span class="nav-number">12.</span> <span class="nav-text">【难】如何保证接口幂等性？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E9%9A%BE%E3%80%91JVM%E4%B8%AD%E6%9C%89%E5%93%AA%E4%BA%9B%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95%EF%BC%9F"><span class="nav-number">13.</span> <span class="nav-text">【难】JVM 中有哪些垃圾回收算法？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E4%BB%80%E4%B9%88%E6%98%AFRedis%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E3%80%81%E5%87%BB%E7%A9%BF%E3%80%81%E9%9B%AA%E5%B4%A9%EF%BC%9F"><span class="nav-number">14.</span> <span class="nav-text">【中】什么是 Redis 缓存穿透、击穿、雪崩？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91Redis%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%9F"><span class="nav-number">15.</span> <span class="nav-text">【中】Redis 怎么实现分布式锁？</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">AniFengx</p>
+  <div class="site-description" itemprop="description">software</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/AniFengx" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;AniFengx" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:anifengx@gmail.com" title="E-Mail → mailto:anifengx@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/AniFengx" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://anifengx.github.io/2022/11/02/javaAudition/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="AniFengx">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ani的第九艺术">
+      <meta itemprop="description" content="software">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="java 面试题汇总 | Ani的第九艺术">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          java 面试题汇总
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-11-02 20:41:25" itemprop="dateCreated datePublished" datetime="2022-11-02T20:41:25+08:00">2022-11-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-11-10 10:54:45" itemprop="dateModified" datetime="2022-11-10T10:54:45+08:00">2022-11-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/audition/" itemprop="url" rel="index"><span itemprop="name">面试题</span></a>
+        </span>
+    </span>
+
+  
+    <span id="/2022/11/02/javaAudition/" class="post-meta-item leancloud_visitors" data-flag-title="java 面试题汇总" title="阅读次数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span class="leancloud-visitors-count"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.1k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>2 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>本文记录一些比较贴合实际开发的常遇到的 java 面试题，方便后续面试</p>
+<h3 id="【易】StringBuilder和StringBuffer区别是什么？">【易】StringBuilder 和 StringBuffer 区别是什么？</h3>
+<p>StringBuffer 是线程安全的，StringBuilder 是非线程安全的，但是 StringBuilder 性能高于 StringBuffer，单线程下推荐使用 StringBuilder，<strong>StringBuffer 内部采用 synchronized 来实现并发下的线程安全，也导致性能较于 StringBuilder 更低</strong> <em>【加分项】</em></p>
+<h3 id="【中】在-Java-程序中怎么保证多线程的运行安全？">【中】在 Java 程序中怎么保证多线程的运行安全？</h3>
+<ul>
+<li>使用安全类，比如 Java. util. concurrent 下的类</li>
+<li>使用自动锁 synchronized</li>
+<li> 使用手动锁 Lock</li>
+</ul>
+<h3 id="【难】synchronized的底层实现原理是什么？锁升级原理是什么？">【难】synchronized 的底层实现原理是什么？锁升级原理是什么？</h3>
+<span id="more"></span>
+<h3 id="【易】遍历List操作的几种方式？">【易】遍历 List 操作的几种方式？</h3>
+<ul>
+<li>for 循环遍历</li>
+<li>增强 for 循环</li>
+<li>迭代器循环</li>
+<li> jdk8 后的 lambda 表达式，foreach 方法 <em>【加分项】</em></li>
+</ul>
+<h3 id="【中】遍历循环删除元素的话你会用那种方法来操作？">【中】遍历循环删除元素的话你会用那种方法来操作？</h3>
+<p>使用迭代器循环删除</p>
+<h3 id="【中】说一下-session-的工作原理？">【中】说一下 session 的工作原理？</h3>
+<p>session 的工作原理是客户端登录完成之后，服务器会创建对应的 session，session 创建完之后，会把 session 的 id 发送给客户端，客户端再存储到浏览器中。这样客户端每次访问服务器时，都会带着 sessionid，服务器拿到 sessionid 之后，在内存找到与之对应的 session 这样就可以正常工作了</p>
+<h3 id="【中】try-catch-finally-中，如果-catch-中-return-了，finally-还会执行吗？">【中】try-catch-finally 中，如果 catch 中 return 了，finally 还会执行吗？</h3>
+<p>finally 一定会执行，即使是 catch 中 return 了，catch 中的 return 会等 finally 中的代码执行完之后，才会执行</p>
+<h3 id="【低】spring-事务实现方式有哪些？">【低】spring 事务实现方式有哪些？</h3>
+<p><strong>声明式事务</strong>：声明式事务也有两种实现方式，基于 xml 配置文件的方式和注解方式（在类上添加 @Transaction 注解）</p>
+<p><strong>编码方式</strong>：提供编码的形式管理和维护事务</p>
+<h3 id="【低】MySQL-的内连接、左连接、右连接有什么区别？">【低】MySQL 的内连接、左连接、右连接有什么区别？</h3>
+<p>内连接关键字：inner join；左连接：left join；右连接：right join。</p>
+<p>内连接是把匹配的关联数据显示出来；左连接是左边的表全部显示出来，右边的表显示出符合条件的数据；右连接正好相反。</p>
+<h3 id="【低】mysql默认事务隔离级别？">【低】mysql 默认事务隔离级别？</h3>
+<p>REPEATABLE-READ 可重复读</p>
+<h3 id="【中】乐观锁和悲观锁的区别？">【中】乐观锁和悲观锁的区别？</h3>
+<p><strong>乐观锁</strong>：每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在提交更新的时候会判断一下在此期间别人有没有去更新这个数据</p>
+<p><strong>悲观锁</strong>：每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候都会上锁，这样别人想拿这个数据就会阻止，直到这个锁被释放</p>
+<h3 id="【难】如何保证接口幂等性？">【难】如何保证接口幂等性？</h3>
+<div class="note info"><p>没有唯一正确的答案，更多地考察面试者的实际经验和总结能力</p>
+</div>
+<ol>
+<li>定义唯一 msgId，根据 msgId 判断是否重复</li>
+<li>结合业务逻辑使用乐观锁来限制，例如订单回调的业务逻辑，可以根据回调时订单的当前状态来判断本次回调内容是否要消费，并且在消费时借助乐观锁来进行限制，添加前置状态校验，类似<br>
+<em>【加分项】</em></li>
+</ol>
+<figure class="highlight sql"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> `<span class="keyword">order</span>` <span class="keyword">set</span> `status` <span class="operator">=</span> <span class="string">'status'</span> <span class="keyword">where</span> `status` <span class="operator">=</span> <span class="string">'beforeStatus'</span>;</span><br></pre></td></tr></tbody></table></figure>
+<ol start="3">
+<li>每个请求操作必须有唯一的 ID，而这个 ID 就是用来表示此业务是否被执行过的关键凭证，例如，订单支付业务的请求，就要使用订单的 ID 作为幂等性验证的 Key；每次执行业务之前必须要先判断此业务是否已经被处理过；第一次业务处理完成之后，要把此业务处理的状态进行保存，比如存储到 Redis 中或者是数据库中，这样才能防止业务被重复处理</li>
+</ol>
+<h3 id="【难】JVM中有哪些垃圾回收算法？">【难】JVM 中有哪些垃圾回收算法？</h3>
+<h3 id="【中】什么是Redis缓存穿透、击穿、雪崩？">【中】什么是 Redis 缓存穿透、击穿、雪崩？</h3>
+<p><strong>缓存穿透</strong>：指访问一个缓存和数据库中都不存在的 key，由于这个 key 在缓存中不存在，则会到数据库中查询，数据库中也不存在该 key，无法将数据添加到缓存中，所以每次都会访问数据库导致数据库压力增大</p>
+<blockquote>
+<ol>
+<li>将空 key 添加到缓存中</li>
+<li>使用布隆过滤器过滤空 key</li>
+</ol>
+</blockquote>
+<p><strong>缓存击穿</strong>：指大量请求访问缓存中的一个 key 时，该 key 过期了，导致这些请求都去直接访问数据库，短时间大量的请求可能会将数据库击垮</p>
+<blockquote>
+<ol>
+<li>添加互斥锁或分布式锁，让一个线程去访问数据库，将数据添加到缓存中后，其他线程直接从缓存中获取</li>
+<li>热点数据 key 不过期，定时更新缓存</li>
+</ol>
+</blockquote>
+<p><strong>缓存雪崩</strong>：指在系统运行过程中，缓存服务宕机或大量的 key 值同时过期，导致所有请求都直接访问数据库导致数据库压力增大</p>
+<blockquote>
+<ol>
+<li>将 key 的过期时间打散，避免大量 key 同时过期</li>
+<li>使用互斥锁重建缓存</li>
+</ol>
+</blockquote>
+<h3 id="【中】Redis怎么实现分布式锁？">【中】Redis 怎么实现分布式锁？</h3>
+<p>使用命令 setnx 来实现，假如当前 key 有值则说明锁已经被占有，程序在使用完锁后需要调用 del 释放锁；</p>
+<blockquote>
+<p>redis 的分布式锁会存在锁超时的情况，如果程序执行时间过长会导致锁自动解开，从而分布式锁就失效了，可以借助 Redission 的 watchdog 机制来解决；因为设置锁和设置过期时间是分开操作的，可能存在设置完锁服务宕机的情况，导致锁没有正确释放，这些可以通过 lua 脚本来实现，合并到一条命令中，也可以通过 Redission 来实现。<em>【加分项】</em></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>AniFengx
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://anifengx.github.io/2022/11/02/javaAudition/" title="java 面试题汇总">https://anifengx.github.io/2022/11/02/javaAudition/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/10/27/manage/" rel="prev" title="记管理人员拓展活动思考">
+                  <i class="fa fa-chevron-left"></i> 记管理人员拓展活动思考
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">AniFengx</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">16k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">14 分钟</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.5.0/pjax.min.js" integrity="sha256-3NkoLDrmHLTYj7csHIZSr0MHAFTXth7Ua/DDt4MRUAg=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pangu/4.0.7/pangu.min.js" integrity="sha256-j+yj56cdEY2CwkVtGyz18fNybFGpMGJ8JxG3GSyO2+I=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script><script src="/js/pjax.js"></script>
+
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  
+
+
+  <script class="next-config" data-name="leancloud_visitors" type="application/json">{"enable":true,"app_id":"OWkUyQzpqcUgvyLOoLELpHUb-gzGzoHsz","app_key":"t1tj1g2b0id61zpAAldOcDhc","server_url":null,"security":false}</script>
+  <script src="/js/third-party/statistics/lean-analytics.js"></script>
+
+
+
+</body>
+</html>

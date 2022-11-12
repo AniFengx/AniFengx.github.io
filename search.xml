@@ -173,6 +173,27 @@
       </tags>
   </entry>
   <entry>
+    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
+    <url>/2022/10/10/chromeTranslate/</url>
+    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
+<h3 id="修改host教程">修改 host 教程</h3>
+<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
+<ul>
+<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
+<li>windows: C:\Windows\System32\drivers\etc</li>
+</ul>
+<p>修改文件，添加以下内容：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">142.250.4.90 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
+<p>保存修改后，chrome 即可正常使用</p>
+]]></content>
+      <categories>
+        <category>开发工具</category>
+      </categories>
+      <tags>
+        <tag>chrome</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hello World</title>
     <url>/2022/05/19/hello-world/</url>
     <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
@@ -198,24 +219,112 @@
       </tags>
   </entry>
   <entry>
-    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
-    <url>/2022/10/10/chromeTranslate/</url>
-    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
-<h3 id="修改host教程">修改 host 教程</h3>
-<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
+    <title>java 面试题汇总</title>
+    <url>/2022/11/02/javaAudition/</url>
+    <content><![CDATA[<p>本文记录一些比较贴合实际开发的常遇到的 java 面试题，方便后续面试</p>
+<h3 id="【易】StringBuilder和StringBuffer区别是什么？">【易】StringBuilder 和 StringBuffer 区别是什么？</h3>
+<p>StringBuffer 是线程安全的，StringBuilder 是非线程安全的，但是 StringBuilder 性能高于 StringBuffer，单线程下推荐使用 StringBuilder，<strong>StringBuffer 内部采用 synchronized 来实现并发下的线程安全，也导致性能较于 StringBuilder 更低</strong> <em>【加分项】</em></p>
+<h3 id="【中】在-Java-程序中怎么保证多线程的运行安全？">【中】在 Java 程序中怎么保证多线程的运行安全？</h3>
 <ul>
-<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
-<li>windows: C:\Windows\System32\drivers\etc</li>
+<li>使用安全类，比如 Java. util. concurrent 下的类</li>
+<li>使用自动锁 synchronized</li>
+<li> 使用手动锁 Lock</li>
 </ul>
-<p>修改文件，添加以下内容：</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">203.208.40.66 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
-<p>保存修改后，chrome 即可正常使用</p>
+<h3 id="【难】synchronized的底层实现原理是什么？锁升级原理是什么？">【难】synchronized 的底层实现原理是什么？锁升级原理是什么？</h3>
+<span id="more"></span>
+<h3 id="【易】遍历List操作的几种方式？">【易】遍历 List 操作的几种方式？</h3>
+<ul>
+<li>for 循环遍历</li>
+<li>增强 for 循环</li>
+<li>迭代器循环</li>
+<li> jdk8 后的 lambda 表达式，foreach 方法 <em>【加分项】</em></li>
+</ul>
+<h3 id="【中】遍历循环删除元素的话你会用那种方法来操作？">【中】遍历循环删除元素的话你会用那种方法来操作？</h3>
+<p>使用迭代器循环删除</p>
+<h3 id="【中】说一下-session-的工作原理？">【中】说一下 session 的工作原理？</h3>
+<p>session 的工作原理是客户端登录完成之后，服务器会创建对应的 session，session 创建完之后，会把 session 的 id 发送给客户端，客户端再存储到浏览器中。这样客户端每次访问服务器时，都会带着 sessionid，服务器拿到 sessionid 之后，在内存找到与之对应的 session 这样就可以正常工作了</p>
+<h3 id="【中】try-catch-finally-中，如果-catch-中-return-了，finally-还会执行吗？">【中】try-catch-finally 中，如果 catch 中 return 了，finally 还会执行吗？</h3>
+<p>finally 一定会执行，即使是 catch 中 return 了，catch 中的 return 会等 finally 中的代码执行完之后，才会执行</p>
+<h3 id="【低】spring-事务实现方式有哪些？">【低】spring 事务实现方式有哪些？</h3>
+<p><strong>声明式事务</strong>：声明式事务也有两种实现方式，基于 xml 配置文件的方式和注解方式（在类上添加 @Transaction 注解）</p>
+<p><strong>编码方式</strong>：提供编码的形式管理和维护事务</p>
+<h3 id="【低】MySQL-的内连接、左连接、右连接有什么区别？">【低】MySQL 的内连接、左连接、右连接有什么区别？</h3>
+<p>内连接关键字：inner join；左连接：left join；右连接：right join。</p>
+<p>内连接是把匹配的关联数据显示出来；左连接是左边的表全部显示出来，右边的表显示出符合条件的数据；右连接正好相反。</p>
+<h3 id="【低】mysql默认事务隔离级别？">【低】mysql 默认事务隔离级别？</h3>
+<p>REPEATABLE-READ 可重复读</p>
+<h3 id="【中】乐观锁和悲观锁的区别？">【中】乐观锁和悲观锁的区别？</h3>
+<p><strong>乐观锁</strong>：每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在提交更新的时候会判断一下在此期间别人有没有去更新这个数据</p>
+<p><strong>悲观锁</strong>：每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候都会上锁，这样别人想拿这个数据就会阻止，直到这个锁被释放</p>
+<h3 id="【难】如何保证接口幂等性？">【难】如何保证接口幂等性？</h3>
+<div class="note info"><p>没有唯一正确的答案，更多地考察面试者的实际经验和总结能力</p>
+</div>
+<ol>
+<li>定义唯一 msgId，根据 msgId 判断是否重复</li>
+<li>结合业务逻辑使用乐观锁来限制，例如订单回调的业务逻辑，可以根据回调时订单的当前状态来判断本次回调内容是否要消费，并且在消费时借助乐观锁来进行限制，添加前置状态校验，类似<br>
+<em>【加分项】</em></li>
+</ol>
+<figure class="highlight sql"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">update</span> `<span class="keyword">order</span>` <span class="keyword">set</span> `status` <span class="operator">=</span> <span class="string">'status'</span> <span class="keyword">where</span> `status` <span class="operator">=</span> <span class="string">'beforeStatus'</span>;</span><br></pre></td></tr></tbody></table></figure>
+<ol start="3">
+<li>每个请求操作必须有唯一的 ID，而这个 ID 就是用来表示此业务是否被执行过的关键凭证，例如，订单支付业务的请求，就要使用订单的 ID 作为幂等性验证的 Key；每次执行业务之前必须要先判断此业务是否已经被处理过；第一次业务处理完成之后，要把此业务处理的状态进行保存，比如存储到 Redis 中或者是数据库中，这样才能防止业务被重复处理</li>
+</ol>
+<h3 id="【难】JVM中有哪些垃圾回收算法？">【难】JVM 中有哪些垃圾回收算法？</h3>
+<h3 id="【中】什么是Redis缓存穿透、击穿、雪崩？">【中】什么是 Redis 缓存穿透、击穿、雪崩？</h3>
+<p><strong>缓存穿透</strong>：指访问一个缓存和数据库中都不存在的 key，由于这个 key 在缓存中不存在，则会到数据库中查询，数据库中也不存在该 key，无法将数据添加到缓存中，所以每次都会访问数据库导致数据库压力增大</p>
+<blockquote>
+<ol>
+<li>将空 key 添加到缓存中</li>
+<li>使用布隆过滤器过滤空 key</li>
+</ol>
+</blockquote>
+<p><strong>缓存击穿</strong>：指大量请求访问缓存中的一个 key 时，该 key 过期了，导致这些请求都去直接访问数据库，短时间大量的请求可能会将数据库击垮</p>
+<blockquote>
+<ol>
+<li>添加互斥锁或分布式锁，让一个线程去访问数据库，将数据添加到缓存中后，其他线程直接从缓存中获取</li>
+<li>热点数据 key 不过期，定时更新缓存</li>
+</ol>
+</blockquote>
+<p><strong>缓存雪崩</strong>：指在系统运行过程中，缓存服务宕机或大量的 key 值同时过期，导致所有请求都直接访问数据库导致数据库压力增大</p>
+<blockquote>
+<ol>
+<li>将 key 的过期时间打散，避免大量 key 同时过期</li>
+<li>使用互斥锁重建缓存</li>
+</ol>
+</blockquote>
+<h3 id="【中】Redis怎么实现分布式锁？">【中】Redis 怎么实现分布式锁？</h3>
+<p>使用命令 setnx 来实现，假如当前 key 有值则说明锁已经被占有，程序在使用完锁后需要调用 del 释放锁；</p>
+<blockquote>
+<p>redis 的分布式锁会存在锁超时的情况，如果程序执行时间过长会导致锁自动解开，从而分布式锁就失效了，可以借助 Redission 的 watchdog 机制来解决；因为设置锁和设置过期时间是分开操作的，可能存在设置完锁服务宕机的情况，导致锁没有正确释放，这些可以通过 lua 脚本来实现，合并到一条命令中，也可以通过 Redission 来实现。<em>【加分项】</em></p>
+</blockquote>
 ]]></content>
       <categories>
-        <category>开发工具</category>
+        <category>面试题</category>
       </categories>
       <tags>
-        <tag>chrome</tag>
+        <tag>java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记管理人员拓展活动思考</title>
+    <url>/2022/10/27/manage/</url>
+    <content><![CDATA[<p>2022 年 10 月 15 日参加了管理人员拓展活动，也是第一次参加拓展活动，认识了很多人，也同时有了一些感悟，本文仅做自身感悟记录。</p>
+<p>当日活动有一个七巧板比赛，是个多人分组协同合作的项目，赛后教练也是组织大家做了复盘，本次的笔记也主要是来源于此次复盘的一些发言和自身感悟。</p>
+<h3 id="一致性">一致性</h3>
+<p>如何理解这个标题？一致性指的就是身为管理高层，要有统一的思想，要有一致认可的行动方案。不能小明有小明的方案，小强有小强的方案，并且这两个方案还在同时执行，这只会导致下属行动混乱，没有固定的目标。</p>
+<span id="more"></span>
+<h3 id="行动前规划方案的重要性">行动前规划方案的重要性</h3>
+<p>每次做什么事前，你是会准备一个计划方案来执行，还是先执行起来，再慢慢修正呢？</p>
+<p>这次七巧板就遇到了这个问题，当教练公布完游戏规则后，游戏就已经开始了，每个组手上都有了一份属于他们自己的任务，游戏时间只有 30 分钟，这时你是选择暂停所有人的行动，花 3-5 分钟甚至更多的时间来收集任务并归纳输出一套解决方案，还是先让整个游戏运转起来，然后等遇到问题再解决问题呢？</p>
+<p>当时我们选择了先行动，在思考，最终在游戏进行了约 20 分钟后，才逐渐摸清了套路，并进行了调整，不过为时已晚，并没有拿到游戏的满分。但是假如我们先花些时间，查看每个小组的任务，总结其中的共同点，那么可能 20 分钟就能完成这场游戏。</p>
+<p>当然在我们的日常工作中，很少会出现这么紧迫的情况，更多的是接手一个项目，然后执行落地。那就更需要我们眼光放长远，不要专注于眼前利益；提前规划统筹，制定出详细的计划方案，让项目按照方案的规划来运转并达成我们的目标。</p>
+<h3 id="动态修正">动态修正</h3>
+<p>什么是动态修正？没有什么计划一开始就是完美无缺的，做到万无一失。但是我们可以在计划进行中穿插早会、周会等多种形式，及时对当前进度进行总结复盘，发现其中的问题并进行修正，形成闭环。最不应该的是项目已出现许多问题，却依然视而不见，坚持既定计划，最终导致计划失败或者计划完成但是效果很差。不惧怕问题，视项目中出现的问题为自己改正的契机，正是暴露出的这些问题，才能逐步让自己的计划变得完善，也让自己有了应对经验。</p>
+]]></content>
+      <categories>
+        <category>管理</category>
+      </categories>
+      <tags>
+        <tag>管理</tag>
       </tags>
   </entry>
   <entry>
