@@ -1,47 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Hexo 使用指北</title>
-    <url>/2022/10/16/UseHexoOne/</url>
-    <content><![CDATA[<p>第一次使用 Hexo 还是在 2017 年，那时候到处了解学习新兴技术，go 也是在那段时间听说并进行了简单学习；当时应该是在搜如何建一个个人博客，然后就搜到了 Hexo 的相关文章，因为其借用 GitPage 相关特性无需自建服务器，直接依托 github 就能建立个人博客，并且也能支持搜索引擎收录，这些亮点在当时的我看来还是很酷的（现在依然觉得很酷～），但是当时在研究完如何安装并成功放到 GitPage 之后，因为没有良好的书写文档的习惯，个人博客也就搁置了，不过当时还是很惊叹于 Hexo 运行后的博客页面，风格很吸引人。</p>
-<p>最近使用 github 时，看了看自己的仓库发现了这个被遗弃的博客仓库，正好最近意识到了文档的重要性，并且也在尝试书写一些，而且用的也是 markdown 格式，能够无缝衔接到 Hexo 上，就准备把这个仓库重新用起来，希望不算太晚吧。</p>
-<div class="note info"><p>说起来，markdown 也是 2017 那年学习使用的，因为当时正值毕业季，需要写个人简历，可能大部分人都是用的智联吧，后来我同学推荐我用乔布简历，写完效果拔群～比智联不知道高到哪里去了，后来同学又推荐我使用 markdown，简单的编写规则加上自由的样式控制可以写出非常好看的简历，并且也足够小众足够酷（但是现在基本程序员已经都会用这个工具了），这才是程序员写个人简历的工具～从此之后我写文档基本都是用 markdown 来写</p>
-</div>
-<span id="more"></span>
-<h2 id="Hexo">Hexo</h2>
-<h3 id="Hexo安装方式">Hexo 安装方式</h3>
-<p>鉴于国情，很多人学习技术更多的是在 csdn 或者其他个人博客，通过别人学习后总结的文章来学习，确实这样学起来更快，并且很多官方网站都是英文的，而 csdn 或者个人博客相当于一个汉化的过程，但是 csdn 会存在一个问题就是文章中的内容会出现过时的情况，所以还是建议直接前往官网学习，并且 <a href="https://hexo.io/zh-cn/docs/" title="Hexo官网">Hexo 官网</a>是有简体中文的。</p>
-<h4 id="安装git">安装 git</h4>
-<p>直接去 git 官网下载 64 位的 exe 安装文件即可</p>
-<h4 id="安装node">安装 node</h4>
-<p>node 版本是个坑，很多 npm 包是对 node 版本有要求的，并且有的时候过新的 node 版本也会导致 npm 包失败，我尝试 Hexo 安装成功的 node 环境版本是 <em>14.16.1</em></p>
-<h4 id="安装Hexo">安装 Hexo</h4>
-<p>npm 全局安装 Hexo</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install -g hexo-cli</span></span><br></pre></td></tr></tbody></table></figure>
-<p>Hexo 初始化</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">hexo init</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install</span></span><br></pre></td></tr></tbody></table></figure>
-<p>配置文件</p>
-<p>_config.yml 是 Hexo 的配置文件，可以在其中设置一些基本参数，例如博客名称、作者名称及一些插件的配置信息</p>
-<h4 id="安装主题NEXT">安装主题 NEXT</h4>
-<p>Hexo 默认主题外观还是比较一般的，Hexo 支持很多扩展主题，我使用的是 NexT 主题，国内大部分网站也是推荐使用这个</p>
-<p>但是这就引出了一个坑，因国内大部分介绍 Hexo 的博客文章都停留在 2020 年或 2020 年以前了，假如没有去 Hexo 官方学习安装方式，而是直接按照国内博客来，那么你安装主题的命令一定是</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> https://github.com/theme-next/hexo-theme-next themes/next</span></span><br></pre></td></tr></tbody></table></figure>
-<p>在安装完这个主题后，你会发现使用起来都很正常，但是几个第三方插件却会出现不好使的情况，并且也没有任何参考解决方案，例如当你要用 leancloud 来当浏览量插件时，页面会出现报错的情况。这实际上是因为 NexT 原作者出现了长期不在线的情况，导致其他成员无法管理已有仓库，所以重新创建了新的分支<a href="https://github.com/next-theme/hexo-theme-next/issues/4" title="解释博客">解释博客</a></p>
-<p>正确的安装主题命令</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> https://github.com/next-theme/hexo-theme-next themes/next</span></span><br></pre></td></tr></tbody></table></figure>
-<blockquote>
-<p>命令后缀的 themes/next 不必须按照示例来，next 是指 clone 后的所在文件夹名，这个可以任意命名，只需要 clone 后，将根目录下的_config.yml 中 theme 参数配置为对应的文件夹名就可以了</p>
-</blockquote>
-<p>Hexo 新版本下，修改主题的配置文件有了新的方式，只需要在根目录下建立_config.xxx.yml，xxx 对应的是 themes 下使用主题所在的文件夹名</p>
-]]></content>
-      <categories>
-        <category>Hexo</category>
-      </categories>
-      <tags>
-        <tag>Hexo</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>java 内存泄露事故分析</title>
     <url>/2022/10/10/bugFix/</url>
     <content><![CDATA[<h3 id="问题描述">问题描述</h3>
@@ -194,28 +153,44 @@
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2022/05/19/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start">Quick Start</h2>
-<h3 id="Create-a-new-post">Create a new post</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server">Run server</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files">Generate static files</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites">Deploy to remote sites</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+    <title>Hexo 使用指北</title>
+    <url>/2022/10/16/UseHexoOne/</url>
+    <content><![CDATA[<p>第一次使用 Hexo 还是在 2017 年，那时候到处了解学习新兴技术，go 也是在那段时间听说并进行了简单学习；当时应该是在搜如何建一个个人博客，然后就搜到了 Hexo 的相关文章，因为其借用 GitPage 相关特性无需自建服务器，直接依托 github 就能建立个人博客，并且也能支持搜索引擎收录，这些亮点在当时的我看来还是很酷的（现在依然觉得很酷～），但是当时在研究完如何安装并成功放到 GitPage 之后，因为没有良好的书写文档的习惯，个人博客也就搁置了，不过当时还是很惊叹于 Hexo 运行后的博客页面，风格很吸引人。</p>
+<p>最近使用 github 时，看了看自己的仓库发现了这个被遗弃的博客仓库，正好最近意识到了文档的重要性，并且也在尝试书写一些，而且用的也是 markdown 格式，能够无缝衔接到 Hexo 上，就准备把这个仓库重新用起来，希望不算太晚吧。</p>
+<div class="note info"><p>说起来，markdown 也是 2017 那年学习使用的，因为当时正值毕业季，需要写个人简历，可能大部分人都是用的智联吧，后来我同学推荐我用乔布简历，写完效果拔群～比智联不知道高到哪里去了，后来同学又推荐我使用 markdown，简单的编写规则加上自由的样式控制可以写出非常好看的简历，并且也足够小众足够酷（但是现在基本程序员已经都会用这个工具了），这才是程序员写个人简历的工具～从此之后我写文档基本都是用 markdown 来写</p>
+</div>
+<span id="more"></span>
+<h2 id="Hexo">Hexo</h2>
+<h3 id="Hexo安装方式">Hexo 安装方式</h3>
+<p>鉴于国情，很多人学习技术更多的是在 csdn 或者其他个人博客，通过别人学习后总结的文章来学习，确实这样学起来更快，并且很多官方网站都是英文的，而 csdn 或者个人博客相当于一个汉化的过程，但是 csdn 会存在一个问题就是文章中的内容会出现过时的情况，所以还是建议直接前往官网学习，并且 <a href="https://hexo.io/zh-cn/docs/" title="Hexo官网">Hexo 官网</a>是有简体中文的。</p>
+<h4 id="安装git">安装 git</h4>
+<p>直接去 git 官网下载 64 位的 exe 安装文件即可</p>
+<h4 id="安装node">安装 node</h4>
+<p>node 版本是个坑，很多 npm 包是对 node 版本有要求的，并且有的时候过新的 node 版本也会导致 npm 包失败，我尝试 Hexo 安装成功的 node 环境版本是 <em>14.16.1</em></p>
+<h4 id="安装Hexo">安装 Hexo</h4>
+<p>npm 全局安装 Hexo</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install -g hexo-cli</span></span><br></pre></td></tr></tbody></table></figure>
+<p>Hexo 初始化</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">hexo init</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install</span></span><br></pre></td></tr></tbody></table></figure>
+<p>配置文件</p>
+<p>_config.yml 是 Hexo 的配置文件，可以在其中设置一些基本参数，例如博客名称、作者名称及一些插件的配置信息</p>
+<h4 id="安装主题NEXT">安装主题 NEXT</h4>
+<p>Hexo 默认主题外观还是比较一般的，Hexo 支持很多扩展主题，我使用的是 NexT 主题，国内大部分网站也是推荐使用这个</p>
+<p>但是这就引出了一个坑，因国内大部分介绍 Hexo 的博客文章都停留在 2020 年或 2020 年以前了，假如没有去 Hexo 官方学习安装方式，而是直接按照国内博客来，那么你安装主题的命令一定是</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> https://github.com/theme-next/hexo-theme-next themes/next</span></span><br></pre></td></tr></tbody></table></figure>
+<p>在安装完这个主题后，你会发现使用起来都很正常，但是几个第三方插件却会出现不好使的情况，并且也没有任何参考解决方案，例如当你要用 leancloud 来当浏览量插件时，页面会出现报错的情况。这实际上是因为 NexT 原作者出现了长期不在线的情况，导致其他成员无法管理已有仓库，所以重新创建了新的分支<a href="https://github.com/next-theme/hexo-theme-next/issues/4" title="解释博客">解释博客</a></p>
+<p>正确的安装主题命令</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> https://github.com/next-theme/hexo-theme-next themes/next</span></span><br></pre></td></tr></tbody></table></figure>
+<blockquote>
+<p>命令后缀的 themes/next 不必须按照示例来，next 是指 clone 后的所在文件夹名，这个可以任意命名，只需要 clone 后，将根目录下的_config.yml 中 theme 参数配置为对应的文件夹名就可以了</p>
+</blockquote>
+<p>Hexo 新版本下，修改主题的配置文件有了新的方式，只需要在根目录下建立_config.xxx.yml，xxx 对应的是 themes 下使用主题所在的文件夹名</p>
 ]]></content>
       <categories>
-        <category>helloworld</category>
+        <category>Hexo</category>
       </categories>
       <tags>
-        <tag>helloworld</tag>
+        <tag>Hexo</tag>
       </tags>
   </entry>
   <entry>
@@ -305,26 +280,28 @@
       </tags>
   </entry>
   <entry>
-    <title>记管理人员拓展活动思考</title>
-    <url>/2022/10/27/manage/</url>
-    <content><![CDATA[<p>2022 年 10 月 15 日参加了管理人员拓展活动，也是第一次参加拓展活动，认识了很多人，也同时有了一些感悟，本文仅做自身感悟记录。</p>
-<p>当日活动有一个七巧板比赛，是个多人分组协同合作的项目，赛后教练也是组织大家做了复盘，本次的笔记也主要是来源于此次复盘的一些发言和自身感悟。</p>
-<h3 id="一致性">一致性</h3>
-<p>如何理解这个标题？一致性指的就是身为管理高层，要有统一的思想，要有一致认可的行动方案。不能小明有小明的方案，小强有小强的方案，并且这两个方案还在同时执行，这只会导致下属行动混乱，没有固定的目标。</p>
-<span id="more"></span>
-<h3 id="行动前规划方案的重要性">行动前规划方案的重要性</h3>
-<p>每次做什么事前，你是会准备一个计划方案来执行，还是先执行起来，再慢慢修正呢？</p>
-<p>这次七巧板就遇到了这个问题，当教练公布完游戏规则后，游戏就已经开始了，每个组手上都有了一份属于他们自己的任务，游戏时间只有 30 分钟，这时你是选择暂停所有人的行动，花 3-5 分钟甚至更多的时间来收集任务并归纳输出一套解决方案，还是先让整个游戏运转起来，然后等遇到问题再解决问题呢？</p>
-<p>当时我们选择了先行动，在思考，最终在游戏进行了约 20 分钟后，才逐渐摸清了套路，并进行了调整，不过为时已晚，并没有拿到游戏的满分。但是假如我们先花些时间，查看每个小组的任务，总结其中的共同点，那么可能 20 分钟就能完成这场游戏。</p>
-<p>当然在我们的日常工作中，很少会出现这么紧迫的情况，更多的是接手一个项目，然后执行落地。那就更需要我们眼光放长远，不要专注于眼前利益；提前规划统筹，制定出详细的计划方案，让项目按照方案的规划来运转并达成我们的目标。</p>
-<h3 id="动态修正">动态修正</h3>
-<p>什么是动态修正？没有什么计划一开始就是完美无缺的，做到万无一失。但是我们可以在计划进行中穿插早会、周会等多种形式，及时对当前进度进行总结复盘，发现其中的问题并进行修正，形成闭环。最不应该的是项目已出现许多问题，却依然视而不见，坚持既定计划，最终导致计划失败或者计划完成但是效果很差。不惧怕问题，视项目中出现的问题为自己改正的契机，正是暴露出的这些问题，才能逐步让自己的计划变得完善，也让自己有了应对经验。</p>
+    <title>Hello World</title>
+    <url>/2022/10/10/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start">Quick Start</h2>
+<h3 id="Create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server">Run server</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 ]]></content>
       <categories>
-        <category>管理</category>
+        <category>helloworld</category>
       </categories>
       <tags>
-        <tag>管理</tag>
+        <tag>helloworld</tag>
       </tags>
   </entry>
   <entry>
@@ -388,6 +365,30 @@
       </categories>
       <tags>
         <tag>mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记管理人员拓展活动思考</title>
+    <url>/2022/10/27/manage/</url>
+    <content><![CDATA[<p>2022 年 10 月 15 日参加了管理人员拓展活动，也是第一次参加拓展活动，认识了很多人，也同时有了一些感悟，本文仅做自身感悟记录。</p>
+<p>当日活动有一个七巧板比赛，是个多人分组协同合作的项目，赛后教练也是组织大家做了复盘，本次的笔记也主要是来源于此次复盘的一些发言和自身感悟。</p>
+<h3 id="一致性">一致性</h3>
+<p>如何理解这个标题？一致性指的就是身为管理高层，要有统一的思想，要有一致认可的行动方案。不能小明有小明的方案，小强有小强的方案，并且这两个方案还在同时执行，这只会导致下属行动混乱，没有固定的目标。</p>
+<span id="more"></span>
+<h3 id="项目实施前规划方案的重要性">项目实施前规划方案的重要性</h3>
+<p>每次做什么事前，你是会准备一个计划方案来执行，还是先执行起来，再慢慢修正呢？</p>
+<p>这次七巧板就遇到了这个问题，当教练公布完游戏规则后，游戏就已经开始了，每个组手上都有了一份属于他们自己的任务，游戏时间只有 30 分钟，这时你是选择暂停所有人的行动，花 3-5 分钟甚至更多的时间来收集任务并归纳输出一套解决方案，还是先让整个游戏运转起来，然后等遇到问题再解决问题呢？</p>
+<p>当时我们选择了先行动，在思考，最终在游戏进行了约 20 分钟后，才逐渐摸清了套路，并进行了调整，不过为时已晚，没能拿到游戏的满分。但是假如我们先花些时间，查看每个小组的任务，总结其中的共同点，那么可能 20 分钟就能完成这场游戏。</p>
+<p>由此可见，实际行动前的准备何其重要，提前了解任务目标、游戏规则并制定方案，不正如我们实际工作中的了解客户需求，按照客户的规定提供项目实施计划吗？但是当我们跳过这些准备，直接开始实施，想必项目实施的结果如同游戏结果一般，杂乱无章，一团糟糕，最终引起客户的投诉。</p>
+<p>当然在我们的日常工作中，很少会出现这么紧迫的情况，更多的是先得到需求并与客户研讨，然后逐步执行最终落地。这就更需要我们眼光放长远，不要专注于眼前利益、急干蛮干；提前统筹规划，制定出详细的计划方案，让项目的运行始终符合我们的预期，最终完美落地。</p>
+<h3 id="动态修正">动态修正</h3>
+<p>什么是动态修正？没有什么计划一开始就是完美无缺的，做到万无一失。但是我们可以在计划进行中穿插早会、周会等多种形式，及时对当前进度进行总结复盘，发现其中的问题并进行修正，形成闭环。最不应该的是项目已出现许多问题，却依然视而不见，坚持既定计划，最终导致计划失败或者计划完成但是效果很差。不惧怕问题，视项目中出现的问题为自己改正的契机，正是暴露出的这些问题，才能逐步让自己的计划变得完善，也让自己有了应对经验。</p>
+]]></content>
+      <categories>
+        <category>管理</category>
+      </categories>
+      <tags>
+        <tag>管理</tag>
       </tags>
   </entry>
   <entry>
