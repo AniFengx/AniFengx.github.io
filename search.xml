@@ -1,6 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
+    <url>/2022/10/10/chromeTranslate/</url>
+    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
+<h3 id="修改host教程">修改 host 教程</h3>
+<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
+<ul>
+<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
+<li>windows: C:\Windows\System32\drivers\etc</li>
+</ul>
+<p>修改文件，添加以下内容：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">142.250.4.90 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
+<p>保存修改后，chrome 即可正常使用</p>
+]]></content>
+      <categories>
+        <category>开发工具</category>
+      </categories>
+      <tags>
+        <tag>chrome</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hexo 使用指北</title>
     <url>/2022/10/16/UseHexoOne/</url>
     <content><![CDATA[<p>第一次使用 Hexo 还是在 2017 年，那时候到处了解学习新兴技术，go 也是在那段时间听说并进行了简单学习；当时应该是在搜如何建一个个人博客，然后就搜到了 Hexo 的相关文章，因为其借用 GitPage 相关特性无需自建服务器，直接依托 github 就能建立个人博客，并且也能支持搜索引擎收录，这些亮点在当时的我看来还是很酷的（现在依然觉得很酷～），但是当时在研究完如何安装并成功放到 GitPage 之后，因为没有良好的书写文档的习惯，个人博客也就搁置了，不过当时还是很惊叹于 Hexo 运行后的博客页面，风格很吸引人。</p>
@@ -198,51 +219,6 @@
       </tags>
   </entry>
   <entry>
-    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
-    <url>/2022/10/10/chromeTranslate/</url>
-    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
-<h3 id="修改host教程">修改 host 教程</h3>
-<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
-<ul>
-<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
-<li>windows: C:\Windows\System32\drivers\etc</li>
-</ul>
-<p>修改文件，添加以下内容：</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">142.250.4.90 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
-<p>保存修改后，chrome 即可正常使用</p>
-]]></content>
-      <categories>
-        <category>开发工具</category>
-      </categories>
-      <tags>
-        <tag>chrome</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>记管理人员拓展活动思考</title>
-    <url>/2022/10/27/manage/</url>
-    <content><![CDATA[<p>2022 年 10 月 15 日参加了管理人员拓展活动，也是第一次参加拓展活动，认识了很多人，也同时有了一些感悟，本文仅做自身感悟记录。</p>
-<p>当日活动有一个七巧板比赛，是个多人分组协同合作的项目，赛后教练也是组织大家做了复盘，本次的笔记也主要是来源于此次复盘的一些发言和自身感悟。</p>
-<h3 id="一致性">一致性</h3>
-<p>如何理解这个标题？一致性指的就是身为管理高层，要有统一的思想，要有一致认可的行动方案。不能小明有小明的方案，小强有小强的方案，并且这两个方案还在同时执行，这只会导致下属行动混乱，没有固定的目标。</p>
-<span id="more"></span>
-<h3 id="项目实施前规划方案的重要性">项目实施前规划方案的重要性</h3>
-<p>每次做什么事前，你是会准备一个计划方案来执行，还是先执行起来，再慢慢修正呢？</p>
-<p>这次七巧板就遇到了这个问题，当教练公布完游戏规则后，游戏就已经开始了，每个组手上都有了一份属于他们自己的任务，游戏时间只有 30 分钟，这时你是选择暂停所有人的行动，花 3-5 分钟甚至更多的时间来收集任务并归纳输出一套解决方案，还是先让整个游戏运转起来，然后等遇到问题再解决问题呢？</p>
-<p>当时我们选择了先行动，再思考，最终在游戏进行了约 20 分钟后，才逐渐摸清了套路，并进行了调整，不过船头调转的太晚，没能拿到游戏的满分。但是假如我们先花些时间，收集并查看每个小组的任务，总结其中的共同点，那么可能只需要 20 分钟就能完成这场游戏。</p>
-<p>由此可见，实际行动前的准备何其重要，提前了解任务目标、游戏规则并制定方案，不正如我们实际工作中的了解客户需求，按照客户的规定提供项目实施计划吗？但是当我们跳过这些准备，直接开始实施，想必项目实施的结果如同游戏结果一般，杂乱无章，一团糟糕，最终引起客户的投诉。</p>
-<p>当然在我们的日常工作中，很少会出现这么紧迫的情况，更多的是先得到需求并与客户研讨，然后逐步执行最终落地。这就更需要我们眼光放长远，不要专注于眼前利益、急干蛮干；提前统筹规划，制定出详细的计划方案，让项目的运行始终符合我们的预期，最终完美落地。</p>
-<h3 id="动态修正">动态修正</h3>
-<p>什么是动态修正？没有什么计划一开始就是完美无缺的，做到万无一失。但是我们可以在计划进行中穿插早会、周会等多种形式，及时对当前进度进行总结复盘，发现其中的问题并进行修正，形成闭环。最不应该的是项目已出现许多问题，却依然视而不见，坚持既定计划，最终导致计划失败或者计划完成但是效果很差。不惧怕问题，视项目中出现的问题为自己改正的契机，正是暴露出的这些问题，才能逐步让自己的计划变得完善，也让自己有了应对经验。</p>
-]]></content>
-      <categories>
-        <category>管理</category>
-      </categories>
-      <tags>
-        <tag>管理</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>java 面试题汇总</title>
     <url>/2022/11/02/javaAudition/</url>
     <content><![CDATA[<p>本文记录一些比较贴合实际开发的常遇到的 java 面试题，方便后续面试</p>
@@ -333,6 +309,30 @@
       </tags>
   </entry>
   <entry>
+    <title>记管理人员拓展活动思考</title>
+    <url>/2022/10/27/manage/</url>
+    <content><![CDATA[<p>2022 年 10 月 15 日参加了管理人员拓展活动，也是第一次参加拓展活动，认识了很多人，也同时有了一些感悟，本文仅做自身感悟记录。</p>
+<p>当日活动有一个七巧板比赛，是个多人分组协同合作的项目，赛后教练也是组织大家做了复盘，本次的笔记也主要是来源于此次复盘的一些发言和自身感悟。</p>
+<h3 id="一致性">一致性</h3>
+<p>如何理解这个标题？一致性指的就是身为管理高层，要有统一的思想，要有一致认可的行动方案。不能小明有小明的方案，小强有小强的方案，并且这两个方案还在同时执行，这只会导致下属行动混乱，没有固定的目标。</p>
+<span id="more"></span>
+<h3 id="项目实施前规划方案的重要性">项目实施前规划方案的重要性</h3>
+<p>每次做什么事前，你是会准备一个计划方案来执行，还是先执行起来，再慢慢修正呢？</p>
+<p>这次七巧板就遇到了这个问题，当教练公布完游戏规则后，游戏就已经开始了，每个组手上都有了一份属于他们自己的任务，游戏时间只有 30 分钟，这时你是选择暂停所有人的行动，花 3-5 分钟甚至更多的时间来收集任务并归纳输出一套解决方案，还是先让整个游戏运转起来，然后等遇到问题再解决问题呢？</p>
+<p>当时我们选择了先行动，再思考，最终在游戏进行了约 20 分钟后，才逐渐摸清了套路，并进行了调整，不过船头调转的太晚，没能拿到游戏的满分。但是假如我们先花些时间，收集并查看每个小组的任务，总结其中的共同点，那么可能只需要 20 分钟就能完成这场游戏。</p>
+<p>由此可见，实际行动前的准备何其重要，提前了解任务目标、游戏规则并制定方案，不正如我们实际工作中的了解客户需求，按照客户的规定提供项目实施计划吗？但是当我们跳过这些准备，直接开始实施，想必项目实施的结果如同游戏结果一般，杂乱无章，一团糟糕，最终引起客户的投诉。</p>
+<p>当然在我们的日常工作中，很少会出现这么紧迫的情况，更多的是先得到需求并与客户研讨，然后逐步执行最终落地。这就更需要我们眼光放长远，不要专注于眼前利益、急干蛮干；提前统筹规划，制定出详细的计划方案，让项目的运行始终符合我们的预期，最终完美落地。</p>
+<h3 id="动态修正">动态修正</h3>
+<p>什么是动态修正？没有什么计划一开始就是完美无缺的，做到万无一失。但是我们可以在计划进行中穿插早会、周会等多种形式，及时对当前进度进行总结复盘，发现其中的问题并进行修正，形成闭环。最不应该的是项目已出现许多问题，却依然视而不见，坚持既定计划，最终导致计划失败或者计划完成但是效果很差。不惧怕问题，视项目中出现的问题为自己改正的契机，正是暴露出的这些问题，才能逐步让自己的计划变得完善，也让自己有了应对经验。</p>
+]]></content>
+      <categories>
+        <category>管理</category>
+      </categories>
+      <tags>
+        <tag>管理</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>mysql 中多表 LEFT JOIN 的误区</title>
     <url>/2022/11/12/mysqlLeftJoin/</url>
     <content><![CDATA[<p>最近在日常看项目慢 SQL 日志的时候，发现项目里的用户管理查询 SQL 略慢，基本要在一秒以上，决定优化一下，结果优化了半天还优化出来个问题，研究了好久才发现原因，其实是我的使用姿势不对</p>
@@ -393,6 +393,37 @@
       </categories>
       <tags>
         <tag>mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>shiro 框架版本升级出现请求 400 拦截处理</title>
+    <url>/2023/01/18/shiroUpdate/</url>
+    <content><![CDATA[<h3 id="问题描述">问题描述</h3>
+<p>因阿里云服务器安全提示，项目中的 shiro 框架近期做了一次升级，升级后检查项目运行无任何问题，几天后运营突然反应说管理平台图片全部无法展示，进行了初步排查，发现在请求后端获取图片的请求全部返回 400 被拦截了，结合最近更新内容锁定目标在 shiro 版本升级上</p>
+<div class="note info"><p>运营需要在管理平台查看图片后直接右键另存为对应中文名的文件，并且要求是原本文件名称。图片默认都上传到了 oss，如果直接右键下载会是乱序英文数字文件名，所以在管理平台后端做了一次转发并设置了中文文件名称</p>
+</div>
+<span id="more"></span>
+<h3 id="问题解决">问题解决</h3>
+<p>实际问题是由于 shiro 新框架新增了几个默认 filter，其中 <code>InvalidRequestFilter</code> 会拦截 url 上的特殊字符，所以只需要修改 <code>InvalidRequestFilter</code> 的方法跳过拦截即可</p>
+<h4 id="解决办法">解决办法</h4>
+<p>重写 <code>ShiroFilterFactoryBean</code></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CustomShiroFilterFactoryBean</span> <span class="keyword">extends</span> <span class="title class_">ShiroFilterFactoryBean</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">logger</span> <span class="operator">=</span> LoggerFactory.getLogger(CustomShiroFilterFactoryBean.class);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Class <span class="title function_">getObjectType</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> CustomSpringShiroFilter.class;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> AbstractShiroFilter <span class="title function_">createInstance</span><span class="params">()</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        logger.debug(<span class="string">"Creating Shiro Filter instance."</span>);</span><br><span class="line"></span><br><span class="line">        <span class="type">SecurityManager</span> <span class="variable">securityManager</span> <span class="operator">=</span> getSecurityManager();</span><br><span class="line">        <span class="keyword">if</span> (securityManager == <span class="literal">null</span>) {</span><br><span class="line">            <span class="type">String</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="string">"SecurityManager property must be set."</span>;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BeanInitializationException</span>(msg);</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!(securityManager <span class="keyword">instanceof</span> WebSecurityManager)) {</span><br><span class="line">            <span class="type">String</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="string">"The security manager does not implement the WebSecurityManager interface."</span>;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BeanInitializationException</span>(msg);</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="type">FilterChainManager</span> <span class="variable">manager</span> <span class="operator">=</span> createFilterChainManager();</span><br><span class="line">        <span class="comment">//Expose the constructed FilterChainManager by first wrapping it in a</span></span><br><span class="line">        <span class="comment">// FilterChainResolver implementation. The AbstractShiroFilter implementations</span></span><br><span class="line">        <span class="comment">// do not know about FilterChainManagers - only resolvers:</span></span><br><span class="line">        <span class="type">PathMatchingFilterChainResolver</span> <span class="variable">chainResolver</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">PathMatchingFilterChainResolver</span>();</span><br><span class="line">        chainResolver.setFilterChainManager(manager);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// URL携带中文400，servletPath中文校验bug</span></span><br><span class="line">        Map&lt;String, Filter&gt; filterMap = manager.getFilters();</span><br><span class="line">        <span class="type">Filter</span> <span class="variable">invalidRequestFilter</span> <span class="operator">=</span> filterMap.get(DefaultFilter.invalidRequest.name());</span><br><span class="line">        <span class="keyword">if</span> (invalidRequestFilter <span class="keyword">instanceof</span> InvalidRequestFilter) {</span><br><span class="line">            ((InvalidRequestFilter) invalidRequestFilter).setBlockNonAscii(<span class="literal">false</span>);</span><br><span class="line">        }</span><br><span class="line">        <span class="comment">//Now create a concrete ShiroFilter instance and apply the acquired SecurityManager and built</span></span><br><span class="line">        <span class="comment">//FilterChainResolver.  It doesn't matter that the instance is an anonymous inner class</span></span><br><span class="line">        <span class="comment">//here - we're just using it because it is a concrete AbstractShiroFilter instance that accepts</span></span><br><span class="line">        <span class="comment">//injection of the SecurityManager and FilterChainResolver:</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">CustomSpringShiroFilter</span>((WebSecurityManager) securityManager, chainResolver);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>将重写的 <code>ShiroFilterFactoryBean</code> 注入进 shiro 中</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Bean(name = "shiroFilter")</span></span><br><span class="line"><span class="keyword">public</span> BaseShiroFactoryBean <span class="title function_">shiroFilter</span><span class="params">(<span class="meta">@Qualifier(value = "securityManager")</span> SecurityManager securityManager)</span> {</span><br><span class="line">    <span class="comment">//根据配置加载是否启用redis</span></span><br><span class="line">    <span class="type">Boolean</span> <span class="variable">redis</span> <span class="operator">=</span> customerConfig.getRedis();</span><br><span class="line">    <span class="type">BaseShiroFactoryBean</span> <span class="variable">shiroFilterFactoryBean</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CustomShiroFilterFactoryBean</span>();</span><br><span class="line">    Map&lt;String, Filter&gt; filters = shiroFilterFactoryBean.getFilters();</span><br><span class="line">    filters.put(Constants.CUSTOMER_SHIRO_FILTER, customRolesAuthorizationFilter());</span><br><span class="line">    shiroFilterFactoryBean.setFilters(filters);</span><br><span class="line">    shiroFilterFactoryBean.setSecurityManager(securityManager);</span><br><span class="line">    <span class="comment">//加载默认配置.</span></span><br><span class="line">    Map&lt;String, String&gt; filterChainDefinitionMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(<span class="number">16</span>);</span><br><span class="line">    defaultFilterChain(filterChainDefinitionMap);</span><br><span class="line">    <span class="comment">//加载自定义配置</span></span><br><span class="line">    loadCustomerChain(filterChainDefinitionMap);</span><br><span class="line">    <span class="comment">//登录地址</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(customerConfig.getLoginUrl())) {</span><br><span class="line">        shiroFilterFactoryBean.setLoginUrl(Constants.DEFAULT_LOGIN_URL);</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        shiroFilterFactoryBean.setLoginUrl(customerConfig.getLoginUrl());</span><br><span class="line">    }</span><br><span class="line">    <span class="comment">//登录成功后要跳转的链接</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(customerConfig.getSuccessUrl())) {</span><br><span class="line">        shiroFilterFactoryBean.setSuccessUrl(Constants.DEFAULT_INDEX);</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        shiroFilterFactoryBean.setSuccessUrl(customerConfig.getSuccessUrl());</span><br><span class="line">    }</span><br><span class="line">    <span class="comment">//未授权界面;</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(customerConfig.getUnauthorizedUrl())) {</span><br><span class="line">        shiroFilterFactoryBean.setUnauthorizedUrl(Constants.DEFAULT_403);</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        shiroFilterFactoryBean.setUnauthorizedUrl(customerConfig.getUnauthorizedUrl());</span><br><span class="line">    }</span><br><span class="line">    <span class="comment">//加载静态权限链</span></span><br><span class="line">    shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);</span><br><span class="line">    <span class="comment">//加载动态权限链</span></span><br><span class="line">    shiroFilterFactoryBean.setFilterChainDefinitions(<span class="string">""</span>);</span><br><span class="line">    <span class="keyword">return</span> shiroFilterFactoryBean;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>至此问题解决，一开始曾尝试设置 filter 不校验的 url 地址，但是查看源码后发现不支持这么设置，修改源码影响范围较大，遂决定全局关闭 BlockNonAscii 设置</p>
+<h3 id="参考文章">参考文章</h3>
+<p><a href="https://lequ7.com/guan-yu-springboot-zai-springboot-xia-sheng-ji-shiro-zhi-hou-dao-zhi-zhong-wen-lu-jing-400-fei-fa-de-jie-jue-fang-an.html" title="关于springboot:在SpringBoot下升级shiro之后导致中文路径400非法的解决方案">关于 springboot: 在 SpringBoot 下升级 shiro 之后导致中文路径 400 非法的解决方案</a></p>
+<div class="note warning"><p>尝试了上述方法，发现未生效</p>
+</div>
+<p><a href="https://www.freesion.com/article/89131489103/" title="SHIRO1.6升级到1.7后的问题处理">SHIRO1.6 升级到 1.7 后的问题处理</a></p>
+<p>主要参考了上述文章</p>
+]]></content>
+      <categories>
+        <category>shiro</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>shiro</tag>
       </tags>
   </entry>
   <entry>
