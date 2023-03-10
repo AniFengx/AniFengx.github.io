@@ -1,24 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
-    <url>/2022/10/10/chromeTranslate/</url>
-    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
-<h3 id="修改host教程">修改 host 教程</h3>
-<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
+    <title>java 内存泄露事故分析</title>
+    <url>/2022/10/10/bugFix/</url>
+    <content><![CDATA[<h3 id="问题描述">问题描述</h3>
+<p><strong>电影票</strong>长期存在 <strong>ticket</strong> 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 <strong>ticket</strong> 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 <strong>ticket</strong> 模块。</p>
+<blockquote>
+<p><em>电影票 ticket 模块在 h5 用户下单时，会调用异步比价功能，此功能使用 @Async 注解实现，意味着每有一笔订单都会启用一个比价线程</em></p>
+</blockquote>
+<p>本问题历时一年才得以解决，这其中经历了四个问题分析阶段</p>
+<ol>
+<li>
+<p><strong>ticket</strong> 模块崩溃，根据 dump 日志发现内存中存在大量比价功能生成的对象，初步判断是短时订单量过大导致的，未有较好的解决办法，选择多开 <strong>ticket</strong> 模块顶住大量订单的压力。</p>
+</li>
+<li>
+<p>运维侧报告 <strong>ticket</strong> 模块存在凌晨崩溃的情况，排查日志发现凌晨订单只有几笔，此时怀疑是比价功能存在一定问题，导致其产生的对象停留较久，但是依旧未排查到问题。</p>
+<blockquote>
+<p><em>因还是未定位到能导致内存溢出的问题，只能判断认为是虚拟机内存回收较慢导致的</em></p>
+</blockquote>
+</li>
+<li>
+<p>技术侧发现 <code>@Async</code> 注解支持选择线程池来将异步线程改为用线程池来执行，可以防止大量调用 <code>@Async</code> 导致生成了海量线程从而内存溢出。但是在本功能上线后，依然出现了 <strong>ticket</strong> 模块崩溃的问题。</p>
+</li>
+<li>
+<p>经过以上三次排查，已基本确定本次问题是由代码问题引起的内存泄露，并不是因为电影票订单数据量过大导致的系统崩溃。随后重新开始排查问题，并最终定位到是因为 json 序列化引起的内存泄露。</p>
+</li>
+</ol>
+<h3 id="定位思路">定位思路</h3>
+<h4 id="步骤1">步骤 1</h4>
+<p>首先使用 <strong>JProfiler</strong> 工具查看 <strong>dump</strong> 日志，按照保留大小倒序排序，可以发现最多的是 <code>String</code> 对象，这是因为 <code>YtbShowListResponse</code> 内存溢出对象中存储有请求接口返回的字符串内容，此内容包含一个影院下面的所有场次，所以内容较大。</p>
+<p><img src="/2022/10/10/bugFix/JProfiler1.png" alt=""></p>
+<center>
+（JProfiler 工具查看 dump 日志）
+</center>
+<span id="more"></span>
+<h4 id="步骤2">步骤 2</h4>
+<p>查看对象的数据结构，发现本质是一个 <code>Map</code>，初步怀疑是不是 <strong>NutMap</strong> 第三方工具引起的</p>
+<p><img src="/2022/10/10/bugFix/YtbShowListResponse.png" alt=""></p>
+<center>
+（YtbShowListResponse 数据结构）
+</center>
+<h4 id="步骤3">步骤 3</h4>
+<p>使用 <strong>JProfiler</strong> 工具的图表功能，查看对象到 GC 根 (root) 的路径，可以发现最终是被 <strong>org.nutz.lang.Mirror</strong> 对象所持有，导致无法被回收</p>
+<p><img src="/2022/10/10/bugFix/JProfiler2.png" alt=""></p>
+<center>
+（JProfiler 工具查看图标）
+</center>
+<h4 id="步骤4">步骤 4</h4>
+<p>此时查看比价功能代码，可以发现 <code>YtbShowListResponse</code> 对象的使用都是正常的，并没有放置到 java 静态变量中等操作，但是根据 <strong>dump</strong> 日志分析其中的 <code>YtbShowListResponse</code> 对象，<code>YtbShowListResponse</code> 中 <code>content</code> 字段都是成功，即请求失败就不会出现内存泄露问题，问题代码范围进一步缩小。</p>
+<p><img src="/2022/10/10/bugFix/queryYtbOrderInfo.png" alt=""></p>
+<center>
+（比价功能代码）
+</center>
+<h4 id="步骤5">步骤 5</h4>
+<p>排查代码发现<em><strong> getResponse</strong></em> 方法有非常高的可疑性，使用了第三方序列化方式<em><strong> Json.fromJson</strong></em>，并且使用了 <strong>PType</strong> 第三方工具来标识序列化类型，更加可疑，此序列化方法和 <strong>org.nutz.lang.Mirror</strong> 同属于 <strong>nutz</strong> 第三方工具包，基本已锁定到问题代码。</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">   <span class="keyword">public</span> List&lt;YtbShowBo&gt; <span class="title function_">getResponse</span><span class="params">()</span> {</span><br><span class="line">       <span class="type">String</span> <span class="variable">data</span> <span class="operator">=</span> <span class="built_in">this</span>.getData();</span><br><span class="line">       <span class="keyword">if</span> (Strings.isBlank(data)) {</span><br><span class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">YtbException</span>(<span class="string">"影托邦场次列表响应为空"</span>);</span><br><span class="line">       }</span><br><span class="line">       <span class="keyword">return</span> Json.fromJson(<span class="keyword">new</span> <span class="title class_">PType</span>&lt;List&lt;YtbShowBo&gt;&gt;() {</span><br><span class="line">       }, data);</span><br><span class="line">   }</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="步骤6">步骤 6</h4>
+<p>为了验证是否是 json 序列化导致，在 <code>YtbShowListResponse</code> 上重写了<em><strong> finalize</strong></em> 方法，并在其中打印了日志，验证对象是否被回收了，采用对照法，使用 <strong>fastjson</strong> 包替换了序列化方法，执行相同比价功能，最终验证结果如下：</p>
+<ol>
+<li><em><strong>Json.fromJson</strong></em> 方法和 <strong>PType</strong> 共同使用情况下，会导致<em><strong> finalize</strong></em> 不被执行，也就意味着此对象不会被虚拟机回收</li>
+<li><em><strong> JSON.parseObject</strong></em> 方法和 <strong>TypeReference</strong> 共同使用情况下，<em><strong>finalize</strong></em> 很快就执行了，意味着对象被回收了</li>
+</ol>
+<blockquote>
+<p>java 的<em><strong> finalize</strong></em> 方法在生产环境是禁止使用的，<strong>对其的重写可能会造成虚拟机性能下降或者对象无法被回收的问题</strong>，最终导致系统崩溃（网上说的，未验证ㄟ (▔, ▔) ㄏ），本次只是在测试环境打印日志，方便检查对象是否被回收，<strong>切勿在生产环境使用本方法</strong>。</p>
+</blockquote>
+<blockquote>
+<p><em>其实 java 虚拟机垃圾回收执行的很快</em></p>
+</blockquote>
+<h4 id="总结">总结</h4>
+<p>到这里，其实问题已经得到了解决，但是为了提现我们热爱技术的一面，也为了彰显我们的钻研精神，那么还要提出疑问，为什么这会导致内存泄露？总结出以下几个问题：</p>
 <ul>
-<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
-<li>windows: C:\Windows\System32\drivers\etc</li>
+<li>为什么 <strong>fastjson</strong> 不会出现内存泄露的问题？</li>
+<li>明明序列化的对象是字符串 <strong>data</strong> 数据，生成后的对象也是 <code>List&lt;YtbShowBo&gt;</code>，怎么结果就成了 <code>YtbShowListResponse</code> 存到了虚拟机中无法被回收？</li>
+<li>json 序列化的原理是什么？</li>
 </ul>
-<p>修改文件，添加以下内容：</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">142.250.4.90 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
-<p>保存修改后，chrome 即可正常使用</p>
+<p>本着以上几个问题，我们进入了下一阶段，我们要找到问题本质～我们要搞清楚到底是什么东西，影响了虚拟机内存回收？</p>
+<h3 id="追本溯源">追本溯源</h3>
+<p>进入 <strong>nutz</strong> 的 jar 包源码，可以发现他使用了 <code>mirrorCache</code> 把所有使用到的序列化类型都缓存了起来，问题就出在了这里</p>
+<p><img src="/2022/10/10/bugFix/Mirror.png" alt=""></p>
+<center>
+（json 序列化源码）
+</center>
+<p>这时就要开始使用我们的好帮手百度了，<strong>PType</strong> 实现了 <strong>ParameterizedType</strong> 接口，使用 <strong>ParameterizedType</strong> + 内存溢出为标题查到一篇文章<sup>①</sup>，说明 <strong>fastjson</strong> 也存在使用 <strong>ParameterizedType</strong> 不当导致的内存泄露问题，此问题已经被 <strong>fastjson</strong> 修复了。不过 <strong>nutz</strong> 包和 <strong>fastjson</strong> 包并不相同，但是这也印证了我们的观点，json 序列化如果使用不当确实会导致内存泄露的问题。</p>
+<blockquote>
+<p><strong>ParameterizedType</strong> 是 jdk 提供的用于处理带泛型类型的类的序列化方式<sup>②</sup></p>
+</blockquote>
+<p>比对了 <strong>nutz</strong> 包和 <strong>fastjson</strong> 的源码，发现了区别，<strong>fastjson</strong> 并没有直接使用序列化类型 <strong>Type</strong>，而是在其内部进行了重新实现，到这里，我们就能回答出前面三个问题中的两个了：</p>
+<ul>
+<li><strong>fastjson</strong> 采用了在 <strong>Type</strong> 中重新生成子序列化类型的方式，避免了内存泄露的问题</li>
+<li> json 序列化的原理就是通过声明一个序列化类型，然后将字符串内容进行转换的过程</li>
+</ul>
+<p><img src="/2022/10/10/bugFix/nuztAndFastjson.png" alt=""></p>
+<center>
+（**nutz** 包和 **fastjson** 源码比较，左 **nutz**，右 **fastjson**）
+</center>
+<p>但是，第二个问题没有得到解答，为什么最终在内存中存储了大量的 <code>YtbShowListResponse</code> 而不是 <code>List&lt;YtbShowBo&gt;</code> 呢？</p>
+<p>这个问题最终通过研究 <code>new TypeReference</code> 和 <code>new PType</code> 两者之间的区别得以解决</p>
+<p>先看下声明序列化类型的写法，<code>new xxx(){}</code> 是 java 匿名内部类的写法。</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">List&lt;YtbShowBo&gt; ytbShowBos = Json.fromJson(<span class="keyword">new</span> <span class="title class_">PType</span>&lt;List&lt;YtbShowBo&gt;&gt;() {</span><br><span class="line">}, data);</span><br></pre></td></tr></tbody></table></figure>
+<p>此时，你只需要回想下学过的 java 基础，就能明白一点，java 的匿名内部类是依赖于其父类的，这就导致你在 dump 日志或者 debug 模式下查看匿名内部类对象时，都会惊奇的发现他的指针并不是指向他的内存地址，而是直接指向其父类</p>
+<blockquote>
+<p><em>匿名内部类其实极易导致内存泄露问题<sup>③</sup></em></p>
+</blockquote>
+<p><img src="/2022/10/10/bugFix/debug.png" alt=""></p>
+<center>
+（debug）
+</center>
+<p>到这里，你也就明白了为什么会出现内存泄露的问题，为什么内存中会有大量的 <code>YtbShowListResponse</code> 对象，因为每一个 <code>new PType</code> 都持有了其父类对象，当 <strong>PType</strong> 被放置到 <code>mirrorCache</code> 中缓存起来时，也就导致他持有的父对象再也无法被回收了，我们也就解答了前面第二个问题，也就明白了这次内存泄露的本质</p>
+<h5 id="这就结束了吗？">这就结束了吗？</h5>
+<p>问题找到了，但是我们还没有去解决问题，前面好像已经找到了解决办法，就是替换第三方序列化工具，使用 <strong>fastjson</strong> 替代 <strong>nutz</strong>，但是这样好像我们学到的知识没用上，如何使用 java 基础解决这个问题？让我们倒回前文有关匿名内部类的部分，解决办法就藏在这里面 ↑</p>
+<h5 id="终极解决方案：">终极解决方案：</h5>
+<p>将在方法内部创建的 <strong>Type</strong> 改为静态变量</p>
+<p><code>private static final PType&lt;List&lt;YtbShowBo&gt;&gt; YTB_SHOW_BO_TYPE = new PType&lt;List&lt;YtbShowBo&gt;&gt;() {};</code></p>
+<p>本问题随即解决</p>
+<blockquote>
+<p>当匿名内部类成为静态变量时，根据我们学过的 java 基础知识，java 类下的静态变量属于类，被所有类实例对象所共享，当且仅当在类初次加载时会被初始化</p>
+</blockquote>
+<h5 id="到此为止了，但是没有完全为止">到此为止了，但是没有完全为止</h5>
+<p>本次内存泄露问题已经圆满解决，大家也跟着本文档学习了解了如何排查问题，如何分析问题，如何解决问题。但是本文档只是个引子，希望在以后的工作中大家都能保持钻研精神，不怕问题，解决问题。</p>
+<h3 id="附录">附录</h3>
+<p>收录相关在排查问题时查询到的有参考意义的博客内容</p>
+<p>附录① <a href="https://blog.csdn.net/weixin_33358099/article/details/114828657">Java 反序列化 json 内存溢出_fastjson 反序列化使用不当导致内存泄露</a></p>
+<p>附录② <a href="https://blog.csdn.net/JustBeauty/article/details/81116144">ParameterizedType 详解</a></p>
+<p>附录③ <a href="https://blog.csdn.net/feiying0canglang/article/details/124946774">JVM–Java 内存泄露–匿名内部类–原因 / 解决方案</a></p>
 ]]></content>
       <categories>
-        <category>开发工具</category>
+        <category>开发日常</category>
       </categories>
       <tags>
-        <tag>chrome</tag>
+        <tag>bug</tag>
       </tags>
   </entry>
   <entry>
@@ -63,137 +173,6 @@
       </tags>
   </entry>
   <entry>
-    <title>java 内存泄露事故分析</title>
-    <url>/2022/10/10/bugFix/</url>
-    <content><![CDATA[<h3 id="问题描述">问题描述</h3>
-<p><strong>电影票</strong>长期存在 <strong>ticket</strong> 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 <strong>ticket</strong> 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 <strong>ticket</strong> 模块。</p>
-<blockquote>
-<p><em>电影票 ticket 模块在 h5 用户下单时，会调用异步比价功能，此功能使用 @Async 注解实现，意味着每有一笔订单都会启用一个比价线程</em></p>
-</blockquote>
-<p>本问题历时一年才得以解决，这其中经历了四个问题分析阶段</p>
-<ol>
-<li>
-<p><strong>ticket</strong> 模块崩溃，根据 dump 日志发现内存中存在大量比价功能生成的对象，初步判断是短时订单量过大导致的，未有较好的解决办法，选择多开 <strong>ticket</strong> 模块顶住大量订单的压力。</p>
-</li>
-<li>
-<p>运维侧报告 <strong>ticket</strong> 模块存在凌晨崩溃的情况，排查日志发现凌晨订单只有几笔，此时怀疑是比价功能存在一定问题，导致其产生的对象停留较久，但是依旧未排查到问题。</p>
-<blockquote>
-<p><em>因还是未定位到能导致内存溢出的问题，只能判断认为是虚拟机内存回收较慢导致的</em></p>
-</blockquote>
-</li>
-<li>
-<p>技术侧发现 <code>@Async</code> 注解支持选择线程池来将异步线程改为用线程池来执行，可以防止大量调用 <code>@Async</code> 导致生成了海量线程从而内存溢出。但是在本功能上线后，依然出现了 <strong>ticket</strong> 模块崩溃的问题。</p>
-</li>
-<li>
-<p>经过以上三次排查，已基本确定本次问题是由代码问题引起的内存泄露，并不是因为电影票订单数据量过大导致的系统崩溃。随后重新开始排查问题，并最终定位到是因为 json 序列化引起的内存泄露。</p>
-</li>
-</ol>
-<h3 id="定位思路">定位思路</h3>
-<h4 id="步骤1">步骤 1</h4>
-<p>首先使用 <strong>JProfiler</strong> 工具查看 <strong>dump</strong> 日志，按照保留大小倒序排序，可以发现最多的是 <code>String</code> 对象，这是因为 <code>YtbShowListResponse</code> 内存溢出对象中存储有请求接口返回的字符串内容，此内容包含一个影院下面的所有场次，所以内容较大。</p>
-<p><img src="JProfiler1.png" alt="avatar"></p>
-<center>
-（JProfiler 工具查看 dump 日志）
-</center>
-<span id="more"></span>
-<h4 id="步骤2">步骤 2</h4>
-<p>查看对象的数据结构，发现本质是一个 <code>Map</code>，初步怀疑是不是 <strong>NutMap</strong> 第三方工具引起的</p>
-<p><img src="YtbShowListResponse.png" alt="avatar"></p>
-<center>
-（YtbShowListResponse 数据结构）
-</center>
-<h4 id="步骤3">步骤 3</h4>
-<p>使用 <strong>JProfiler</strong> 工具的图表功能，查看对象到 GC 根 (root) 的路径，可以发现最终是被 <strong>org.nutz.lang.Mirror</strong> 对象所持有，导致无法被回收</p>
-<p><img src="JProfiler2.png" alt="avatar"></p>
-<center>
-（JProfiler 工具查看图标）
-</center>
-<h4 id="步骤4">步骤 4</h4>
-<p>此时查看比价功能代码，可以发现 <code>YtbShowListResponse</code> 对象的使用都是正常的，并没有放置到 java 静态变量中等操作，但是根据 <strong>dump</strong> 日志分析其中的 <code>YtbShowListResponse</code> 对象，<code>YtbShowListResponse</code> 中 <code>content</code> 字段都是成功，即请求失败就不会出现内存泄露问题，问题代码范围进一步缩小。</p>
-<p><img src="queryYtbOrderInfo.png" alt="avatar"></p>
-<center>
-（比价功能代码）
-</center>
-<h4 id="步骤5">步骤 5</h4>
-<p>排查代码发现<em><strong> getResponse</strong></em> 方法有非常高的可疑性，使用了第三方序列化方式<em><strong> Json.fromJson</strong></em>，并且使用了 <strong>PType</strong> 第三方工具来标识序列化类型，更加可疑，此序列化方法和 <strong>org.nutz.lang.Mirror</strong> 同属于 <strong>nutz</strong> 第三方工具包，基本已锁定到问题代码。</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">   <span class="keyword">public</span> List&lt;YtbShowBo&gt; <span class="title function_">getResponse</span><span class="params">()</span> {</span><br><span class="line">       <span class="type">String</span> <span class="variable">data</span> <span class="operator">=</span> <span class="built_in">this</span>.getData();</span><br><span class="line">       <span class="keyword">if</span> (Strings.isBlank(data)) {</span><br><span class="line">           <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">YtbException</span>(<span class="string">"影托邦场次列表响应为空"</span>);</span><br><span class="line">       }</span><br><span class="line">       <span class="keyword">return</span> Json.fromJson(<span class="keyword">new</span> <span class="title class_">PType</span>&lt;List&lt;YtbShowBo&gt;&gt;() {</span><br><span class="line">       }, data);</span><br><span class="line">   }</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="步骤6">步骤 6</h4>
-<p>为了验证是否是 json 序列化导致，在 <code>YtbShowListResponse</code> 上重写了<em><strong> finalize</strong></em> 方法，并在其中打印了日志，验证对象是否被回收了，采用对照法，使用 <strong>fastjson</strong> 包替换了序列化方法，执行相同比价功能，最终验证结果如下：</p>
-<ol>
-<li><em><strong>Json.fromJson</strong></em> 方法和 <strong>PType</strong> 共同使用情况下，会导致<em><strong> finalize</strong></em> 不被执行，也就意味着此对象不会被虚拟机回收</li>
-<li><em><strong> JSON.parseObject</strong></em> 方法和 <strong>TypeReference</strong> 共同使用情况下，<em><strong>finalize</strong></em> 很快就执行了，意味着对象被回收了</li>
-</ol>
-<blockquote>
-<p>java 的<em><strong> finalize</strong></em> 方法在生产环境是禁止使用的，<strong>对其的重写可能会造成虚拟机性能下降或者对象无法被回收的问题</strong>，最终导致系统崩溃（网上说的，未验证ㄟ (▔, ▔) ㄏ），本次只是在测试环境打印日志，方便检查对象是否被回收，<strong>切勿在生产环境使用本方法</strong>。</p>
-</blockquote>
-<blockquote>
-<p><em>其实 java 虚拟机垃圾回收执行的很快</em></p>
-</blockquote>
-<h4 id="总结">总结</h4>
-<p>到这里，其实问题已经得到了解决，但是为了提现我们热爱技术的一面，也为了彰显我们的钻研精神，那么还要提出疑问，为什么这会导致内存泄露？总结出以下几个问题：</p>
-<ul>
-<li>为什么 <strong>fastjson</strong> 不会出现内存泄露的问题？</li>
-<li>明明序列化的对象是字符串 <strong>data</strong> 数据，生成后的对象也是 <code>List&lt;YtbShowBo&gt;</code>，怎么结果就成了 <code>YtbShowListResponse</code> 存到了虚拟机中无法被回收？</li>
-<li>json 序列化的原理是什么？</li>
-</ul>
-<p>本着以上几个问题，我们进入了下一阶段，我们要找到问题本质～我们要搞清楚到底是什么东西，影响了虚拟机内存回收？</p>
-<h3 id="追本溯源">追本溯源</h3>
-<p>进入 <strong>nutz</strong> 的 jar 包源码，可以发现他使用了 <code>mirrorCache</code> 把所有使用到的序列化类型都缓存了起来，问题就出在了这里</p>
-<p><img src="Mirror.png" alt="avatar"></p>
-<center>
-（json 序列化源码）
-</center>
-<p>这时就要开始使用我们的好帮手百度了，<strong>PType</strong> 实现了 <strong>ParameterizedType</strong> 接口，使用 <strong>ParameterizedType</strong> + 内存溢出为标题查到一篇文章<sup>①</sup>，说明 <strong>fastjson</strong> 也存在使用 <strong>ParameterizedType</strong> 不当导致的内存泄露问题，此问题已经被 <strong>fastjson</strong> 修复了。不过 <strong>nutz</strong> 包和 <strong>fastjson</strong> 包并不相同，但是这也印证了我们的观点，json 序列化如果使用不当确实会导致内存泄露的问题。</p>
-<blockquote>
-<p><strong>ParameterizedType</strong> 是 jdk 提供的用于处理带泛型类型的类的序列化方式<sup>②</sup></p>
-</blockquote>
-<p>比对了 <strong>nutz</strong> 包和 <strong>fastjson</strong> 的源码，发现了区别，<strong>fastjson</strong> 并没有直接使用序列化类型 <strong>Type</strong>，而是在其内部进行了重新实现，到这里，我们就能回答出前面三个问题中的两个了：</p>
-<ul>
-<li><strong>fastjson</strong> 采用了在 <strong>Type</strong> 中重新生成子序列化类型的方式，避免了内存泄露的问题</li>
-<li> json 序列化的原理就是通过声明一个序列化类型，然后将字符串内容进行转换的过程</li>
-</ul>
-<p><img src="nuztAndFastjson.png" alt="avatar"></p>
-<center>
-（**nutz** 包和 **fastjson** 源码比较，左 **nutz**，右 **fastjson**）
-</center>
-<p>但是，第二个问题没有得到解答，为什么最终在内存中存储了大量的 <code>YtbShowListResponse</code> 而不是 <code>List&lt;YtbShowBo&gt;</code> 呢？</p>
-<p>这个问题最终通过研究 <code>new TypeReference</code> 和 <code>new PType</code> 两者之间的区别得以解决</p>
-<p>先看下声明序列化类型的写法，<code>new xxx(){}</code> 是 java 匿名内部类的写法。</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">List&lt;YtbShowBo&gt; ytbShowBos = Json.fromJson(<span class="keyword">new</span> <span class="title class_">PType</span>&lt;List&lt;YtbShowBo&gt;&gt;() {</span><br><span class="line">}, data);</span><br></pre></td></tr></tbody></table></figure>
-<p>此时，你只需要回想下学过的 java 基础，就能明白一点，java 的匿名内部类是依赖于其父类的，这就导致你在 dump 日志或者 debug 模式下查看匿名内部类对象时，都会惊奇的发现他的指针并不是指向他的内存地址，而是直接指向其父类</p>
-<blockquote>
-<p><em>匿名内部类其实极易导致内存泄露问题<sup>③</sup></em></p>
-</blockquote>
-<p><img src="debug.png" alt="avatar"></p>
-<center>
-（debug）
-</center>
-<p>到这里，你也就明白了为什么会出现内存泄露的问题，为什么内存中会有大量的 <code>YtbShowListResponse</code> 对象，因为每一个 <code>new PType</code> 都持有了其父类对象，当 <strong>PType</strong> 被放置到 <code>mirrorCache</code> 中缓存起来时，也就导致他持有的父对象再也无法被回收了，我们也就解答了前面第二个问题，也就明白了这次内存泄露的本质</p>
-<h5 id="这就结束了吗？">这就结束了吗？</h5>
-<p>问题找到了，但是我们还没有去解决问题，前面好像已经找到了解决办法，就是替换第三方序列化工具，使用 <strong>fastjson</strong> 替代 <strong>nutz</strong>，但是这样好像我们学到的知识没用上，如何使用 java 基础解决这个问题？让我们倒回前文有关匿名内部类的部分，解决办法就藏在这里面 ↑</p>
-<h5 id="终极解决方案：">终极解决方案：</h5>
-<p>将在方法内部创建的 <strong>Type</strong> 改为静态变量</p>
-<p><code>private static final PType&lt;List&lt;YtbShowBo&gt;&gt; YTB_SHOW_BO_TYPE = new PType&lt;List&lt;YtbShowBo&gt;&gt;() {};</code></p>
-<p>本问题随即解决</p>
-<blockquote>
-<p>当匿名内部类成为静态变量时，根据我们学过的 java 基础知识，java 类下的静态变量属于类，被所有类实例对象所共享，当且仅当在类初次加载时会被初始化</p>
-</blockquote>
-<h5 id="到此为止了，但是没有完全为止">到此为止了，但是没有完全为止</h5>
-<p>本次内存泄露问题已经圆满解决，大家也跟着本文档学习了解了如何排查问题，如何分析问题，如何解决问题。但是本文档只是个引子，希望在以后的工作中大家都能保持钻研精神，不怕问题，解决问题。</p>
-<h3 id="附录">附录</h3>
-<p>收录相关在排查问题时查询到的有参考意义的博客内容</p>
-<p>附录① <a href="https://blog.csdn.net/weixin_33358099/article/details/114828657">Java 反序列化 json 内存溢出_fastjson 反序列化使用不当导致内存泄露</a></p>
-<p>附录② <a href="https://blog.csdn.net/JustBeauty/article/details/81116144">ParameterizedType 详解</a></p>
-<p>附录③ <a href="https://blog.csdn.net/feiying0canglang/article/details/124946774">JVM–Java 内存泄露–匿名内部类–原因 / 解决方案</a></p>
-]]></content>
-      <categories>
-        <category>开发日常</category>
-      </categories>
-      <tags>
-        <tag>bug</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hello World</title>
     <url>/2022/10/10/hello-world/</url>
     <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
@@ -216,6 +195,146 @@
       </categories>
       <tags>
         <tag>helloworld</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
+    <url>/2022/10/10/chromeTranslate/</url>
+    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
+<h3 id="修改host教程">修改 host 教程</h3>
+<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
+<ul>
+<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
+<li>windows: C:\Windows\System32\drivers\etc</li>
+</ul>
+<p>修改文件，添加以下内容：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">142.250.4.90 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
+<p>保存修改后，chrome 即可正常使用</p>
+]]></content>
+      <categories>
+        <category>开发工具</category>
+      </categories>
+      <tags>
+        <tag>chrome</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>前端使用 iframe 嵌套我方 h5 页面，出现 session 跨域问题如何解决</title>
+    <url>/2023/03/10/iframeCors/</url>
+    <content><![CDATA[<h3 id="问题描述">问题描述</h3>
+<p>提供给客户对接的 H5 页面正常都是通过 webview 或者页面跳转的形式来做，部分客户可能会采用 iframe 嵌套的形式，如果是 H5 页面用户信息采用 token 的形式，不会有影响，但是采用 session 的形式，会引起 session 跨域从而导致浏览器无法拿到对应的用户信息</p>
+<span id="more"></span>
+<h3 id="问题解决">问题解决</h3>
+<h4 id="SameSite">SameSite</h4>
+<blockquote>
+<p>Chrome 51 开始，浏览器的 Cookie 新增加了一个 SameSite 属性，用来防止 CSRF 攻击和用户追踪。Cookie 的 SameSite 属性用来限制第三方 Cookie，从而减少安全风险</p>
+</blockquote>
+<p>目前 SameSite 有三个常用的值 <code>Strict</code>, <code>Lax</code>, <code>None</code>，他们的作用是对跨站请求的 cookie 做不同程度的限制，而根据请求的不同，其对应关系如下：</p>
+<table>
+<thead>
+<tr>
+<th>请求类型</th>
+<th>示例</th>
+<th>默认</th>
+<th> Lax</th>
+<th>Strict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 链接</td>
+<td><code>&lt;a href="..."&gt;&lt;/a&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 发送 Cookie</td>
+<td> 不发送</td>
+</tr>
+<tr>
+<td>预加载</td>
+<td><code>&lt;link rel="prerender" href="..."/&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 发送 Cookie</td>
+<td> 不发送</td>
+</tr>
+<tr>
+<td> GET 表单</td>
+<td><code>&lt;form method="GET" action="..."&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 发送 Cookie</td>
+<td> 不发送</td>
+</tr>
+<tr>
+<td> POST 表单</td>
+<td><code>&lt;form method="POST" action="..."&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 不发送</td>
+<td>不发送</td>
+</tr>
+<tr>
+<td> iframe</td>
+<td><code>&lt;iframe src="..."&gt;&lt;/iframe&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 不发送</td>
+<td>不发送</td>
+</tr>
+<tr>
+<td> AJAX</td>
+<td><code>$.get("...")</code></td>
+<td>发送 Cookie</td>
+<td> 不发送</td>
+<td>不发送</td>
+</tr>
+<tr>
+<td> Image</td>
+<td><code>&lt;img src="..."&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 不发送</td>
+<td>不发送</td>
+</tr>
+</tbody>
+</table>
+<p>从 Chrome 80 开始，默认会对 cookie 设置 SameSite=Lax，ChromeLab 对此有比较清楚的说明：地址，目前项目中大部分 cookie 是没有设置任何的 SameSite 属性，所以可能出现跨站 cookie 无法传递的情况，需要对这部分内容进行处理，否则，可能出现 cookie 无法传递导致类似登陆失败问题。</p>
+<p>所以默认较新浏览器版本下，没有正常声明处理 SameSite 属性的系统，浏览器都会默认设置成 Lax 从而导致 iframe 中失效</p>
+<p>我们只需要设置 SameSite=None，同时，从 Chrome 从 76 版本开始，开始对设置为 None 必须和 Secure 配合使用，所以最后设置内容是</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">SameSite=None;Secure;</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="解决措施">解决措施</h4>
+<ol>
+<li>创建自定义 CookieSerializer，修改设置 SameSite 属性的逻辑 </li>
+</ol>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自定义cookie序列化方式</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> anifengx</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2022-04-02 14:21:21</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CustomCookieSerializer</span> <span class="keyword">extends</span> <span class="title class_">DefaultCookieSerializer</span> {</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * http协议</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">HTTP</span> <span class="operator">=</span> <span class="string">"http"</span>;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 阿里云cdn添加header头帮助判断协议类型</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">X_CLIENT_SCHEME</span> <span class="operator">=</span> <span class="string">"X-Client-Scheme"</span>;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * nginx添加header头帮助判断协议类型</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">X_FORWARDED_PROTO</span> <span class="operator">=</span> <span class="string">"X-Forwarded-Proto"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">writeCookieValue</span><span class="params">(CookieValue cookieValue)</span> {</span><br><span class="line">        <span class="type">HttpServletRequest</span> <span class="variable">request</span> <span class="operator">=</span> cookieValue.getRequest();</span><br><span class="line">        <span class="type">HttpServletResponse</span> <span class="variable">response</span> <span class="operator">=</span> cookieValue.getResponse();</span><br><span class="line">        <span class="built_in">super</span>.writeCookieValue(cookieValue);</span><br><span class="line">        <span class="type">StringBuffer</span> <span class="variable">requestURL</span> <span class="operator">=</span> request.getRequestURL();</span><br><span class="line">        <span class="type">String</span> <span class="variable">scheme</span> <span class="operator">=</span> request.getHeader(X_CLIENT_SCHEME);</span><br><span class="line">        log.info(<span class="string">"requestURL X-Client-Scheme : [{}] scheme: [{}]"</span>, requestURL, scheme);</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isBlank(scheme)) {</span><br><span class="line">            scheme = request.getHeader(X_FORWARDED_PROTO);</span><br><span class="line">            log.info(<span class="string">"requestURL X-Forwarded-Proto : [{}] scheme: [{}]"</span>, requestURL, scheme);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isBlank(scheme)) {</span><br><span class="line">            scheme = request.getScheme();</span><br><span class="line">            log.info(<span class="string">"requestURL schema : [{}] scheme: [{}]"</span>, requestURL, scheme);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isBlank(scheme) || HTTP.equals(scheme)) {</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        }</span><br><span class="line">        Collection&lt;String&gt; headers = response.getHeaders(HttpHeaders.SET_COOKIE);</span><br><span class="line">        <span class="keyword">if</span> (CollectionUtils.isEmpty(headers)) {</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        }</span><br><span class="line">        <span class="type">String</span> <span class="variable">userAgent</span> <span class="operator">=</span> request.getHeader(HttpHeaders.USER_AGENT);</span><br><span class="line">        log.info(<span class="string">"shouldSendSameSiteNone start userAgent: [{}] SET_COOKIE: [{}]"</span>, userAgent, headers);</span><br><span class="line">        <span class="type">boolean</span> <span class="variable">firstHeader</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="comment">// there can be multiple Set-Cookie attributes</span></span><br><span class="line">        <span class="keyword">for</span> (String header : headers) {</span><br><span class="line">            <span class="keyword">if</span> (firstHeader) {</span><br><span class="line">                log.info(<span class="string">"shouldSendSameSiteNone userAgent: [{}] SET_COOKIE: [{}]"</span>, userAgent, header);</span><br><span class="line">                <span class="type">boolean</span> shouldSendSameSiteNone;</span><br><span class="line">                <span class="keyword">try</span> {</span><br><span class="line">                    shouldSendSameSiteNone = shouldSendSameSiteNone(userAgent);</span><br><span class="line">                } <span class="keyword">catch</span> (Exception e) {</span><br><span class="line">                    log.error(<span class="string">"shouldSendSameSiteNone error userAgent: [{}] SET_COOKIE: [{}]"</span>, userAgent, header, e);</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                }</span><br><span class="line">                log.info(<span class="string">"shouldSendSameSiteNone userAgent: [{}] SET_COOKIE: [{}] boolean [{}]"</span>, userAgent, header, shouldSendSameSiteNone);</span><br><span class="line">                <span class="keyword">if</span> (shouldSendSameSiteNone) {</span><br><span class="line">                    header = header.replaceAll(<span class="string">"SameSite=Lax"</span>, <span class="string">"SameSite=None;secure;"</span>);</span><br><span class="line">                    response.setHeader(HttpHeaders.SET_COOKIE, header);</span><br><span class="line">                }</span><br><span class="line">                log.info(<span class="string">"shouldSendSameSiteNone change userAgent: [{}] SET_COOKIE: [{}] boolean [{}] headers [{}] "</span>, userAgent, header, shouldSendSameSiteNone, response.getHeaders(HttpHeaders.SET_COOKIE));</span><br><span class="line">                firstHeader = <span class="literal">false</span>;</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">shouldSendSameSiteNone</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">return</span> !isSameSiteNoneIncompatible(useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isSameSiteNoneIncompatible</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">return</span> hasWebKitSameSiteBug(useragent) || dropsUnrecognizedSameSiteCookies(useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">hasWebKitSameSiteBug</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">return</span> isIosVersion(<span class="number">12</span>, useragent) || (isMacosxVersion(<span class="number">10</span>, <span class="number">14</span>, useragent) &amp;&amp; (isSafari(useragent) || isMacEmbeddedBrowser(useragent)));</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">dropsUnrecognizedSameSiteCookies</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">if</span> (isUcBrowser(useragent)) {</span><br><span class="line">            <span class="keyword">return</span> !isUcBrowserVersionAtLeast(<span class="number">12</span>, <span class="number">13</span>, <span class="number">2</span>, useragent);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> isChromiumBased(useragent) &amp;&amp; isChromiumVersionAtLeast(<span class="number">51</span>, useragent) &amp;&amp; !isChromiumVersionAtLeast(<span class="number">67</span>, useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isIosVersion</span><span class="params">(<span class="type">int</span> major, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"\\(iP.+; CPU .*OS (\\d+)[\\d]*.*\\) AppleWebKit\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            log.info(<span class="string">"isIosVersion Found value: "</span> + m.group(<span class="number">0</span>));</span><br><span class="line">            log.info(<span class="string">"isIosVersion Found value: "</span> + m.group(<span class="number">1</span>));</span><br><span class="line">            <span class="keyword">return</span> m.group(<span class="number">1</span>).equals(String.valueOf(major));</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isMacosxVersion</span><span class="params">(<span class="type">int</span> major, <span class="type">int</span> minor, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"\\(Macintosh;.*Mac OS X (\\d+)(\\d+)[\\d]*.*\\) AppleWebKit\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            log.info(<span class="string">"isMacosxVersion Found value: "</span> + m.group(<span class="number">0</span>));</span><br><span class="line">            log.info(<span class="string">"isMacosxVersion Found value: "</span> + m.group(<span class="number">1</span>));</span><br><span class="line">            log.info(<span class="string">"isMacosxVersion Found value: "</span> + m.group(<span class="number">2</span>));</span><br><span class="line">            <span class="keyword">return</span> m.group(<span class="number">1</span>).equals(String.valueOf(major)) &amp;&amp; m.group(<span class="number">2</span>).equals(String.valueOf(minor));</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isSafari</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"Version\\/.* Safari\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find() &amp;&amp; !isChromiumBased(useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isChromiumBased</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"Chrom(e|ium)"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isMacEmbeddedBrowser</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"^Mozilla\\/[\\.\\d]+ \\(Macintosh;.*Mac OS X [\\d]+\\) "</span> + <span class="string">"AppleWebKit\\/[\\.\\d]+ \\(KHTML, like Gecko\\)$"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isChromiumVersionAtLeast</span><span class="params">(<span class="type">int</span> major, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"Chrom[^ \\/]+\\/(\\d+)[\\.\\d]* "</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">version</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">1</span>));</span><br><span class="line">            <span class="keyword">return</span> version &gt;= major;</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isUcBrowser</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"UCBrowser\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">isUcBrowserVersionAtLeast</span><span class="params">(<span class="type">int</span> major, <span class="type">int</span> minor, <span class="type">int</span> build, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"UCBrowser\\/(\\d+)\\.(\\d+)\\.(\\d+)[\\.\\d]* "</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">majorVersion</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">1</span>));</span><br><span class="line">            <span class="type">int</span> <span class="variable">minorVersion</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">2</span>));</span><br><span class="line">            <span class="type">int</span> <span class="variable">buildVersion</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">3</span>));</span><br><span class="line">            <span class="keyword">if</span> (majorVersion != major) {</span><br><span class="line">                <span class="keyword">return</span> majorVersion &gt; major;</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">if</span> (minorVersion != minor) {</span><br><span class="line">                <span class="keyword">return</span> minorVersion &gt; minor;</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">return</span> buildVersion &gt;= build;</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ol start="2">
+<li>在 spring 中注解式注入自定义 CookieSerializer</li>
+</ol>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpringSessionConfig</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> CookieSerializer <span class="title function_">cookieSerializer</span><span class="params">()</span> {</span><br><span class="line">        <span class="type">CustomCookieSerializer</span> <span class="variable">cookieSerializer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CustomCookieSerializer</span>();</span><br><span class="line">        cookieSerializer.setCookieMaxAge(<span class="number">60</span> * <span class="number">60</span> * <span class="number">24</span> * <span class="number">30</span>);</span><br><span class="line">        <span class="keyword">return</span> cookieSerializer;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>]]></content>
+      <categories>
+        <category>cors</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>cors</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记管理人员拓展活动思考</title>
+    <url>/2022/10/27/manage/</url>
+    <content><![CDATA[<p>2022 年 10 月 15 日参加了管理人员拓展活动，也是第一次参加拓展活动，认识了很多人，也同时有了一些感悟，本文仅做自身感悟记录。</p>
+<p>当日活动有一个七巧板比赛，是个多人分组协同合作的项目，赛后教练也是组织大家做了复盘，本次的笔记也主要是来源于此次复盘的一些发言和自身感悟。</p>
+<h3 id="一致性">一致性</h3>
+<p>如何理解这个标题？一致性指的就是身为管理高层，要有统一的思想，要有一致认可的行动方案。不能小明有小明的方案，小强有小强的方案，并且这两个方案还在同时执行，这只会导致下属行动混乱，没有固定的目标。</p>
+<span id="more"></span>
+<h3 id="项目实施前规划方案的重要性">项目实施前规划方案的重要性</h3>
+<p>每次做什么事前，你是会准备一个计划方案来执行，还是先执行起来，再慢慢修正呢？</p>
+<p>这次七巧板就遇到了这个问题，当教练公布完游戏规则后，游戏就已经开始了，每个组手上都有了一份属于他们自己的任务，游戏时间只有 30 分钟，这时你是选择暂停所有人的行动，花 3-5 分钟甚至更多的时间来收集任务并归纳输出一套解决方案，还是先让整个游戏运转起来，然后等遇到问题再解决问题呢？</p>
+<p>当时我们选择了先行动，再思考，最终在游戏进行了约 20 分钟后，才逐渐摸清了套路，并进行了调整，不过船头调转的太晚，没能拿到游戏的满分。但是假如我们先花些时间，收集并查看每个小组的任务，总结其中的共同点，那么可能只需要 20 分钟就能完成这场游戏。</p>
+<p>由此可见，实际行动前的准备何其重要，提前了解任务目标、游戏规则并制定方案，不正如我们实际工作中的了解客户需求，按照客户的规定提供项目实施计划吗？但是当我们跳过这些准备，直接开始实施，想必项目实施的结果如同游戏结果一般，杂乱无章，一团糟糕，最终引起客户的投诉。</p>
+<p>当然在我们的日常工作中，很少会出现这么紧迫的情况，更多的是先得到需求并与客户研讨，然后逐步执行最终落地。这就更需要我们眼光放长远，不要专注于眼前利益、急干蛮干；提前统筹规划，制定出详细的计划方案，让项目的运行始终符合我们的预期，最终完美落地。</p>
+<h3 id="动态修正">动态修正</h3>
+<p>什么是动态修正？没有什么计划一开始就是完美无缺的，做到万无一失。但是我们可以在计划进行中穿插早会、周会等多种形式，及时对当前进度进行总结复盘，发现其中的问题并进行修正，形成闭环。最不应该的是项目已出现许多问题，却依然视而不见，坚持既定计划，最终导致计划失败或者计划完成但是效果很差。不惧怕问题，视项目中出现的问题为自己改正的契机，正是暴露出的这些问题，才能逐步让自己的计划变得完善，也让自己有了应对经验。</p>
+]]></content>
+      <categories>
+        <category>管理</category>
+      </categories>
+      <tags>
+        <tag>管理</tag>
       </tags>
   </entry>
   <entry>
@@ -309,27 +428,34 @@
       </tags>
   </entry>
   <entry>
-    <title>记管理人员拓展活动思考</title>
-    <url>/2022/10/27/manage/</url>
-    <content><![CDATA[<p>2022 年 10 月 15 日参加了管理人员拓展活动，也是第一次参加拓展活动，认识了很多人，也同时有了一些感悟，本文仅做自身感悟记录。</p>
-<p>当日活动有一个七巧板比赛，是个多人分组协同合作的项目，赛后教练也是组织大家做了复盘，本次的笔记也主要是来源于此次复盘的一些发言和自身感悟。</p>
-<h3 id="一致性">一致性</h3>
-<p>如何理解这个标题？一致性指的就是身为管理高层，要有统一的思想，要有一致认可的行动方案。不能小明有小明的方案，小强有小强的方案，并且这两个方案还在同时执行，这只会导致下属行动混乱，没有固定的目标。</p>
+    <title>shiro 框架版本升级出现请求 400 拦截处理</title>
+    <url>/2023/01/18/shiroUpdate/</url>
+    <content><![CDATA[<h3 id="问题描述">问题描述</h3>
+<p>因阿里云服务器安全提示，项目中的 shiro 框架近期做了一次升级，升级后检查项目运行无任何问题，几天后运营突然反应说管理平台图片全部无法展示，进行了初步排查，发现在请求后端获取图片的请求全部返回 400 被拦截了，结合最近更新内容锁定目标在 shiro 版本升级上</p>
+<div class="note info"><p>运营需要在管理平台查看图片后直接右键另存为对应中文名的文件，并且要求是原本文件名称。图片默认都上传到了 oss，如果直接右键下载会是乱序英文数字文件名，所以在管理平台后端做了一次转发并设置了中文文件名称</p>
+</div>
 <span id="more"></span>
-<h3 id="项目实施前规划方案的重要性">项目实施前规划方案的重要性</h3>
-<p>每次做什么事前，你是会准备一个计划方案来执行，还是先执行起来，再慢慢修正呢？</p>
-<p>这次七巧板就遇到了这个问题，当教练公布完游戏规则后，游戏就已经开始了，每个组手上都有了一份属于他们自己的任务，游戏时间只有 30 分钟，这时你是选择暂停所有人的行动，花 3-5 分钟甚至更多的时间来收集任务并归纳输出一套解决方案，还是先让整个游戏运转起来，然后等遇到问题再解决问题呢？</p>
-<p>当时我们选择了先行动，再思考，最终在游戏进行了约 20 分钟后，才逐渐摸清了套路，并进行了调整，不过船头调转的太晚，没能拿到游戏的满分。但是假如我们先花些时间，收集并查看每个小组的任务，总结其中的共同点，那么可能只需要 20 分钟就能完成这场游戏。</p>
-<p>由此可见，实际行动前的准备何其重要，提前了解任务目标、游戏规则并制定方案，不正如我们实际工作中的了解客户需求，按照客户的规定提供项目实施计划吗？但是当我们跳过这些准备，直接开始实施，想必项目实施的结果如同游戏结果一般，杂乱无章，一团糟糕，最终引起客户的投诉。</p>
-<p>当然在我们的日常工作中，很少会出现这么紧迫的情况，更多的是先得到需求并与客户研讨，然后逐步执行最终落地。这就更需要我们眼光放长远，不要专注于眼前利益、急干蛮干；提前统筹规划，制定出详细的计划方案，让项目的运行始终符合我们的预期，最终完美落地。</p>
-<h3 id="动态修正">动态修正</h3>
-<p>什么是动态修正？没有什么计划一开始就是完美无缺的，做到万无一失。但是我们可以在计划进行中穿插早会、周会等多种形式，及时对当前进度进行总结复盘，发现其中的问题并进行修正，形成闭环。最不应该的是项目已出现许多问题，却依然视而不见，坚持既定计划，最终导致计划失败或者计划完成但是效果很差。不惧怕问题，视项目中出现的问题为自己改正的契机，正是暴露出的这些问题，才能逐步让自己的计划变得完善，也让自己有了应对经验。</p>
+<h3 id="问题解决">问题解决</h3>
+<p>实际问题是由于 shiro 新框架新增了几个默认 filter，其中 <code>InvalidRequestFilter</code> 会拦截 url 上的特殊字符，所以只需要修改 <code>InvalidRequestFilter</code> 的方法跳过拦截即可</p>
+<h4 id="解决办法">解决办法</h4>
+<p>重写 <code>ShiroFilterFactoryBean</code></p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CustomShiroFilterFactoryBean</span> <span class="keyword">extends</span> <span class="title class_">ShiroFilterFactoryBean</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">logger</span> <span class="operator">=</span> LoggerFactory.getLogger(CustomShiroFilterFactoryBean.class);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Class <span class="title function_">getObjectType</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> CustomSpringShiroFilter.class;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> AbstractShiroFilter <span class="title function_">createInstance</span><span class="params">()</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        logger.debug(<span class="string">"Creating Shiro Filter instance."</span>);</span><br><span class="line"></span><br><span class="line">        <span class="type">SecurityManager</span> <span class="variable">securityManager</span> <span class="operator">=</span> getSecurityManager();</span><br><span class="line">        <span class="keyword">if</span> (securityManager == <span class="literal">null</span>) {</span><br><span class="line">            <span class="type">String</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="string">"SecurityManager property must be set."</span>;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BeanInitializationException</span>(msg);</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!(securityManager <span class="keyword">instanceof</span> WebSecurityManager)) {</span><br><span class="line">            <span class="type">String</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="string">"The security manager does not implement the WebSecurityManager interface."</span>;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BeanInitializationException</span>(msg);</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="type">FilterChainManager</span> <span class="variable">manager</span> <span class="operator">=</span> createFilterChainManager();</span><br><span class="line">        <span class="comment">//Expose the constructed FilterChainManager by first wrapping it in a</span></span><br><span class="line">        <span class="comment">// FilterChainResolver implementation. The AbstractShiroFilter implementations</span></span><br><span class="line">        <span class="comment">// do not know about FilterChainManagers - only resolvers:</span></span><br><span class="line">        <span class="type">PathMatchingFilterChainResolver</span> <span class="variable">chainResolver</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">PathMatchingFilterChainResolver</span>();</span><br><span class="line">        chainResolver.setFilterChainManager(manager);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// URL携带中文400，servletPath中文校验bug</span></span><br><span class="line">        Map&lt;String, Filter&gt; filterMap = manager.getFilters();</span><br><span class="line">        <span class="type">Filter</span> <span class="variable">invalidRequestFilter</span> <span class="operator">=</span> filterMap.get(DefaultFilter.invalidRequest.name());</span><br><span class="line">        <span class="keyword">if</span> (invalidRequestFilter <span class="keyword">instanceof</span> InvalidRequestFilter) {</span><br><span class="line">            ((InvalidRequestFilter) invalidRequestFilter).setBlockNonAscii(<span class="literal">false</span>);</span><br><span class="line">        }</span><br><span class="line">        <span class="comment">//Now create a concrete ShiroFilter instance and apply the acquired SecurityManager and built</span></span><br><span class="line">        <span class="comment">//FilterChainResolver.  It doesn't matter that the instance is an anonymous inner class</span></span><br><span class="line">        <span class="comment">//here - we're just using it because it is a concrete AbstractShiroFilter instance that accepts</span></span><br><span class="line">        <span class="comment">//injection of the SecurityManager and FilterChainResolver:</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">CustomSpringShiroFilter</span>((WebSecurityManager) securityManager, chainResolver);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>将重写的 <code>ShiroFilterFactoryBean</code> 注入进 shiro 中</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Bean(name = "shiroFilter")</span></span><br><span class="line"><span class="keyword">public</span> BaseShiroFactoryBean <span class="title function_">shiroFilter</span><span class="params">(<span class="meta">@Qualifier(value = "securityManager")</span> SecurityManager securityManager)</span> {</span><br><span class="line">    <span class="comment">//根据配置加载是否启用redis</span></span><br><span class="line">    <span class="type">Boolean</span> <span class="variable">redis</span> <span class="operator">=</span> customerConfig.getRedis();</span><br><span class="line">    <span class="type">BaseShiroFactoryBean</span> <span class="variable">shiroFilterFactoryBean</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CustomShiroFilterFactoryBean</span>();</span><br><span class="line">    Map&lt;String, Filter&gt; filters = shiroFilterFactoryBean.getFilters();</span><br><span class="line">    filters.put(Constants.CUSTOMER_SHIRO_FILTER, customRolesAuthorizationFilter());</span><br><span class="line">    shiroFilterFactoryBean.setFilters(filters);</span><br><span class="line">    shiroFilterFactoryBean.setSecurityManager(securityManager);</span><br><span class="line">    <span class="comment">//加载默认配置.</span></span><br><span class="line">    Map&lt;String, String&gt; filterChainDefinitionMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(<span class="number">16</span>);</span><br><span class="line">    defaultFilterChain(filterChainDefinitionMap);</span><br><span class="line">    <span class="comment">//加载自定义配置</span></span><br><span class="line">    loadCustomerChain(filterChainDefinitionMap);</span><br><span class="line">    <span class="comment">//登录地址</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(customerConfig.getLoginUrl())) {</span><br><span class="line">        shiroFilterFactoryBean.setLoginUrl(Constants.DEFAULT_LOGIN_URL);</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        shiroFilterFactoryBean.setLoginUrl(customerConfig.getLoginUrl());</span><br><span class="line">    }</span><br><span class="line">    <span class="comment">//登录成功后要跳转的链接</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(customerConfig.getSuccessUrl())) {</span><br><span class="line">        shiroFilterFactoryBean.setSuccessUrl(Constants.DEFAULT_INDEX);</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        shiroFilterFactoryBean.setSuccessUrl(customerConfig.getSuccessUrl());</span><br><span class="line">    }</span><br><span class="line">    <span class="comment">//未授权界面;</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(customerConfig.getUnauthorizedUrl())) {</span><br><span class="line">        shiroFilterFactoryBean.setUnauthorizedUrl(Constants.DEFAULT_403);</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        shiroFilterFactoryBean.setUnauthorizedUrl(customerConfig.getUnauthorizedUrl());</span><br><span class="line">    }</span><br><span class="line">    <span class="comment">//加载静态权限链</span></span><br><span class="line">    shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);</span><br><span class="line">    <span class="comment">//加载动态权限链</span></span><br><span class="line">    shiroFilterFactoryBean.setFilterChainDefinitions(<span class="string">""</span>);</span><br><span class="line">    <span class="keyword">return</span> shiroFilterFactoryBean;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>至此问题解决，一开始曾尝试设置 filter 不校验的 url 地址，但是查看源码后发现不支持这么设置，修改源码影响范围较大，遂决定全局关闭 BlockNonAscii 设置</p>
+<h3 id="参考文章">参考文章</h3>
+<p><a href="https://lequ7.com/guan-yu-springboot-zai-springboot-xia-sheng-ji-shiro-zhi-hou-dao-zhi-zhong-wen-lu-jing-400-fei-fa-de-jie-jue-fang-an.html" title="关于springboot:在SpringBoot下升级shiro之后导致中文路径400非法的解决方案">关于 springboot: 在 SpringBoot 下升级 shiro 之后导致中文路径 400 非法的解决方案</a></p>
+<div class="note warning"><p>尝试了上述方法，发现未生效</p>
+</div>
+<p><a href="https://www.freesion.com/article/89131489103/" title="SHIRO1.6升级到1.7后的问题处理">SHIRO1.6 升级到 1.7 后的问题处理</a></p>
+<p>主要参考了上述文章</p>
 ]]></content>
       <categories>
-        <category>管理</category>
+        <category>shiro</category>
       </categories>
       <tags>
-        <tag>管理</tag>
+        <tag>java</tag>
+        <tag>shiro</tag>
       </tags>
   </entry>
   <entry>
@@ -396,37 +522,6 @@
       </tags>
   </entry>
   <entry>
-    <title>shiro 框架版本升级出现请求 400 拦截处理</title>
-    <url>/2023/01/18/shiroUpdate/</url>
-    <content><![CDATA[<h3 id="问题描述">问题描述</h3>
-<p>因阿里云服务器安全提示，项目中的 shiro 框架近期做了一次升级，升级后检查项目运行无任何问题，几天后运营突然反应说管理平台图片全部无法展示，进行了初步排查，发现在请求后端获取图片的请求全部返回 400 被拦截了，结合最近更新内容锁定目标在 shiro 版本升级上</p>
-<div class="note info"><p>运营需要在管理平台查看图片后直接右键另存为对应中文名的文件，并且要求是原本文件名称。图片默认都上传到了 oss，如果直接右键下载会是乱序英文数字文件名，所以在管理平台后端做了一次转发并设置了中文文件名称</p>
-</div>
-<span id="more"></span>
-<h3 id="问题解决">问题解决</h3>
-<p>实际问题是由于 shiro 新框架新增了几个默认 filter，其中 <code>InvalidRequestFilter</code> 会拦截 url 上的特殊字符，所以只需要修改 <code>InvalidRequestFilter</code> 的方法跳过拦截即可</p>
-<h4 id="解决办法">解决办法</h4>
-<p>重写 <code>ShiroFilterFactoryBean</code></p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CustomShiroFilterFactoryBean</span> <span class="keyword">extends</span> <span class="title class_">ShiroFilterFactoryBean</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">Logger</span> <span class="variable">logger</span> <span class="operator">=</span> LoggerFactory.getLogger(CustomShiroFilterFactoryBean.class);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Class <span class="title function_">getObjectType</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> CustomSpringShiroFilter.class;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> AbstractShiroFilter <span class="title function_">createInstance</span><span class="params">()</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        logger.debug(<span class="string">"Creating Shiro Filter instance."</span>);</span><br><span class="line"></span><br><span class="line">        <span class="type">SecurityManager</span> <span class="variable">securityManager</span> <span class="operator">=</span> getSecurityManager();</span><br><span class="line">        <span class="keyword">if</span> (securityManager == <span class="literal">null</span>) {</span><br><span class="line">            <span class="type">String</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="string">"SecurityManager property must be set."</span>;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BeanInitializationException</span>(msg);</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!(securityManager <span class="keyword">instanceof</span> WebSecurityManager)) {</span><br><span class="line">            <span class="type">String</span> <span class="variable">msg</span> <span class="operator">=</span> <span class="string">"The security manager does not implement the WebSecurityManager interface."</span>;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BeanInitializationException</span>(msg);</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="type">FilterChainManager</span> <span class="variable">manager</span> <span class="operator">=</span> createFilterChainManager();</span><br><span class="line">        <span class="comment">//Expose the constructed FilterChainManager by first wrapping it in a</span></span><br><span class="line">        <span class="comment">// FilterChainResolver implementation. The AbstractShiroFilter implementations</span></span><br><span class="line">        <span class="comment">// do not know about FilterChainManagers - only resolvers:</span></span><br><span class="line">        <span class="type">PathMatchingFilterChainResolver</span> <span class="variable">chainResolver</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">PathMatchingFilterChainResolver</span>();</span><br><span class="line">        chainResolver.setFilterChainManager(manager);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// URL携带中文400，servletPath中文校验bug</span></span><br><span class="line">        Map&lt;String, Filter&gt; filterMap = manager.getFilters();</span><br><span class="line">        <span class="type">Filter</span> <span class="variable">invalidRequestFilter</span> <span class="operator">=</span> filterMap.get(DefaultFilter.invalidRequest.name());</span><br><span class="line">        <span class="keyword">if</span> (invalidRequestFilter <span class="keyword">instanceof</span> InvalidRequestFilter) {</span><br><span class="line">            ((InvalidRequestFilter) invalidRequestFilter).setBlockNonAscii(<span class="literal">false</span>);</span><br><span class="line">        }</span><br><span class="line">        <span class="comment">//Now create a concrete ShiroFilter instance and apply the acquired SecurityManager and built</span></span><br><span class="line">        <span class="comment">//FilterChainResolver.  It doesn't matter that the instance is an anonymous inner class</span></span><br><span class="line">        <span class="comment">//here - we're just using it because it is a concrete AbstractShiroFilter instance that accepts</span></span><br><span class="line">        <span class="comment">//injection of the SecurityManager and FilterChainResolver:</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">CustomSpringShiroFilter</span>((WebSecurityManager) securityManager, chainResolver);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>将重写的 <code>ShiroFilterFactoryBean</code> 注入进 shiro 中</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Bean(name = "shiroFilter")</span></span><br><span class="line"><span class="keyword">public</span> BaseShiroFactoryBean <span class="title function_">shiroFilter</span><span class="params">(<span class="meta">@Qualifier(value = "securityManager")</span> SecurityManager securityManager)</span> {</span><br><span class="line">    <span class="comment">//根据配置加载是否启用redis</span></span><br><span class="line">    <span class="type">Boolean</span> <span class="variable">redis</span> <span class="operator">=</span> customerConfig.getRedis();</span><br><span class="line">    <span class="type">BaseShiroFactoryBean</span> <span class="variable">shiroFilterFactoryBean</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CustomShiroFilterFactoryBean</span>();</span><br><span class="line">    Map&lt;String, Filter&gt; filters = shiroFilterFactoryBean.getFilters();</span><br><span class="line">    filters.put(Constants.CUSTOMER_SHIRO_FILTER, customRolesAuthorizationFilter());</span><br><span class="line">    shiroFilterFactoryBean.setFilters(filters);</span><br><span class="line">    shiroFilterFactoryBean.setSecurityManager(securityManager);</span><br><span class="line">    <span class="comment">//加载默认配置.</span></span><br><span class="line">    Map&lt;String, String&gt; filterChainDefinitionMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(<span class="number">16</span>);</span><br><span class="line">    defaultFilterChain(filterChainDefinitionMap);</span><br><span class="line">    <span class="comment">//加载自定义配置</span></span><br><span class="line">    loadCustomerChain(filterChainDefinitionMap);</span><br><span class="line">    <span class="comment">//登录地址</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(customerConfig.getLoginUrl())) {</span><br><span class="line">        shiroFilterFactoryBean.setLoginUrl(Constants.DEFAULT_LOGIN_URL);</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        shiroFilterFactoryBean.setLoginUrl(customerConfig.getLoginUrl());</span><br><span class="line">    }</span><br><span class="line">    <span class="comment">//登录成功后要跳转的链接</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(customerConfig.getSuccessUrl())) {</span><br><span class="line">        shiroFilterFactoryBean.setSuccessUrl(Constants.DEFAULT_INDEX);</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        shiroFilterFactoryBean.setSuccessUrl(customerConfig.getSuccessUrl());</span><br><span class="line">    }</span><br><span class="line">    <span class="comment">//未授权界面;</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isBlank(customerConfig.getUnauthorizedUrl())) {</span><br><span class="line">        shiroFilterFactoryBean.setUnauthorizedUrl(Constants.DEFAULT_403);</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        shiroFilterFactoryBean.setUnauthorizedUrl(customerConfig.getUnauthorizedUrl());</span><br><span class="line">    }</span><br><span class="line">    <span class="comment">//加载静态权限链</span></span><br><span class="line">    shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);</span><br><span class="line">    <span class="comment">//加载动态权限链</span></span><br><span class="line">    shiroFilterFactoryBean.setFilterChainDefinitions(<span class="string">""</span>);</span><br><span class="line">    <span class="keyword">return</span> shiroFilterFactoryBean;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>至此问题解决，一开始曾尝试设置 filter 不校验的 url 地址，但是查看源码后发现不支持这么设置，修改源码影响范围较大，遂决定全局关闭 BlockNonAscii 设置</p>
-<h3 id="参考文章">参考文章</h3>
-<p><a href="https://lequ7.com/guan-yu-springboot-zai-springboot-xia-sheng-ji-shiro-zhi-hou-dao-zhi-zhong-wen-lu-jing-400-fei-fa-de-jie-jue-fang-an.html" title="关于springboot:在SpringBoot下升级shiro之后导致中文路径400非法的解决方案">关于 springboot: 在 SpringBoot 下升级 shiro 之后导致中文路径 400 非法的解决方案</a></p>
-<div class="note warning"><p>尝试了上述方法，发现未生效</p>
-</div>
-<p><a href="https://www.freesion.com/article/89131489103/" title="SHIRO1.6升级到1.7后的问题处理">SHIRO1.6 升级到 1.7 后的问题处理</a></p>
-<p>主要参考了上述文章</p>
-]]></content>
-      <categories>
-        <category>shiro</category>
-      </categories>
-      <tags>
-        <tag>java</tag>
-        <tag>shiro</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>spotbugs 使用指南</title>
     <url>/2022/10/10/spotbugs/</url>
     <content><![CDATA[<h2 id="前言">前言</h2>
@@ -434,7 +529,7 @@
 <h2 id="SpotBugs使用说明">SpotBugs 使用说明</h2>
 <h3 id="安装方法">安装方法</h3>
 <p>在 IDEA 中，点击工具类 <strong>File-&gt;Settings-&gt;Plugins</strong> 后，切换到 <strong>Marketplace</strong> 标签，在输入框中输入 spotbugs，查询到 <strong>SpotBugs</strong> 插件，点击 <strong>install</strong> 按钮安装插件，如图所示：</p>
-<p><img src="SpotBugsInstall.png" alt="avatar"></p>
+<p><img src="/2022/10/10/spotbugs/SpotBugsInstall.png" alt=""></p>
 <center>
 SpotBugs 安装
 </center>
@@ -449,7 +544,7 @@ SpotBugs 安装
 <blockquote>
 <p>说明：截图红字 3 中三个按钮依次为：扫描选中模块不包含 TEST 类；扫描选中模块包含 TEST 类；扫描全项目</p>
 </blockquote>
-<p><img src="SpotBugsUseStepOne.png" alt="avatar"></p>
+<p><img src="/2022/10/10/spotbugs/SpotBugsUseStepOne.png" alt=""></p>
 <center>
 SpotBugs 使用步骤
 </center>

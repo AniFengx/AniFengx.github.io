@@ -170,18 +170,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-count">10</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -341,26 +341,26 @@
 <h3 id="定位思路">定位思路</h3>
 <h4 id="步骤1">步骤 1</h4>
 <p>首先使用 <strong>JProfiler</strong> 工具查看 <strong>dump</strong> 日志，按照保留大小倒序排序，可以发现最多的是 <code>String</code> 对象，这是因为 <code>YtbShowListResponse</code> 内存溢出对象中存储有请求接口返回的字符串内容，此内容包含一个影院下面的所有场次，所以内容较大。</p>
-<p><img src="JProfiler1.png" alt="avatar"></p>
+<p><img src="/2022/10/10/bugFix/JProfiler1.png" alt=""></p>
 <center>
 （JProfiler 工具查看 dump 日志）
 </center>
 <span id="more"></span>
 <h4 id="步骤2">步骤 2</h4>
 <p>查看对象的数据结构，发现本质是一个 <code>Map</code>，初步怀疑是不是 <strong>NutMap</strong> 第三方工具引起的</p>
-<p><img src="YtbShowListResponse.png" alt="avatar"></p>
+<p><img src="/2022/10/10/bugFix/YtbShowListResponse.png" alt=""></p>
 <center>
 （YtbShowListResponse 数据结构）
 </center>
 <h4 id="步骤3">步骤 3</h4>
 <p>使用 <strong>JProfiler</strong> 工具的图表功能，查看对象到 GC 根 (root) 的路径，可以发现最终是被 <strong>org.nutz.lang.Mirror</strong> 对象所持有，导致无法被回收</p>
-<p><img src="JProfiler2.png" alt="avatar"></p>
+<p><img src="/2022/10/10/bugFix/JProfiler2.png" alt=""></p>
 <center>
 （JProfiler 工具查看图标）
 </center>
 <h4 id="步骤4">步骤 4</h4>
 <p>此时查看比价功能代码，可以发现 <code>YtbShowListResponse</code> 对象的使用都是正常的，并没有放置到 java 静态变量中等操作，但是根据 <strong>dump</strong> 日志分析其中的 <code>YtbShowListResponse</code> 对象，<code>YtbShowListResponse</code> 中 <code>content</code> 字段都是成功，即请求失败就不会出现内存泄露问题，问题代码范围进一步缩小。</p>
-<p><img src="queryYtbOrderInfo.png" alt="avatar"></p>
+<p><img src="/2022/10/10/bugFix/queryYtbOrderInfo.png" alt=""></p>
 <center>
 （比价功能代码）
 </center>
@@ -389,7 +389,7 @@
 <p>本着以上几个问题，我们进入了下一阶段，我们要找到问题本质～我们要搞清楚到底是什么东西，影响了虚拟机内存回收？</p>
 <h3 id="追本溯源">追本溯源</h3>
 <p>进入 <strong>nutz</strong> 的 jar 包源码，可以发现他使用了 <code>mirrorCache</code> 把所有使用到的序列化类型都缓存了起来，问题就出在了这里</p>
-<p><img src="Mirror.png" alt="avatar"></p>
+<p><img src="/2022/10/10/bugFix/Mirror.png" alt=""></p>
 <center>
 （json 序列化源码）
 </center>
@@ -402,7 +402,7 @@
 <li><strong>fastjson</strong> 采用了在 <strong>Type</strong> 中重新生成子序列化类型的方式，避免了内存泄露的问题</li>
 <li> json 序列化的原理就是通过声明一个序列化类型，然后将字符串内容进行转换的过程</li>
 </ul>
-<p><img src="nuztAndFastjson.png" alt="avatar"></p>
+<p><img src="/2022/10/10/bugFix/nuztAndFastjson.png" alt=""></p>
 <center>
 （**nutz** 包和 **fastjson** 源码比较，左 **nutz**，右 **fastjson**）
 </center>
@@ -414,7 +414,7 @@
 <blockquote>
 <p><em>匿名内部类其实极易导致内存泄露问题<sup>③</sup></em></p>
 </blockquote>
-<p><img src="debug.png" alt="avatar"></p>
+<p><img src="/2022/10/10/bugFix/debug.png" alt=""></p>
 <center>
 （debug）
 </center>
@@ -507,13 +507,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">21k</span>
+    <span title="站点总字数">29k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">19 分钟</span>
+    <span title="站点阅读时长">26 分钟</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
