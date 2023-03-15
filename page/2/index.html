@@ -25,7 +25,7 @@
     <meta name="description" content="software">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Ani的第九艺术">
-<meta property="og:url" content="https://anifengx.github.io/tags/java/index.html">
+<meta property="og:url" content="https://anifengx.github.io/page/2/index.html">
 <meta property="og:site_name" content="Ani的第九艺术">
 <meta property="og:description" content="software">
 <meta property="og:locale" content="zh_CN">
@@ -34,14 +34,14 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://anifengx.github.io/tags/java/">
+<link rel="canonical" href="https://anifengx.github.io/page/2/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"tags/java/index.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":true,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"page/2/index.html","title":""}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>标签: java | Ani的第九艺术</title>
+<title>Ani的第九艺术</title>
   
 
   <script src="/js/third-party/analytics/baidu-analytics.js"></script>
@@ -74,7 +74,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <p class="site-title">Ani的第九艺术</p>
+      <h1 class="site-title">Ani的第九艺术</h1>
       <i class="logo-line"></i>
     </a>
       <p class="site-subtitle" itemprop="description">blog from anifengx</p>
@@ -213,93 +213,133 @@
 </noscript>
 
 
-    <div class="main-inner tag posts-collapse">
+    <div class="main-inner index posts-expand">
+
+    
 
 
+<div class="post-block">
   
   
-  
-  <div class="post-block">
-    <div class="post-content">
-      <div class="collection-title">
-        <h1 class="collection-header">java
-          <small>标签</small>
-        </h1>
-      </div>
 
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://anifengx.github.io/2022/10/10/spotbugs/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="AniFengx">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ani的第九艺术">
+      <meta itemprop="description" content="software">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Ani的第九艺术">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/10/10/spotbugs/" class="post-title-link" itemprop="url">spotbugs 使用指南</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-10-10 10:22:23" itemprop="dateCreated datePublished" datetime="2022-10-10T10:22:23+08:00">2022-10-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-10-19 15:56:25" itemprop="dateModified" datetime="2022-10-19T15:56:25+08:00">2022-10-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/developTools/" itemprop="url" rel="index"><span itemprop="name">开发工具</span></a>
+        </span>
+    </span>
+
+  
+    <span id="/2022/10/10/spotbugs/" class="post-meta-item leancloud_visitors" data-flag-title="spotbugs 使用指南" title="阅读次数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span class="leancloud-visitors-count"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>6.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>6 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="前言">前言</h2>
+<p>代码质量主要依靠代码检查来进行，但当前代码检查占用较多工时。现推荐一个比较成熟的代码检查插件，要求 JAVA 开发每次提交代码前都应使用插件自检，可以一定程度上减少代码检查所用的时间，帮助开发人员规范编码习惯，提高编码水平，本插件不能替代阿里巴巴开发规范插件，只是对其的补充。</p>
+<h2 id="SpotBugs使用说明">SpotBugs 使用说明</h2>
+<h3 id="安装方法">安装方法</h3>
+<p>在 IDEA 中，点击工具类 <strong>File-&gt;Settings-&gt;Plugins</strong> 后，切换到 <strong>Marketplace</strong> 标签，在输入框中输入 spotbugs，查询到 <strong>SpotBugs</strong> 插件，点击 <strong>install</strong> 按钮安装插件，如图所示：</p>
+<p><img src="/2022/10/10/spotbugs/SpotBugsInstall.png" alt=""></p>
+<center>
+SpotBugs 安装
+</center>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/10/10/spotbugs/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
-    <div class="collection-year">
-      <span class="collection-header">2023</span>
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2023-03-10T09:12:10+08:00"
-              content="2023-03-10">
-          03-10
-        </time>
-      </div>
+    
+    
+    
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2023/03/10/iframeCors/" itemprop="url">
-            <span itemprop="name">前端使用 iframe 嵌套我方 h5 页面，出现 session 跨域问题如何解决</span>
-          </a>
-      </div>
-
+    <footer class="post-footer">
+        <div class="post-eof"></div>
       
-    </header>
+    </footer>
   </article>
+</div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2023-01-18T10:35:03+08:00"
-              content="2023-01-18">
-          01-18
-        </time>
-      </div>
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2023/01/18/shiroUpdate/" itemprop="url">
-            <span itemprop="name">shiro 框架版本升级出现请求 400 拦截处理</span>
-          </a>
-      </div>
 
-      
-    </header>
-  </article>
-    <div class="collection-year">
-      <span class="collection-header">2022</span>
-    </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2022-11-02T20:41:25+08:00"
-              content="2022-11-02">
-          11-02
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2022/11/02/javaAudition/" itemprop="url">
-            <span itemprop="name">java 面试题汇总</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-    </div>
-  </div>
-  
-  
-  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+  </nav>
 
 </div>
   </main>
