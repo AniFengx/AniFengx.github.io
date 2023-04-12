@@ -159,7 +159,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-count">13</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -214,6 +214,149 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://anifengx.github.io/2022/10/10/bugFix/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="AniFengx">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ani的第九艺术">
+      <meta itemprop="description" content="software">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Ani的第九艺术">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/10/10/bugFix/" class="post-title-link" itemprop="url">java 内存泄露事故分析</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-10-10 14:06:33" itemprop="dateCreated datePublished" datetime="2022-10-10T14:06:33+08:00">2022-10-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-10-19 15:56:14" itemprop="dateModified" datetime="2022-10-19T15:56:14+08:00">2022-10-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/developLive/" itemprop="url" rel="index"><span itemprop="name">开发日常</span></a>
+        </span>
+    </span>
+
+  
+    <span id="/2022/10/10/bugFix/" class="post-meta-item leancloud_visitors" data-flag-title="java 内存泄露事故分析" title="阅读次数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span class="leancloud-visitors-count"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3.9k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h3 id="问题描述">问题描述</h3>
+<p><strong>电影票</strong>长期存在 <strong>ticket</strong> 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 <strong>ticket</strong> 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 <strong>ticket</strong> 模块。</p>
+<blockquote>
+<p><em>电影票 ticket 模块在 h5 用户下单时，会调用异步比价功能，此功能使用 @Async 注解实现，意味着每有一笔订单都会启用一个比价线程</em></p>
+</blockquote>
+<p>本问题历时一年才得以解决，这其中经历了四个问题分析阶段</p>
+<ol>
+<li>
+<p><strong>ticket</strong> 模块崩溃，根据 dump 日志发现内存中存在大量比价功能生成的对象，初步判断是短时订单量过大导致的，未有较好的解决办法，选择多开 <strong>ticket</strong> 模块顶住大量订单的压力。</p>
+</li>
+<li>
+<p>运维侧报告 <strong>ticket</strong> 模块存在凌晨崩溃的情况，排查日志发现凌晨订单只有几笔，此时怀疑是比价功能存在一定问题，导致其产生的对象停留较久，但是依旧未排查到问题。</p>
+<blockquote>
+<p><em>因还是未定位到能导致内存溢出的问题，只能判断认为是虚拟机内存回收较慢导致的</em></p>
+</blockquote>
+</li>
+<li>
+<p>技术侧发现 <code>@Async</code> 注解支持选择线程池来将异步线程改为用线程池来执行，可以防止大量调用 <code>@Async</code> 导致生成了海量线程从而内存溢出。但是在本功能上线后，依然出现了 <strong>ticket</strong> 模块崩溃的问题。</p>
+</li>
+<li>
+<p>经过以上三次排查，已基本确定本次问题是由代码问题引起的内存泄露，并不是因为电影票订单数据量过大导致的系统崩溃。随后重新开始排查问题，并最终定位到是因为 json 序列化引起的内存泄露。</p>
+</li>
+</ol>
+<h3 id="定位思路">定位思路</h3>
+<h4 id="步骤1">步骤 1</h4>
+<p>首先使用 <strong>JProfiler</strong> 工具查看 <strong>dump</strong> 日志，按照保留大小倒序排序，可以发现最多的是 <code>String</code> 对象，这是因为 <code>YtbShowListResponse</code> 内存溢出对象中存储有请求接口返回的字符串内容，此内容包含一个影院下面的所有场次，所以内容较大。</p>
+<p><img src="/2022/10/10/bugFix/JProfiler1.png" alt=""></p>
+<center>
+（JProfiler 工具查看 dump 日志）
+</center>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2022/10/10/bugFix/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -481,13 +624,13 @@ SpotBugs 安装
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">33k</span>
+    <span title="站点总字数">45k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">30 分钟</span>
+    <span title="站点阅读时长">41 分钟</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动

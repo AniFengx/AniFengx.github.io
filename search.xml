@@ -1,24 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
-    <url>/2022/10/10/chromeTranslate/</url>
-    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
-<h3 id="修改host教程">修改 host 教程</h3>
-<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
-<ul>
-<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
-<li>windows: C:\Windows\System32\drivers\etc</li>
-</ul>
-<p>修改文件，添加以下内容：</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">142.250.4.90 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
-<p>保存修改后，chrome 即可正常使用</p>
+    <title>Hexo 使用指北</title>
+    <url>/2022/10/16/UseHexoOne/</url>
+    <content><![CDATA[<p>第一次使用 Hexo 还是在 2017 年，那时候到处了解学习新兴技术，go 也是在那段时间听说并进行了简单学习；当时应该是在搜如何建一个个人博客，然后就搜到了 Hexo 的相关文章，因为其借用 GitPage 相关特性无需自建服务器，直接依托 github 就能建立个人博客，并且也能支持搜索引擎收录，这些亮点在当时的我看来还是很酷的（现在依然觉得很酷～），但是当时在研究完如何安装并成功放到 GitPage 之后，因为没有良好的书写文档的习惯，个人博客也就搁置了，不过当时还是很惊叹于 Hexo 运行后的博客页面，风格很吸引人。</p>
+<p>最近使用 github 时，看了看自己的仓库发现了这个被遗弃的博客仓库，正好最近意识到了文档的重要性，并且也在尝试书写一些，而且用的也是 markdown 格式，能够无缝衔接到 Hexo 上，就准备把这个仓库重新用起来，希望不算太晚吧。</p>
+<div class="note info"><p>说起来，markdown 也是 2017 那年学习使用的，因为当时正值毕业季，需要写个人简历，可能大部分人都是用的智联吧，后来我同学推荐我用乔布简历，写完效果拔群～比智联不知道高到哪里去了，后来同学又推荐我使用 markdown，简单的编写规则加上自由的样式控制可以写出非常好看的简历，并且也足够小众足够酷（但是现在基本程序员已经都会用这个工具了），这才是程序员写个人简历的工具～从此之后我写文档基本都是用 markdown 来写</p>
+</div>
+<span id="more"></span>
+<h2 id="Hexo">Hexo</h2>
+<h3 id="Hexo安装方式">Hexo 安装方式</h3>
+<p>鉴于国情，很多人学习技术更多的是在 csdn 或者其他个人博客，通过别人学习后总结的文章来学习，确实这样学起来更快，并且很多官方网站都是英文的，而 csdn 或者个人博客相当于一个汉化的过程，但是 csdn 会存在一个问题就是文章中的内容会出现过时的情况，所以还是建议直接前往官网学习，并且 <a href="https://hexo.io/zh-cn/docs/" title="Hexo官网">Hexo 官网</a>是有简体中文的。</p>
+<h4 id="安装git">安装 git</h4>
+<p>直接去 git 官网下载 64 位的 exe 安装文件即可</p>
+<h4 id="安装node">安装 node</h4>
+<p>node 版本是个坑，很多 npm 包是对 node 版本有要求的，并且有的时候过新的 node 版本也会导致 npm 包失败，我尝试 Hexo 安装成功的 node 环境版本是 <em>14.16.1</em></p>
+<h4 id="安装Hexo">安装 Hexo</h4>
+<p>npm 全局安装 Hexo</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install -g hexo-cli</span></span><br></pre></td></tr></tbody></table></figure>
+<p>Hexo 初始化</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">hexo init</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install</span></span><br></pre></td></tr></tbody></table></figure>
+<p>配置文件</p>
+<p>_config.yml 是 Hexo 的配置文件，可以在其中设置一些基本参数，例如博客名称、作者名称及一些插件的配置信息</p>
+<h4 id="安装主题NEXT">安装主题 NEXT</h4>
+<p>Hexo 默认主题外观还是比较一般的，Hexo 支持很多扩展主题，我使用的是 NexT 主题，国内大部分网站也是推荐使用这个</p>
+<p>但是这就引出了一个坑，因国内大部分介绍 Hexo 的博客文章都停留在 2020 年或 2020 年以前了，假如没有去 Hexo 官方学习安装方式，而是直接按照国内博客来，那么你安装主题的命令一定是</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> https://github.com/theme-next/hexo-theme-next themes/next</span></span><br></pre></td></tr></tbody></table></figure>
+<p>在安装完这个主题后，你会发现使用起来都很正常，但是几个第三方插件却会出现不好使的情况，并且也没有任何参考解决方案，例如当你要用 leancloud 来当浏览量插件时，页面会出现报错的情况。这实际上是因为 NexT 原作者出现了长期不在线的情况，导致其他成员无法管理已有仓库，所以重新创建了新的分支<a href="https://github.com/next-theme/hexo-theme-next/issues/4" title="解释博客">解释博客</a></p>
+<p>正确的安装主题命令</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> https://github.com/next-theme/hexo-theme-next themes/next</span></span><br></pre></td></tr></tbody></table></figure>
+<blockquote>
+<p>命令后缀的 themes/next 不必须按照示例来，next 是指 clone 后的所在文件夹名，这个可以任意命名，只需要 clone 后，将根目录下的_config.yml 中 theme 参数配置为对应的文件夹名就可以了</p>
+</blockquote>
+<p>Hexo 新版本下，修改主题的配置文件有了新的方式，只需要在根目录下建立_config.xxx.yml，xxx 对应的是 themes 下使用主题所在的文件夹名</p>
 ]]></content>
       <categories>
-        <category>开发工具</category>
+        <category>Hexo</category>
       </categories>
       <tags>
-        <tag>chrome</tag>
+        <tag>Hexo</tag>
       </tags>
   </entry>
   <entry>
@@ -153,44 +173,49 @@
       </tags>
   </entry>
   <entry>
-    <title>Hexo 使用指北</title>
-    <url>/2022/10/16/UseHexoOne/</url>
-    <content><![CDATA[<p>第一次使用 Hexo 还是在 2017 年，那时候到处了解学习新兴技术，go 也是在那段时间听说并进行了简单学习；当时应该是在搜如何建一个个人博客，然后就搜到了 Hexo 的相关文章，因为其借用 GitPage 相关特性无需自建服务器，直接依托 github 就能建立个人博客，并且也能支持搜索引擎收录，这些亮点在当时的我看来还是很酷的（现在依然觉得很酷～），但是当时在研究完如何安装并成功放到 GitPage 之后，因为没有良好的书写文档的习惯，个人博客也就搁置了，不过当时还是很惊叹于 Hexo 运行后的博客页面，风格很吸引人。</p>
-<p>最近使用 github 时，看了看自己的仓库发现了这个被遗弃的博客仓库，正好最近意识到了文档的重要性，并且也在尝试书写一些，而且用的也是 markdown 格式，能够无缝衔接到 Hexo 上，就准备把这个仓库重新用起来，希望不算太晚吧。</p>
-<div class="note info"><p>说起来，markdown 也是 2017 那年学习使用的，因为当时正值毕业季，需要写个人简历，可能大部分人都是用的智联吧，后来我同学推荐我用乔布简历，写完效果拔群～比智联不知道高到哪里去了，后来同学又推荐我使用 markdown，简单的编写规则加上自由的样式控制可以写出非常好看的简历，并且也足够小众足够酷（但是现在基本程序员已经都会用这个工具了），这才是程序员写个人简历的工具～从此之后我写文档基本都是用 markdown 来写</p>
-</div>
-<span id="more"></span>
-<h2 id="Hexo">Hexo</h2>
-<h3 id="Hexo安装方式">Hexo 安装方式</h3>
-<p>鉴于国情，很多人学习技术更多的是在 csdn 或者其他个人博客，通过别人学习后总结的文章来学习，确实这样学起来更快，并且很多官方网站都是英文的，而 csdn 或者个人博客相当于一个汉化的过程，但是 csdn 会存在一个问题就是文章中的内容会出现过时的情况，所以还是建议直接前往官网学习，并且 <a href="https://hexo.io/zh-cn/docs/" title="Hexo官网">Hexo 官网</a>是有简体中文的。</p>
-<h4 id="安装git">安装 git</h4>
-<p>直接去 git 官网下载 64 位的 exe 安装文件即可</p>
-<h4 id="安装node">安装 node</h4>
-<p>node 版本是个坑，很多 npm 包是对 node 版本有要求的，并且有的时候过新的 node 版本也会导致 npm 包失败，我尝试 Hexo 安装成功的 node 环境版本是 <em>14.16.1</em></p>
-<h4 id="安装Hexo">安装 Hexo</h4>
-<p>npm 全局安装 Hexo</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install -g hexo-cli</span></span><br></pre></td></tr></tbody></table></figure>
-<p>Hexo 初始化</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">hexo init</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">npm install</span></span><br></pre></td></tr></tbody></table></figure>
-<p>配置文件</p>
-<p>_config.yml 是 Hexo 的配置文件，可以在其中设置一些基本参数，例如博客名称、作者名称及一些插件的配置信息</p>
-<h4 id="安装主题NEXT">安装主题 NEXT</h4>
-<p>Hexo 默认主题外观还是比较一般的，Hexo 支持很多扩展主题，我使用的是 NexT 主题，国内大部分网站也是推荐使用这个</p>
-<p>但是这就引出了一个坑，因国内大部分介绍 Hexo 的博客文章都停留在 2020 年或 2020 年以前了，假如没有去 Hexo 官方学习安装方式，而是直接按照国内博客来，那么你安装主题的命令一定是</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> https://github.com/theme-next/hexo-theme-next themes/next</span></span><br></pre></td></tr></tbody></table></figure>
-<p>在安装完这个主题后，你会发现使用起来都很正常，但是几个第三方插件却会出现不好使的情况，并且也没有任何参考解决方案，例如当你要用 leancloud 来当浏览量插件时，页面会出现报错的情况。这实际上是因为 NexT 原作者出现了长期不在线的情况，导致其他成员无法管理已有仓库，所以重新创建了新的分支<a href="https://github.com/next-theme/hexo-theme-next/issues/4" title="解释博客">解释博客</a></p>
-<p>正确的安装主题命令</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">git <span class="built_in">clone</span> https://github.com/next-theme/hexo-theme-next themes/next</span></span><br></pre></td></tr></tbody></table></figure>
-<blockquote>
-<p>命令后缀的 themes/next 不必须按照示例来，next 是指 clone 后的所在文件夹名，这个可以任意命名，只需要 clone 后，将根目录下的_config.yml 中 theme 参数配置为对应的文件夹名就可以了</p>
-</blockquote>
-<p>Hexo 新版本下，修改主题的配置文件有了新的方式，只需要在根目录下建立_config.xxx.yml，xxx 对应的是 themes 下使用主题所在的文件夹名</p>
+    <title>Hello World</title>
+    <url>/2022/10/10/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start">Quick Start</h2>
+<h3 id="Create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server">Run server</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 ]]></content>
       <categories>
-        <category>Hexo</category>
+        <category>helloworld</category>
       </categories>
       <tags>
-        <tag>Hexo</tag>
+        <tag>helloworld</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
+    <url>/2022/10/10/chromeTranslate/</url>
+    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
+<h3 id="修改host教程">修改 host 教程</h3>
+<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
+<ul>
+<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
+<li>windows: C:\Windows\System32\drivers\etc</li>
+</ul>
+<p>修改文件，添加以下内容：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">142.250.4.90 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
+<p>保存修改后，chrome 即可正常使用</p>
+]]></content>
+      <categories>
+        <category>开发工具</category>
+      </categories>
+      <tags>
+        <tag>chrome</tag>
       </tags>
   </entry>
   <entry>
@@ -286,31 +311,6 @@
       <tags>
         <tag>java</tag>
         <tag>cors</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2022/10/10/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start">Quick Start</h2>
-<h3 id="Create-a-new-post">Create a new post</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server">Run server</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files">Generate static files</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites">Deploy to remote sites</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>helloworld</category>
-      </categories>
-      <tags>
-        <tag>helloworld</tag>
       </tags>
   </entry>
   <entry>
@@ -730,7 +730,7 @@ SpotBugs 使用步骤
 </li>
 <li>
 <p>新模块 pom 文件中添加依赖</p>
- <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">&lt;!--  支持admin-ui的关键配置  --&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;de.codecentric&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-boot-admin-starter-server&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">2.5</span><span class="number">.5</span>&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></tbody></table></figure>
+ <figure class="highlight xml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--  支持admin-ui的关键配置  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>de.codecentric<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-admin-starter-server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
 <p><em>我也没搞懂为啥 admin 的组织不在 <code>springboot parent</code> 全家桶里，还需要单独控制版本号</em></p>
 <blockquote>
 <p>注意 <code>spring-boot-admin-starter-server</code> 的版本，和 <code>spring-boot-starter-parent</code> 保持一致，admin 支持的版本号可以到 maven 官方仓库或一些<a href="https://central.sonatype.com/artifact/de.codecentric/spring-boot-admin-starter-server/3.0.2/versions" title="收集Maven版本号的网站">第三方 maven 仓库</a>查看</p>
@@ -749,7 +749,7 @@ SpotBugs 使用步骤
 <ol>
 <li>
 <p>修改需要监控的业务模块的 pom 文件</p>
- <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">&lt;!--  支持admin-ui的关键配置  --&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;de.codecentric&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;spring-boot-admin-starter-client&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">2.5</span><span class="number">.5</span>&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></tbody></table></figure>
+ <figure class="highlight xml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--  支持admin-ui的关键配置  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>de.codecentric<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-admin-starter-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
 </li>
 <li>
 <p>修改 <code>application.yml</code> 文件，添加 server 的信息</p>
@@ -781,6 +781,72 @@ SpotBugs 使用步骤
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">Method xssFilterRegistration in com.decent.WebApplication required a single bean, but <span class="number">2</span> were found:</span><br><span class="line">	- requestMappingHandlerMapping: defined by method <span class="string">'requestMappingHandlerMapping'</span> in <span class="keyword">class</span> <span class="title class_">path</span> resource [org/springframework/web/servlet/config/annotation/DelegatingWebMvcConfiguration.class]</span><br><span class="line">	- controllerEndpointHandlerMapping: defined by method <span class="string">'controllerEndpointHandlerMapping'</span> in <span class="keyword">class</span> <span class="title class_">path</span> resource [org/springframework/boot/actuate/autoconfigure/endpoint/web/servlet/WebMvcEndpointManagementContextConfiguration.class]</span><br></pre></td></tr></tbody></table></figure>
 <p><code>Admin</code> 也会注册一个 <code>RequestMappingHandlerMapping</code> 的子类 <code>ControllerEndpointHandlerMapping</code> 到容器中，需要使用根据 bean 名称来获取的 bean 的形式</p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">RequestMappingHandlerMapping</span> <span class="variable">mapping</span> <span class="operator">=</span> applicationContext.getBean(<span class="string">"requestMappingHandlerMapping"</span>, RequestMappingHandlerMapping.class);</span><br></pre></td></tr></tbody></table></figure>]]></content>
+      <categories>
+        <category>monitor</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>spring</tag>
+        <tag>monitor</tag>
+        <tag>Admin</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spring 监控平台从零单排【二】</title>
+    <url>/2023/04/12/springMonitorTwo/</url>
+    <content><![CDATA[<p>第一章介绍了 <strong>Spring Boot Admin</strong> 的使用方法，但是其 UI 平台展示的内容离实际所需的监控内容还有较大差距，本章着重介绍其底层所使用的 <strong>Actuator</strong> 框架，并提供如何对接到 <strong>Prometheus</strong> 和 <strong>grafana</strong> 的方式</p>
+<h3 id="Spring-Boot-Actuator">Spring Boot Actuator</h3>
+<p><strong>Actuator</strong> 默认暴露了一些 jvm 信息，也可以自行借助打点方法记录需要的监控信息，其底层是使用的 <strong>Micrometer</strong></p>
+<span id="more"></span>
+<h4 id="集成">集成</h4>
+<p><strong>Actuator</strong> 是 Client 模块用来暴露信息的框架，监控平台需要自行搭建，本次直接使用 <strong>grafana</strong> 制作好的看板进行展示</p>
+<h5 id="springboot集成">springboot 集成</h5>
+<ol>
+<li>
+<p>Client 模块修改 pom 文件，添加如下内容</p>
+ <figure class="highlight xml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--  actuator  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-actuator<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!--  将actuator暴露的接口改造为prometheus支持的格式  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.micrometer<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>micrometer-registry-prometheus<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li>
+<p>修改 <code>application.yml</code> 文件，添加如下内容</p>
+ <figure class="highlight yaml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">    <span class="attr">endpoints:</span></span><br><span class="line">        <span class="attr">web:</span></span><br><span class="line">            <span class="attr">exposure:</span></span><br><span class="line">                <span class="attr">include:</span> <span class="string">'prometheus'</span></span><br><span class="line">    <span class="attr">metrics:</span></span><br><span class="line">        <span class="attr">tags:</span></span><br><span class="line">            <span class="comment">#定义暴露指标的tag名称，如下设置是默认取用当前springboot应用名，也可写死</span></span><br><span class="line">            <span class="attr">application:</span> <span class="string">${spring.application.name}</span></span><br></pre></td></tr></tbody></table></figure>
+</li>
+</ol>
+<p>以上步骤添加后，即完成了 <strong>Actuator</strong> 集成，可以运行当前应用，访问应用接口 <code>http://localhost:8080/actuator/prometheus</code> 可获得如下内容</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"># HELP jvm_buffer_count_buffers An estimate of the number of buffers in the pool</span><br><span class="line"># TYPE jvm_buffer_count_buffers gauge</span><br><span class="line">jvm_buffer_count_buffers{application=<span class="string">"web"</span>,id=<span class="string">"mapped"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_buffer_count_buffers{application=<span class="string">"web"</span>,id=<span class="string">"direct"</span>,} <span class="number">3.0</span></span><br><span class="line"># HELP jvm_buffer_total_capacity_bytes An estimate of the total capacity of the buffers in <span class="built_in">this</span> pool</span><br><span class="line"># TYPE jvm_buffer_total_capacity_bytes gauge</span><br><span class="line">jvm_buffer_total_capacity_bytes{application=<span class="string">"web"</span>,id=<span class="string">"mapped"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_buffer_total_capacity_bytes{application=<span class="string">"web"</span>,id=<span class="string">"direct"</span>,} <span class="number">8208.0</span></span><br><span class="line"># HELP tomcat_sessions_created_sessions_total  </span><br><span class="line"># TYPE tomcat_sessions_created_sessions_total counter</span><br><span class="line">tomcat_sessions_created_sessions_total{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP tomcat_sessions_rejected_sessions_total  </span><br><span class="line"># TYPE tomcat_sessions_rejected_sessions_total counter</span><br><span class="line">tomcat_sessions_rejected_sessions_total{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP jvm_classes_loaded_classes The number of classes that are currently loaded in the Java virtual machine</span><br><span class="line"># TYPE jvm_classes_loaded_classes gauge</span><br><span class="line">jvm_classes_loaded_classes{application=<span class="string">"web"</span>,} <span class="number">12286.0</span></span><br><span class="line"># HELP jvm_classes_unloaded_classes_total The total number of classes unloaded since the Java virtual machine has started execution</span><br><span class="line"># TYPE jvm_classes_unloaded_classes_total counter</span><br><span class="line">jvm_classes_unloaded_classes_total{application=<span class="string">"web"</span>,} <span class="number">56.0</span></span><br><span class="line"># HELP jvm_gc_live_data_size_bytes Size of <span class="type">long</span>-lived heap memory pool after reclamation</span><br><span class="line"># TYPE jvm_gc_live_data_size_bytes gauge</span><br><span class="line">jvm_gc_live_data_size_bytes{application=<span class="string">"web"</span>,} <span class="number">3.837896E7</span></span><br><span class="line"># HELP jvm_threads_daemon_threads The current number of live daemon threads</span><br><span class="line"># TYPE jvm_threads_daemon_threads gauge</span><br><span class="line">jvm_threads_daemon_threads{application=<span class="string">"web"</span>,} <span class="number">27.0</span></span><br><span class="line"># HELP process_cpu_usage The <span class="string">"recent cpu usage"</span> <span class="keyword">for</span> the Java Virtual Machine process</span><br><span class="line"># TYPE process_cpu_usage gauge</span><br><span class="line">process_cpu_usage{application=<span class="string">"web"</span>,} <span class="number">0.08109822305359074</span></span><br><span class="line"># HELP jvm_memory_committed_bytes The amount of memory in bytes that is committed <span class="keyword">for</span> the Java virtual machine to use</span><br><span class="line"># TYPE jvm_memory_committed_bytes gauge</span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Eden Space"</span>,} <span class="number">3.13524224E8</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Code Cache"</span>,} <span class="number">1.0289152E7</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Metaspace"</span>,} <span class="number">6.8550656E7</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Old Gen"</span>,} <span class="number">4.59800576E8</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Survivor Space"</span>,} <span class="number">1.572864E7</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Compressed Class Space"</span>,} <span class="number">9306112.0</span></span><br><span class="line"># HELP process_start_time_seconds Start time of the process since unix epoch.</span><br><span class="line"># TYPE process_start_time_seconds gauge</span><br><span class="line">process_start_time_seconds{application=<span class="string">"web"</span>,} <span class="number">1.6812881222E9</span></span><br><span class="line"># HELP jvm_gc_memory_allocated_bytes_total Incremented <span class="keyword">for</span> an increase in the size of <span class="title function_">the</span> <span class="params">(young)</span> heap memory pool after one GC to before the next</span><br><span class="line"># TYPE jvm_gc_memory_allocated_bytes_total counter</span><br><span class="line">jvm_gc_memory_allocated_bytes_total{application=<span class="string">"web"</span>,} <span class="number">4.46238072E8</span></span><br><span class="line"># HELP jvm_gc_memory_promoted_bytes_total Count of positive increases in the size of the old generation memory pool before GC to after GC</span><br><span class="line"># TYPE jvm_gc_memory_promoted_bytes_total counter</span><br><span class="line">jvm_gc_memory_promoted_bytes_total{application=<span class="string">"web"</span>,} <span class="number">2.1952392E7</span></span><br><span class="line"># HELP process_uptime_seconds The uptime of the Java virtual machine</span><br><span class="line"># TYPE process_uptime_seconds gauge</span><br><span class="line">process_uptime_seconds{application=<span class="string">"web"</span>,} <span class="number">19.083</span></span><br><span class="line"># HELP tomcat_sessions_alive_max_seconds  </span><br><span class="line"># TYPE tomcat_sessions_alive_max_seconds gauge</span><br><span class="line">tomcat_sessions_alive_max_seconds{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP jvm_threads_peak_threads The peak live thread count since the Java virtual machine started or peak was reset</span><br><span class="line"># TYPE jvm_threads_peak_threads gauge</span><br><span class="line">jvm_threads_peak_threads{application=<span class="string">"web"</span>,} <span class="number">64.0</span></span><br><span class="line"># HELP tomcat_sessions_active_max_sessions  </span><br><span class="line"># TYPE tomcat_sessions_active_max_sessions gauge</span><br><span class="line">tomcat_sessions_active_max_sessions{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP system_cpu_count The number of processors available to the Java virtual machine</span><br><span class="line"># TYPE system_cpu_count gauge</span><br><span class="line">system_cpu_count{application=<span class="string">"web"</span>,} <span class="number">12.0</span></span><br><span class="line"># HELP jvm_gc_pause_seconds Time spent in GC pause</span><br><span class="line"># TYPE jvm_gc_pause_seconds summary</span><br><span class="line">jvm_gc_pause_seconds_count{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Allocation Failure"</span>,} <span class="number">1.0</span></span><br><span class="line">jvm_gc_pause_seconds_sum{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Allocation Failure"</span>,} <span class="number">0.01</span></span><br><span class="line">jvm_gc_pause_seconds_count{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">1.0</span></span><br><span class="line">jvm_gc_pause_seconds_sum{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.012</span></span><br><span class="line">jvm_gc_pause_seconds_count{action=<span class="string">"end of major GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">1.0</span></span><br><span class="line">jvm_gc_pause_seconds_sum{action=<span class="string">"end of major GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.112</span></span><br><span class="line"># HELP jvm_gc_pause_seconds_max Time spent in GC pause</span><br><span class="line"># TYPE jvm_gc_pause_seconds_max gauge</span><br><span class="line">jvm_gc_pause_seconds_max{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Allocation Failure"</span>,} <span class="number">0.01</span></span><br><span class="line">jvm_gc_pause_seconds_max{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.012</span></span><br><span class="line">jvm_gc_pause_seconds_max{action=<span class="string">"end of major GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.112</span></span><br><span class="line"># HELP tomcat_sessions_active_current_sessions  </span><br><span class="line"># TYPE tomcat_sessions_active_current_sessions gauge</span><br><span class="line">tomcat_sessions_active_current_sessions{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP jvm_gc_max_data_size_bytes Max size of <span class="type">long</span>-lived heap memory pool</span><br><span class="line"># TYPE jvm_gc_max_data_size_bytes gauge</span><br><span class="line">jvm_gc_max_data_size_bytes{application=<span class="string">"web"</span>,} <span class="number">5.672271872E9</span></span><br><span class="line"># HELP jvm_threads_states_threads The current number of threads having NEW state</span><br><span class="line"># TYPE jvm_threads_states_threads gauge</span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"timed-waiting"</span>,} <span class="number">13.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"new"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"terminated"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"blocked"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"waiting"</span>,} <span class="number">7.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"runnable"</span>,} <span class="number">44.0</span></span><br><span class="line"># HELP jvm_buffer_memory_used_bytes An estimate of the memory that the Java virtual machine is using <span class="keyword">for</span> <span class="built_in">this</span> buffer pool</span><br><span class="line"># TYPE jvm_buffer_memory_used_bytes gauge</span><br><span class="line">jvm_buffer_memory_used_bytes{application=<span class="string">"web"</span>,id=<span class="string">"mapped"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_buffer_memory_used_bytes{application=<span class="string">"web"</span>,id=<span class="string">"direct"</span>,} <span class="number">8209.0</span></span><br><span class="line"># HELP jvm_memory_used_bytes The amount of used memory</span><br><span class="line"># TYPE jvm_memory_used_bytes gauge</span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Eden Space"</span>,} <span class="number">1.65650568E8</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Code Cache"</span>,} <span class="number">1.0112832E7</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Metaspace"</span>,} <span class="number">6.4346336E7</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Old Gen"</span>,} <span class="number">3.837896E7</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Survivor Space"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Compressed Class Space"</span>,} <span class="number">8478672.0</span></span><br><span class="line"># HELP jvm_threads_live_threads The current number of live threads including both daemon and non-daemon threads</span><br><span class="line"># TYPE jvm_threads_live_threads gauge</span><br><span class="line">jvm_threads_live_threads{application=<span class="string">"web"</span>,} <span class="number">64.0</span></span><br><span class="line"># HELP tomcat_sessions_expired_sessions_total  </span><br><span class="line"># TYPE tomcat_sessions_expired_sessions_total counter</span><br><span class="line">tomcat_sessions_expired_sessions_total{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP system_cpu_usage The <span class="string">"recent cpu usage"</span> <span class="keyword">for</span> the whole system</span><br><span class="line"># TYPE system_cpu_usage gauge</span><br><span class="line">system_cpu_usage{application=<span class="string">"web"</span>,} <span class="number">0.028650178842763663</span></span><br><span class="line"># HELP jvm_memory_max_bytes The maximum amount of memory in bytes that can be used <span class="keyword">for</span> memory management</span><br><span class="line"># TYPE jvm_memory_max_bytes gauge</span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Eden Space"</span>,} <span class="number">2.796552192E9</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Code Cache"</span>,} <span class="number">2.5165824E8</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Metaspace"</span>,} -<span class="number">1.0</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Old Gen"</span>,} <span class="number">5.672271872E9</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Survivor Space"</span>,} <span class="number">1.572864E7</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Compressed Class Space"</span>,} <span class="number">1.073741824E9</span></span><br><span class="line"># HELP logback_events_total Number of error level events that made it to the logs</span><br><span class="line"># TYPE logback_events_total counter</span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"info"</span>,} <span class="number">14.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"debug"</span>,} <span class="number">0.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"error"</span>,} <span class="number">0.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"warn"</span>,} <span class="number">0.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"trace"</span>,} <span class="number">0.0</span></span><br></pre></td></tr></tbody></table></figure>
+<p>以上信息都是遵守 <strong>prometheus</strong> 规范生成的返回信息</p>
+<h5 id="数据导入到prometheus">数据导入到 prometheus</h5>
+<div class="note "><p>安装方式参考<a href="https://prometheus.io/docs/introduction/first_steps/#starting-prometheus" title="官网安装说明">官网安装说明</a>，安装最新版本即可</p>
+</div>
+<p>修改配置文件 <code>prometheus.yml</code>，添加如下内容</p>
+<figure class="highlight yaml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="attr">scrape_configs:</span></span><br><span class="line">    <span class="comment"># 一个scrape_configs下可以有多个job_name，任意写，建议英文，不要包含特殊字符</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">job_name:</span> <span class="string">'spring'</span></span><br><span class="line">        <span class="comment"># 多久采集一次数据</span></span><br><span class="line">        <span class="attr">scrape_interval:</span> <span class="string">3s</span></span><br><span class="line">        <span class="comment"># 采集时的超时时间，注意：超时时间需要小于采集时间</span></span><br><span class="line">        <span class="attr">scrape_timeout:</span> <span class="string">2s</span></span><br><span class="line">        <span class="comment"># 采集的路径是啥</span></span><br><span class="line">        <span class="attr">metrics_path:</span> <span class="string">'actuator/prometheus'</span></span><br><span class="line">        <span class="comment"># 采集服务的地址，设置成上面Spring Boot应用所在服务器的具体地址。</span></span><br><span class="line">        <span class="attr">static_configs:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">targets:</span> [<span class="string">'127.0.0.1:8080'</span>]</span><br></pre></td></tr></tbody></table></figure>
+<p>如上配置后 prometheus 即可每 3s 请求一次 Client</p>
+<p>启动 prometheus，在 prometheus 根目录下执行如下命令</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">./prometheus --config.file=prometheus.yml</span><br></pre></td></tr></tbody></table></figure>
+<p>访问 <code>http://localhost:9090</code>，可查看 prometheus 采集的指标如下</p>
+<p><img src="/2023/04/12/springMonitorTwo/1.png" alt=""></p>
+<h5 id="通过grafana进行展示">通过 grafana 进行展示</h5>
+<div class="note "><p>安装方式参考<a href="https://grafana.com/docs/grafana/latest/setup-grafana/installation/" title="官网安装说明">官网安装说明</a>，安装最新版本即可</p>
+</div>
+<p>启动 grafana，进入安装后文件夹下 <code>bin</code> 中，执行如下命令</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">./grafana-server</span><br></pre></td></tr></tbody></table></figure>
+<p>登录 <code>http://localhost:3000/login</code>，初始账号 / 密码为 <code>admin/admin</code>，进入页面后需要配置一些信息</p>
+<ol>
+<li>
+<p>配置数据源，界面如下</p>
+<p><img src="/2023/04/12/springMonitorTwo/2.png" alt=""></p>
+<p>选择 <code>prometheus</code> 后，填入其服务地址 <code>http://localhost:9090</code>，点击 <code>Save &amp; test</code>，成功添加数据源</p>
+</li>
+<li>
+<p>创建看板，界面如下</p>
+<p><img src="/2023/04/12/springMonitorTwo/3.png" alt=""></p>
+<p>网上针对 jvm 相关指标已有成熟看板可供使用，填入 <code>id</code> 为 <code>4701</code> 即可，并且数据源选择刚刚添加的数据源，然后点击 <code>import</code> 导入</p>
+<p><img src="/2023/04/12/springMonitorTwo/4.png" alt=""></p>
+</li>
+</ol>
+<p>到此为止即可借助 <strong>Actuator</strong> 提供的默认指标监控 jvm 的运行情况，效果如下</p>
+<p><img src="/2023/04/12/springMonitorTwo/5.png" alt=""></p>
+<div class="note "><p><strong>grafana</strong> 有专门的看板仓库，其中积累了大量线程的各类指标看板，可自行选择，点击前往 <a href="https://grafana.com/grafana/dashboards/?pg=hp&amp;plcmt=lt-box-dashboards" title="Dashboards">Grafana Lab - Dashboards</a></p>
+</div>]]></content>
       <categories>
         <category>monitor</category>
       </categories>
