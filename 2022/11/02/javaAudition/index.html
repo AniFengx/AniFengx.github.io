@@ -30,7 +30,7 @@
 <meta property="og:description" content="本文记录一些比较贴合实际开发的常遇到的 java 面试题，方便后续面试 【易】StringBuilder 和 StringBuffer 区别是什么？ StringBuffer 是线程安全的，StringBuilder 是非线程安全的，但是 StringBuilder 性能高于 StringBuffer，单线程下推荐使用 StringBuilder，StringBuffer 内部采用 synchro">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-11-02T12:41:25.000Z">
-<meta property="article:modified_time" content="2022-11-28T09:27:27.087Z">
+<meta property="article:modified_time" content="2023-09-02T08:55:34.331Z">
 <meta property="article:author" content="AniFengx">
 <meta property="article:tag" content="java">
 <meta name="twitter:card" content="summary">
@@ -149,7 +149,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E6%98%93%E3%80%91StringBuilder%E5%92%8CStringBuffer%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">【易】StringBuilder 和 StringBuffer 区别是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E5%9C%A8-Java-%E7%A8%8B%E5%BA%8F%E4%B8%AD%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E8%BF%90%E8%A1%8C%E5%AE%89%E5%85%A8%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">【中】在 Java 程序中怎么保证多线程的运行安全？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E9%9A%BE%E3%80%91synchronized%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E9%94%81%E5%8D%87%E7%BA%A7%E5%8E%9F%E7%90%86%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">【难】synchronized 的底层实现原理是什么？锁升级原理是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E6%98%93%E3%80%91%E9%81%8D%E5%8E%86List%E6%93%8D%E4%BD%9C%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">【易】遍历 List 操作的几种方式？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E9%81%8D%E5%8E%86%E5%BE%AA%E7%8E%AF%E5%88%A0%E9%99%A4%E5%85%83%E7%B4%A0%E7%9A%84%E8%AF%9D%E4%BD%A0%E4%BC%9A%E7%94%A8%E9%82%A3%E7%A7%8D%E6%96%B9%E6%B3%95%E6%9D%A5%E6%93%8D%E4%BD%9C%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">【中】遍历循环删除元素的话你会用那种方法来操作？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E8%AF%B4%E4%B8%80%E4%B8%8B-session-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">【中】说一下 session 的工作原理？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91try-catch-finally-%E4%B8%AD%EF%BC%8C%E5%A6%82%E6%9E%9C-catch-%E4%B8%AD-return-%E4%BA%86%EF%BC%8Cfinally-%E8%BF%98%E4%BC%9A%E6%89%A7%E8%A1%8C%E5%90%97%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">【中】try-catch-finally 中，如果 catch 中 return 了，finally 还会执行吗？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%BD%8E%E3%80%91spring-%E4%BA%8B%E5%8A%A1%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%9F"><span class="nav-number">8.</span> <span class="nav-text">【低】spring 事务实现方式有哪些？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%BD%8E%E3%80%91MySQL-%E7%9A%84%E5%86%85%E8%BF%9E%E6%8E%A5%E3%80%81%E5%B7%A6%E8%BF%9E%E6%8E%A5%E3%80%81%E5%8F%B3%E8%BF%9E%E6%8E%A5%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">9.</span> <span class="nav-text">【低】MySQL 的内连接、左连接、右连接有什么区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%BD%8E%E3%80%91mysql%E9%BB%98%E8%AE%A4%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%EF%BC%9F"><span class="nav-number">10.</span> <span class="nav-text">【低】mysql 默认事务隔离级别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">11.</span> <span class="nav-text">【中】乐观锁和悲观锁的区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E9%9A%BE%E3%80%91%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%8E%A5%E5%8F%A3%E5%B9%82%E7%AD%89%E6%80%A7%EF%BC%9F"><span class="nav-number">12.</span> <span class="nav-text">【难】如何保证接口幂等性？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E9%9A%BE%E3%80%91JVM%E4%B8%AD%E6%9C%89%E5%93%AA%E4%BA%9B%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95%EF%BC%9F"><span class="nav-number">13.</span> <span class="nav-text">【难】JVM 中有哪些垃圾回收算法？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E4%BB%80%E4%B9%88%E6%98%AFRedis%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E3%80%81%E5%87%BB%E7%A9%BF%E3%80%81%E9%9B%AA%E5%B4%A9%EF%BC%9F"><span class="nav-number">14.</span> <span class="nav-text">【中】什么是 Redis 缓存穿透、击穿、雪崩？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91Redis%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%9F"><span class="nav-number">15.</span> <span class="nav-text">【中】Redis 怎么实现分布式锁？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91RPC%E8%AF%B7%E6%B1%82%EF%BC%8C%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%9C%A8%E6%94%B6%E5%88%B0%E6%96%B9%E6%B3%95%E5%90%8D%E3%80%81%E6%8E%A5%E5%8F%A3%E5%90%8D%E3%80%81%E5%8F%82%E6%95%B0%E5%90%8D%E5%90%8E%E6%80%8E%E4%B9%88%E5%AE%8C%E6%88%90%E4%B8%80%E6%AC%A1%E8%B0%83%E7%94%A8%EF%BC%9F"><span class="nav-number">16.</span> <span class="nav-text">【中】RPC 请求，服务端在收到方法名、接口名、参数名后怎么完成一次调用？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%BD%8E%E3%80%91%E6%9C%80%E8%BF%91%E6%9C%89%E5%9C%A8%E5%AD%A6%E4%B9%A0%E6%96%B0%E7%9A%84%E4%B8%9C%E8%A5%BF%E5%90%97%EF%BC%9F%E6%9C%89%E5%9C%A8%E4%BA%86%E8%A7%A3%E5%93%AA%E5%9D%97%E6%8A%80%E6%9C%AF%E5%90%97%EF%BC%9F"><span class="nav-number">17.</span> <span class="nav-text">【低】最近有在学习新的东西吗？有在了解哪块技术吗？</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E6%98%93%E3%80%91StringBuilder%E5%92%8CStringBuffer%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">【易】StringBuilder 和 StringBuffer 区别是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E5%9C%A8-Java-%E7%A8%8B%E5%BA%8F%E4%B8%AD%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E8%BF%90%E8%A1%8C%E5%AE%89%E5%85%A8%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">【中】在 Java 程序中怎么保证多线程的运行安全？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E9%9A%BE%E3%80%91volatile%E5%85%B3%E9%94%AE%E5%AD%97%E4%BD%9C%E7%94%A8%EF%BC%8C%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%8E%9F%E5%AD%90%E6%80%A7%E3%80%81%E5%8F%AF%E8%A7%81%E6%80%A7%E3%80%81%E6%9C%89%E5%BA%8F%E6%80%A7"><span class="nav-number">3.</span> <span class="nav-text">【难】volatile 关键字作用，如何实现的原子性、可见性、有序性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E9%9A%BE%E3%80%91synchronized%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E9%94%81%E5%8D%87%E7%BA%A7%E5%8E%9F%E7%90%86%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">【难】synchronized 的底层实现原理是什么？锁升级原理是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E6%98%93%E3%80%91%E9%81%8D%E5%8E%86List%E6%93%8D%E4%BD%9C%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">【易】遍历 List 操作的几种方式？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E9%81%8D%E5%8E%86%E5%BE%AA%E7%8E%AF%E5%88%A0%E9%99%A4%E5%85%83%E7%B4%A0%E7%9A%84%E8%AF%9D%E4%BD%A0%E4%BC%9A%E7%94%A8%E9%82%A3%E7%A7%8D%E6%96%B9%E6%B3%95%E6%9D%A5%E6%93%8D%E4%BD%9C%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">【中】遍历循环删除元素的话你会用那种方法来操作？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E8%AF%B4%E4%B8%80%E4%B8%8B-session-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">【中】说一下 session 的工作原理？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91try-catch-finally-%E4%B8%AD%EF%BC%8C%E5%A6%82%E6%9E%9C-catch-%E4%B8%AD-return-%E4%BA%86%EF%BC%8Cfinally-%E8%BF%98%E4%BC%9A%E6%89%A7%E8%A1%8C%E5%90%97%EF%BC%9F"><span class="nav-number">8.</span> <span class="nav-text">【中】try-catch-finally 中，如果 catch 中 return 了，finally 还会执行吗？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%BD%8E%E3%80%91spring-%E4%BA%8B%E5%8A%A1%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%9F"><span class="nav-number">9.</span> <span class="nav-text">【低】spring 事务实现方式有哪些？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%BD%8E%E3%80%91MySQL-%E7%9A%84%E5%86%85%E8%BF%9E%E6%8E%A5%E3%80%81%E5%B7%A6%E8%BF%9E%E6%8E%A5%E3%80%81%E5%8F%B3%E8%BF%9E%E6%8E%A5%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">10.</span> <span class="nav-text">【低】MySQL 的内连接、左连接、右连接有什么区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%BD%8E%E3%80%91mysql%E9%BB%98%E8%AE%A4%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%EF%BC%9F"><span class="nav-number">11.</span> <span class="nav-text">【低】mysql 默认事务隔离级别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">12.</span> <span class="nav-text">【中】乐观锁和悲观锁的区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E9%9A%BE%E3%80%91%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%8E%A5%E5%8F%A3%E5%B9%82%E7%AD%89%E6%80%A7%EF%BC%9F"><span class="nav-number">13.</span> <span class="nav-text">【难】如何保证接口幂等性？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E9%9A%BE%E3%80%91JVM%E4%B8%AD%E6%9C%89%E5%93%AA%E4%BA%9B%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95%EF%BC%9F"><span class="nav-number">14.</span> <span class="nav-text">【难】JVM 中有哪些垃圾回收算法？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91%E4%BB%80%E4%B9%88%E6%98%AFRedis%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E3%80%81%E5%87%BB%E7%A9%BF%E3%80%81%E9%9B%AA%E5%B4%A9%EF%BC%9F"><span class="nav-number">15.</span> <span class="nav-text">【中】什么是 Redis 缓存穿透、击穿、雪崩？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91Redis%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%9F"><span class="nav-number">16.</span> <span class="nav-text">【中】Redis 怎么实现分布式锁？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%B8%AD%E3%80%91RPC%E8%AF%B7%E6%B1%82%EF%BC%8C%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%9C%A8%E6%94%B6%E5%88%B0%E6%96%B9%E6%B3%95%E5%90%8D%E3%80%81%E6%8E%A5%E5%8F%A3%E5%90%8D%E3%80%81%E5%8F%82%E6%95%B0%E5%90%8D%E5%90%8E%E6%80%8E%E4%B9%88%E5%AE%8C%E6%88%90%E4%B8%80%E6%AC%A1%E8%B0%83%E7%94%A8%EF%BC%9F"><span class="nav-number">17.</span> <span class="nav-text">【中】RPC 请求，服务端在收到方法名、接口名、参数名后怎么完成一次调用？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E3%80%90%E4%BD%8E%E3%80%91%E6%9C%80%E8%BF%91%E6%9C%89%E5%9C%A8%E5%AD%A6%E4%B9%A0%E6%96%B0%E7%9A%84%E4%B8%9C%E8%A5%BF%E5%90%97%EF%BC%9F%E6%9C%89%E5%9C%A8%E4%BA%86%E8%A7%A3%E5%93%AA%E5%9D%97%E6%8A%80%E6%9C%AF%E5%90%97%EF%BC%9F"><span class="nav-number">18.</span> <span class="nav-text">【低】最近有在学习新的东西吗？有在了解哪块技术吗？</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -263,7 +263,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-11-28 17:27:27" itemprop="dateModified" datetime="2022-11-28T17:27:27+08:00">2022-11-28</time>
+      <time title="修改时间：2023-09-02 16:55:34" itemprop="dateModified" datetime="2023-09-02T16:55:34+08:00">2023-09-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -289,14 +289,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>2.2k</span>
+      <span>3.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>2 分钟</span>
+      <span>3 分钟</span>
     </span>
 </div>
 
@@ -315,7 +315,62 @@
 <li>使用安全类，比如 Java. util. concurrent 下的类</li>
 <li>使用自动锁 synchronized</li>
 <li> 使用手动锁 Lock</li>
+<li>volatile 关键字</li>
 </ul>
+<h3 id="【难】volatile关键字作用，如何实现的原子性、可见性、有序性">【难】volatile 关键字作用，如何实现的原子性、可见性、有序性</h3>
+<p>volatile 只能保证可见性和有序性，对于一些复杂操作无法保证原子性</p>
+<ol>
+<li>可见性：</li>
+</ol>
+<blockquote>
+<p>CPU 的运行速度是远远高于内存的读写速度的，为了不让 cpu 为了等待读写内存数据，现代 cpu 和内存之间都存在一个高速缓存 cache，线程在运行的过程中会把主内存的数据拷贝一份到线程内部 cache 中，也就是 working memory。这个时候多个线程访问同一个变量，其实就是访问自己的内部 cache。这就导致当线程 A 把变量 flag 加载到自己的内部缓存 cache 中，线程 B 修改变量 flag 后，即使重新写入主内存，但是线程 A 不会重新从主内存加载变量 flag，看到的还是自己 cache 中的变量 flag。所以线程 A 是读取不到线程 B 更新后的值。</p>
+</blockquote>
+<p>volatile 会对修饰的变量添加 LOCK 指令，这个指令有两个最用</p>
+<ul>
+<li>将当前处理器缓存的数据刷新到主内存</li>
+<li>刷新到主内存时会使得其他处理器缓存的该内存地址的数据无效</li>
+</ul>
+<p>这也就保证了变量的可见性</p>
+<ol start="2">
+<li>有序性</li>
+</ol>
+<p>计算机在执行程序的过程中，编译器和处理器通常会对指令进行重排序，这样做的目的是为了提高性能。而 volatile 通过借助内存屏障这个概念保证了操作的有序性。</p>
+<p>volatile 重排序规则：</p>
+<ul>
+<li>当第一个操作是 volatile 读时，无论第二个操作是什么都不能进行重排序。</li>
+<li>当第二个操作是 volatile 写时，无论第一个操作是什么都不能进行重排序。</li>
+<li>当第一个操作是 volatile 写，第二个操作为 volatile 读时，不能进行重排序。</li>
+</ul>
+<p>根据 volatile 重排序规则，Java 内存模型采取的是保守的屏障插入策略，volatile 写是在前面和后面分别插入内存屏障，volatile 读是在后面插入两个内存屏障，具体如下：</p>
+<ul>
+<li>
+<p>volatile 读：在每个 volatile 读后面分别插入 LoadLoad 屏障及 LoadStore 屏障（根据 volatile 重排序规则第一条）</p>
+<ul>
+<li>LoadLoad 屏障的作用：禁止上面的所有普通读操作和上面的 volatile 读操作进行重排序</li>
+<li> LoadStore 屏障的作用：禁止下面的普通写和上面的 volatile 读进行重排序。</li>
+</ul>
+</li>
+<li>
+<p>volatile 写：在每个 volatile 写前面插入一个 StoreStore 屏障（为满足 volatile 重排序规则第二条），在每个 volatile 写后面插入一个 StoreLoad 屏障（为满足 voaltile 重排序规则第三条</p>
+<ul>
+<li>StoreStore 屏障的作用：禁止上面的普通写和下面的 volatile 写重排序</li>
+<li> StoreLoad 屏障的作用：防止上面的 volatile 写与下面可能出现的 volatile 读 / 写重排序。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>因为 Java 内存模型所采用的屏障插入策略比较保守，所以在实际的执行过程中，只要不改变 volatile 读 / 写的内存语义，编译器通常会省略一些不必要的内存屏障。</p>
+</blockquote>
+<ol start="3">
+<li>原子性</li>
+</ol>
+<p>为什么一些复杂操作无法保证原子性？例如 i++，此操作实际可以分解为</p>
+<ul>
+<li>线程读取 i 的值</li>
+<li> i 进行自增计算</li>
+<li>刷新回 i 的值</li>
+</ul>
+<p>会出现 ab 两个线程取到同一个 i 值，例如 5，然后进行自增运算得到要刷新的值为 6，这是 a 线程率先完成赋值操作，i 变为 6，随后 b 线程进行赋值操作，因 b 线程已完成自增运算，所以也会用得到的值 6 来进行赋值操作，从而导致不满足原子性</p>
 <h3 id="【难】synchronized的底层实现原理是什么？锁升级原理是什么？">【难】synchronized 的底层实现原理是什么？锁升级原理是什么？</h3>
 <span id="more"></span>
 <h3 id="【易】遍历List操作的几种方式？">【易】遍历 List 操作的几种方式？</h3>
@@ -458,13 +513,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">45k</span>
+    <span title="站点总字数">46k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">41 分钟</span>
+    <span title="站点阅读时长">42 分钟</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
