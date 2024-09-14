@@ -22,16 +22,16 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"anifengx.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":true,"version":"8.13.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="记录在 windows 中使用 WSL 技术出现的一系列问题 安装 WSL 默认需要 window10 或 11 的系统，并且版本号有一定要求，可去 官方 检查 开启 cpu 虚拟化技术 使用 WSL 需要电脑 cpu 支持 Hyper-V 虚拟化技术，首先要在 BIOS 中开启对应选项，具体型号笔记本的选项不同，可参考  在 Windows 上启用虚拟化 Windows 启用 linux 子系统">
+    <meta name="description" content="记录在 windows 中使用 WSL 技术出现的一系列问题 安装 WSL 默认需要 window10 或 11 的系统，并且版本号有一定要求，可去 官方 检查 开启 cpu 虚拟化技术 使用 WSL 需要电脑 cpu 支持 Hyper-V 虚拟化技术，首先要在 BIOS 中开启对应选项，具体型号笔记本的选项不同，可参考  在 Windows 上启用虚拟化">
 <meta property="og:type" content="article">
 <meta property="og:title" content="WSL 使用笔记">
 <meta property="og:url" content="https://anifengx.github.io/2024/09/13/WSL/index.html">
 <meta property="og:site_name" content="Ani的第九艺术">
-<meta property="og:description" content="记录在 windows 中使用 WSL 技术出现的一系列问题 安装 WSL 默认需要 window10 或 11 的系统，并且版本号有一定要求，可去 官方 检查 开启 cpu 虚拟化技术 使用 WSL 需要电脑 cpu 支持 Hyper-V 虚拟化技术，首先要在 BIOS 中开启对应选项，具体型号笔记本的选项不同，可参考  在 Windows 上启用虚拟化 Windows 启用 linux 子系统">
+<meta property="og:description" content="记录在 windows 中使用 WSL 技术出现的一系列问题 安装 WSL 默认需要 window10 或 11 的系统，并且版本号有一定要求，可去 官方 检查 开启 cpu 虚拟化技术 使用 WSL 需要电脑 cpu 支持 Hyper-V 虚拟化技术，首先要在 BIOS 中开启对应选项，具体型号笔记本的选项不同，可参考  在 Windows 上启用虚拟化">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://anifengx.github.io/2024/09/13/WSL/WSL1.png">
 <meta property="article:published_time" content="2024-09-13T09:38:25.000Z">
-<meta property="article:modified_time" content="2024-09-13T10:40:12.635Z">
+<meta property="article:modified_time" content="2024-09-14T03:29:29.311Z">
 <meta property="article:author" content="AniFengx">
 <meta property="article:tag" content="WSL">
 <meta name="twitter:card" content="summary">
@@ -151,7 +151,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85WSL"><span class="nav-number">1.</span> <span class="nav-text">安装 WSL</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%80%E5%90%AFcpu%E8%99%9A%E6%8B%9F%E5%8C%96%E6%8A%80%E6%9C%AF"><span class="nav-number">1.1.</span> <span class="nav-text">开启 cpu 虚拟化技术</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Windows%E5%90%AF%E7%94%A8linux%E5%AD%90%E7%B3%BB%E7%BB%9F"><span class="nav-number">1.2.</span> <span class="nav-text">Windows 启用 linux 子系统</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WSL-update"><span class="nav-number">1.3.</span> <span class="nav-text">WSL update</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-number">2.</span> <span class="nav-text">常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#wsl-l-v"><span class="nav-number">2.1.</span> <span class="nav-text">wsl -l -v</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#wsl-shutdown"><span class="nav-number">2.2.</span> <span class="nav-text">wsl --shutdown</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E8%BF%81%E7%A7%BB"><span class="nav-number">3.</span> <span class="nav-text">存储迁移</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E8%BF%90%E8%A1%8C%E7%8A%B6%E6%80%81"><span class="nav-number">3.1.</span> <span class="nav-text">查看运行状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E9%97%AD%E6%AD%A3%E5%9C%A8%E8%BF%90%E8%A1%8C%E7%9A%84%E8%99%9A%E6%8B%9F%E6%9C%BA"><span class="nav-number">3.2.</span> <span class="nav-text">关闭正在运行的虚拟机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%BC%E5%87%BA%E5%A4%87%E4%BB%BD"><span class="nav-number">3.3.</span> <span class="nav-text">导出备份</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B3%A8%E9%94%80%E5%8E%9F%E6%9C%89%E7%89%88%E6%9C%AC"><span class="nav-number">3.4.</span> <span class="nav-text">注销原有版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%86%E5%A4%87%E4%BB%BD%E6%96%87%E4%BB%B6%E6%81%A2%E5%A4%8D%E5%88%B0%E8%87%AA%E5%B7%B1%E6%96%B0%E5%BB%BA%E7%9A%84%E6%96%87%E4%BB%B6%E5%A4%B9%EF%BC%88%E8%BF%99%E9%87%8C%E4%B8%BAWSL%EF%BC%89%E4%B8%8B"><span class="nav-number">3.5.</span> <span class="nav-text">将备份文件恢复到自己新建的文件夹（这里为 WSL）下</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D%E9%BB%98%E8%AE%A4%E7%94%A8%E6%88%B7"><span class="nav-number">3.6.</span> <span class="nav-text">恢复默认用户</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85WSL"><span class="nav-number">1.</span> <span class="nav-text">安装 WSL</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%80%E5%90%AFcpu%E8%99%9A%E6%8B%9F%E5%8C%96%E6%8A%80%E6%9C%AF"><span class="nav-number">1.1.</span> <span class="nav-text">开启 cpu 虚拟化技术</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Windows%E5%90%AF%E7%94%A8linux%E5%AD%90%E7%B3%BB%E7%BB%9F"><span class="nav-number">1.2.</span> <span class="nav-text">Windows 启用 linux 子系统</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WSL-update"><span class="nav-number">1.3.</span> <span class="nav-text">WSL update</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-number">2.</span> <span class="nav-text">常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#wsl-l-v"><span class="nav-number">2.1.</span> <span class="nav-text">wsl -l -v</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#wsl-shutdown"><span class="nav-number">2.2.</span> <span class="nav-text">wsl --shutdown</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E8%BF%81%E7%A7%BB"><span class="nav-number">3.</span> <span class="nav-text">存储迁移</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E8%BF%90%E8%A1%8C%E7%8A%B6%E6%80%81"><span class="nav-number">3.1.</span> <span class="nav-text">查看运行状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B3%E9%97%AD%E6%AD%A3%E5%9C%A8%E8%BF%90%E8%A1%8C%E7%9A%84%E8%99%9A%E6%8B%9F%E6%9C%BA"><span class="nav-number">3.2.</span> <span class="nav-text">关闭正在运行的虚拟机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%BC%E5%87%BA%E5%A4%87%E4%BB%BD"><span class="nav-number">3.3.</span> <span class="nav-text">导出备份</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B3%A8%E9%94%80%E5%8E%9F%E6%9C%89%E7%89%88%E6%9C%AC"><span class="nav-number">3.4.</span> <span class="nav-text">注销原有版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%86%E5%A4%87%E4%BB%BD%E6%96%87%E4%BB%B6%E6%81%A2%E5%A4%8D%E5%88%B0%E8%87%AA%E5%B7%B1%E6%96%B0%E5%BB%BA%E7%9A%84%E6%96%87%E4%BB%B6%E5%A4%B9%EF%BC%88%E8%BF%99%E9%87%8C%E4%B8%BAWSL%EF%BC%89%E4%B8%8B"><span class="nav-number">3.5.</span> <span class="nav-text">将备份文件恢复到自己新建的文件夹（这里为 WSL）下</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D%E9%BB%98%E8%AE%A4%E7%94%A8%E6%88%B7"><span class="nav-number">3.6.</span> <span class="nav-text">恢复默认用户</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E9%97%AE%E9%A2%98"><span class="nav-number">4.</span> <span class="nav-text">网络问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%8E%E5%B1%80%E5%9F%9F%E7%BD%91-LAN-%E8%AE%BF%E9%97%AE-WSL-2-%E5%88%86%E5%8F%91%E7%89%88"><span class="nav-number">4.1.</span> <span class="nav-text">从局域网 (LAN) 访问 WSL 2 分发版</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#netsh-interface-portproxy-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-number">4.2.</span> <span class="nav-text">netsh interface portproxy 常用命令</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -257,9 +257,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2024-09-13 17:38:25 / 修改时间：18:40:12" itemprop="dateCreated datePublished" datetime="2024-09-13T17:38:25+08:00">2024-09-13</time>
+      <time title="创建时间：2024-09-13 17:38:25" itemprop="dateCreated datePublished" datetime="2024-09-13T17:38:25+08:00">2024-09-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-09-14 11:29:29" itemprop="dateModified" datetime="2024-09-14T11:29:29+08:00">2024-09-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -285,14 +291,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.4k</span>
+      <span>2.9k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
+      <span>3 分钟</span>
     </span>
 </div>
 
@@ -308,6 +314,7 @@
 <p>默认需要 window10 或 11 的系统，并且版本号有一定要求，可去 <a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/windows/wsl/install" title="WSL官方安装教程">官方</a> 检查</p>
 <h4 id="开启cpu虚拟化技术">开启 cpu 虚拟化技术</h4>
 <p>使用 WSL 需要电脑 cpu 支持 Hyper-V 虚拟化技术，首先要在 BIOS 中开启对应选项，具体型号笔记本的选项不同，可参考  <a target="_blank" rel="noopener" href="https://prod.support.services.microsoft.com/zh-cn/windows/%E5%9C%A8-windows-%E4%B8%8A%E5%90%AF%E7%94%A8%E8%99%9A%E6%8B%9F%E5%8C%96-c5578302-6e43-4b4b-a449-8ced115f58e1" title="在Windows 上启用虚拟化">在 Windows 上启用虚拟化</a></p>
+<span id="more"></span>
 <h4 id="Windows启用linux子系统">Windows 启用 linux 子系统</h4>
 <p>在 Windows 桌面任务栏的搜索框输入<strong>启用或关闭 Windows 功能</strong>，启用截图中圈选的功能</p>
 <p><img src="/2024/09/13/WSL/WSL1.png" alt=""></p>
@@ -345,7 +352,31 @@
 <p>保存配置并退出，同样在关闭 wsl 之后重新进入，便会发现默认用户已经修改了。</p>
 <p>需要注意的是 wsl.conf 配置优先级要高于 Ubuntu2004.exe config --default-user，因此如果两个都配置了的话，会以 wsl.conf 中的配置优先。</p>
 </div>
-
+<h3 id="网络问题">网络问题</h3>
+<p>使用 wsl2 版本，在宿主机和 wsl 中使用 localhost 都可访问到部署的服务</p>
+<blockquote>
+<p>使用远程 IP 地址连接到应用程序时，它们将被视为来自局域网 (LAN) 的连接。 这意味着你需要确保你的应用程序可以接受 LAN 连接。</p>
+<p>例如，你可能需要将应用程序绑定到 0.0.0.0 而非 127.0.0.1。 以使用 Flask 的 Python 应用为例，可以通过以下命令执行此操作：app.run (host=‘0.0.0.0’)。 进行这些更改时请注意安全性，因为这将允许来自你的 LAN 的连接。</p>
+</blockquote>
+<h4 id="从局域网-LAN-访问-WSL-2-分发版">从局域网 (LAN) 访问 WSL 2 分发版</h4>
+<p>WSL 2 有一个带有其自己独一无二的 IP 地址的虚拟化以太网适配器。目前，若要启用此工作流，你需要执行与常规虚拟机相同的步骤。</p>
+<p>下面是使用  <a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/windows-server/networking/technologies/netsh/netsh-interface-portproxy1" title="Netsh 接口 portproxy">Netsh 接口 portproxy</a>  Windows 命令添加端口代理的示例，该代理侦听主机端口并将该端口代理连接到 WSL 2 VM 的 IP 地址。</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 listenport=&lt;yourPortToForward&gt; listenaddress=0.0.0.0 connectport=&lt;yourPortToConnectToInWSL&gt; connectaddress=(wsl hostname -I)</span><br></pre></td></tr></tbody></table></figure>
+<p>在此示例中，需要更新 <code>&lt;yourPortToForward&gt;</code> 到端口号，例如 <code>listenport=4000</code>。 <code>listenaddress=0.0.0.0</code> 表示将接受来自任何 IP 地址的传入请求。 侦听地址指定要侦听的 IPv4 地址，可以更改为以下值：IP 地址、计算机 NetBIOS 名称或计算机 DNS 名称。 如果未指定地址，则默认值为本地计算机。 需要将 <code>&lt;yourPortToConnectToInWSL&gt;</code> 值更新为希望 WSL 连接的端口号，例如 <code>connectport=4000</code>。 最后，<code>connectaddress</code> 值必须是通过 WSL 2 安装的 Linux 分发版的 IP 地址（WSL 2 VM 地址），可通过输入命令：<code>wsl.exe hostname -I</code> 找到。</p>
+<p>因此，此命令可能如下所示：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 listenport=4000 listenaddress=0.0.0.0 connectport=4000 connectaddress=192.168.101.100</span><br></pre></td></tr></tbody></table></figure>
+<p>要获取 IP 地址，请使用：</p>
+<ul>
+<li><code>wsl hostname -I</code> 标识通过 WSL 2 安装的 Linux 分发版 IP 地址（WSL 2 VM 地址）</li>
+<li><code>cat /etc/resolv.conf</code> 表示从 WSL 2 看到的 WINDOWS 计算机的 IP 地址 (WSL 2 VM)</li>
+</ul>
+<div class="note info"><p>在主机名命令中使用小写 “i” 将生成与使用大写 “I” 不同的结果。 <code>wsl hostname -i</code> 是本地计算机（127.0.1.1 是占位符诊断地址），而 <code>wsl hostname -I</code> 会返回其他计算机所看到的本地计算机的 IP 地址，应该用于识别通过 WSL 2 运行的 Linux 发行版的 <code>connectaddress</code>。</p>
+</div>
+<h4 id="netsh-interface-portproxy-常用命令">netsh interface portproxy 常用命令</h4>
+<p>Portproxy 服务器从服务器侦听的 IPv4 端口和地址列表中删除 IPv4 地址。</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy delete v4tov4 listenport=&lt;yourPortToForward&gt; listenaddress=0.0.0.0</span><br></pre></td></tr></tbody></table></figure>
+<p>显示所有 portproxy 参数，包括 v4tov4、v4tov6、v6tov4 和 v6tov6 的端口 / 地址对。</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh interface portproxy show all</span><br></pre></td></tr></tbody></table></figure>
     </div>
 
     
@@ -414,13 +445,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">49k</span>
+    <span title="站点总字数">51k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">45 分钟</span>
+    <span title="站点阅读时长">46 分钟</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动

@@ -251,9 +251,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2024-09-13 17:38:25 / 修改时间：18:40:12" itemprop="dateCreated datePublished" datetime="2024-09-13T17:38:25+08:00">2024-09-13</time>
+      <time title="创建时间：2024-09-13 17:38:25" itemprop="dateCreated datePublished" datetime="2024-09-13T17:38:25+08:00">2024-09-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-09-14 11:29:29" itemprop="dateModified" datetime="2024-09-14T11:29:29+08:00">2024-09-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -279,14 +285,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.4k</span>
+      <span>2.9k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
+      <span>3 分钟</span>
     </span>
 </div>
 
@@ -302,44 +308,14 @@
 <p>默认需要 window10 或 11 的系统，并且版本号有一定要求，可去 <a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/windows/wsl/install" title="WSL官方安装教程">官方</a> 检查</p>
 <h4 id="开启cpu虚拟化技术">开启 cpu 虚拟化技术</h4>
 <p>使用 WSL 需要电脑 cpu 支持 Hyper-V 虚拟化技术，首先要在 BIOS 中开启对应选项，具体型号笔记本的选项不同，可参考  <a target="_blank" rel="noopener" href="https://prod.support.services.microsoft.com/zh-cn/windows/%E5%9C%A8-windows-%E4%B8%8A%E5%90%AF%E7%94%A8%E8%99%9A%E6%8B%9F%E5%8C%96-c5578302-6e43-4b4b-a449-8ced115f58e1" title="在Windows 上启用虚拟化">在 Windows 上启用虚拟化</a></p>
-<h4 id="Windows启用linux子系统">Windows 启用 linux 子系统</h4>
-<p>在 Windows 桌面任务栏的搜索框输入<strong>启用或关闭 Windows 功能</strong>，启用截图中圈选的功能</p>
-<p><img src="/2024/09/13/WSL/WSL1.png" alt=""></p>
-<p>但是实测发现，Windows 中未开启 Hyper-V 和适用于 Linux 的 Windows 子系统，仅开启了虚拟机平台，WSL 一样可用</p>
-<h4 id="WSL-update">WSL update</h4>
-<p>经过上述两步，可在终端控制台中输入 <code>wsl --install</code>，自动安装所需工具，安装完成后输入 <code>wsl -v</code> 检查当前版本号和内核</p>
-<p>如果此时提示命令行选项无效，可输入 <code>wsl --update</code>，完成所需组件的更新</p>
-<p>输入 <code>wsl -v</code> 最终显示如下信息</p>
-<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">WSL 版本： 2.2.4.0</span><br><span class="line">内核版本： 5.15.153.1-2</span><br><span class="line">WSLg 版本： 1.0.61</span><br><span class="line">MSRDC 版本： 1.2.5326</span><br><span class="line">Direct3D 版本： 1.611.1-81528511</span><br><span class="line">DXCore 版本： 10.0.26091.1-240325-1447.ge-release</span><br><span class="line">Windows 版本： 10.0.22631.4037</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="常用命令">常用命令</h3>
-<h4 id="wsl-l-v">wsl -l -v</h4>
-<p>查看当前已安装的 Linux 发行版及对应的 wsl 版本号</p>
-<h4 id="wsl-shutdown">wsl --shutdown</h4>
-<p>关闭所有正在运行的 Linux 发行版，但是可能出现关不上的情况</p>
-<h3 id="存储迁移">存储迁移</h3>
-<p>WSL 默认安装的发型本存储在 C 盘，随着使用的增多，会占用较多空间，建议提早移出到别的盘符</p>
-<h4 id="查看运行状态">查看运行状态</h4>
-<p>打开终端控制台，输入 <code>wsl -l -v</code> 查看 WSL 虚拟机的状态</p>
-<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">  NAME            STATE           VERSION</span><br><span class="line">* Ubuntu-20.04    Running         2</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="关闭正在运行的虚拟机">关闭正在运行的虚拟机</h4>
-<p>使用命令 <code>wsl --shutdown</code>，再次查看 WSL 虚拟机的状态，可发现已经关闭</p>
-<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">  NAME            STATE           VERSION</span><br><span class="line">* Ubuntu-20.04    Stopped         2</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="导出备份">导出备份</h4>
-<p>首先在自己选择想要存放 wsl 的盘符（这里选择 D 盘）下创建文件夹（名称为 WSL）。注意命令中 export 后是自己 Ubuntu 的版本名称。</p>
-<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl --export Ubuntu-20.04 D:\WSL\Ubuntu.tar</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="注销原有版本">注销原有版本</h4>
-<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl --unregister Ubuntu-20.04</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="将备份文件恢复到自己新建的文件夹（这里为WSL）下">将备份文件恢复到自己新建的文件夹（这里为 WSL）下</h4>
-<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl --import Ubuntu-20.04 D:\WSL D:\WSL\Ubuntu.tar</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="恢复默认用户">恢复默认用户</h4>
-<p>导入成功后，打开虚拟机默认当前用户会变成 root，如果想还原到之前的用户，可执行下述命令，将用户名替换成默认进入虚拟机的用户名即可</p>
-<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Ubuntu2004 config -default-user 用户名</span><br></pre></td></tr></tbody></table></figure>
-<div class="note warning"><p>执行配置默认用户命令时，控制台可能会报错，如果百度后无法解决的情况下， 可以 root 身份先进入虚拟机，执行 <code>sudo vim /etc/wsl.conf</code> 创建或修改文件，在其中添加如下内容</p>
-<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[user]</span><br><span class="line">default = root</span><br></pre></td></tr></tbody></table></figure>
-<p>保存配置并退出，同样在关闭 wsl 之后重新进入，便会发现默认用户已经修改了。</p>
-<p>需要注意的是 wsl.conf 配置优先级要高于 Ubuntu2004.exe config --default-user，因此如果两个都配置了的话，会以 wsl.conf 中的配置优先。</p>
-</div>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/09/13/WSL/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -401,7 +377,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-09-12 10:15:06" itemprop="dateModified" datetime="2024-09-12T10:15:06+08:00">2024-09-12</time>
+      <time title="修改时间：2024-09-13 18:59:04" itemprop="dateModified" datetime="2024-09-13T18:59:04+08:00">2024-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -470,32 +446,14 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
 <li>FixedString (N)：定长字符串类型，占用 N 个字节存储。</li>
 <li>String：变长字符串类型，使用相对较少的内存来存储字符串。</li>
 </ul>
-<h3 id="数据库引擎及基本语法">数据库引擎及基本语法</h3>
-<h4 id="MergeTree">MergeTree</h4>
-<p>主键由关键字 PRIMARY KEY 指定，如果没有使用 PRIMARY KEY 显式指定的主键，ClickHouse 会使用排序键 ORDER BY 指定的列作为主键。</p>
-<p>需要注意的是，如果同时指定了主键与排序键，那么排序键必须包含主键的所有列，比如主键为（a,b），排序键就必须为 (a,b,**)。</p>
-<p>和关系型数据库的主键具备唯一性不同，<strong>ClickHouse 可以存在相同主键的数据行</strong>。这也是 ClickHouse 为了性能而做出的考量。</p>
-<h4 id="ReplacingMergeTree">ReplacingMergeTree</h4>
-<p>前面提到 MergeTree 的主键没有唯一性约束。所以即使多行数据的主键相同，它们还是能够正常写入。</p>
-<p>ReplacingMergeTree 建表语句与 MergeTree 相同，只需要替换掉表引擎就好，不过需要指定一个列作为版本列。</p>
-<p>当排序键相同的数据行插入时，它会删除重复行，保留版本列值最大的一行。如果没有指定版本列，则会保留最后插入的一行。</p>
-<p>通常来说，ReplacingMergeTree 删除重复行，是因为两种情况。</p>
-<ul>
-<li>一起批量插入的数据，属于同一个数据片段的数据，所以会在插入时候按排序键去重。</li>
-<li>分批插入的数据，属于不同的数据片段，需要依托后台数据片段合并的时候才进行。</li>
-</ul>
-<p>所以即使你用了 ReplacingMergeTree 表引擎，在查询表数据的时候，仍然可能会查询到重复数据，不过只要使用 final 关键字去重即可。或者你也可以使用如下命令强制合并分区，这样数据片段就会合并。</p>
-<h3 id="四层数仓建模">四层数仓建模</h3>
-<p>在数仓建模中，有一个比较通用的建模方法论，就是将数据分为 4 层：包括：ODS（Operational Data Store）、DWD（Data Warehouse Detail）、DWS（Data Warehouse Summary）和 ADS（Application Data Store）</p>
-<h4 id="ODS">ODS</h4>
-<p>直接存放从各个渠道收集的原始数据，比如业务系统收集的、前后端埋点收集的等等。有时候会考虑做一定程度的数据清洗，比如处理异常字段、规范字段命名、统一时间字段等</p>
-<h4 id="DWD">DWD</h4>
-<p>以业务过程作为建模驱动，基于每个具体的业务过程特点，构建最细粒度的明细事实表，比如浏览明细表、交易明细表。DWD 也会清洗 ODS 层的数据（去除空值、脏数据、异常数据）、降维处理、脱敏等，并基于维度建模，将某些字段做适当冗余，做宽表化</p>
-<h4 id="DWS">DWS</h4>
-<p>在 DWD 层的基础上进行数据聚合和汇总，比如用户交易汇总表、用户指标汇总宽表。一般会依据特定业务需求或报表要求进行数据汇总和预计算，提高数据查询效率和性能</p>
-<h4 id="ADS">ADS</h4>
-<p>在 DWS 之上，面向特定应用场景设计的数据层，比如我们 CDP 场景里面，用户标签、人群画像，是通过计算后直接给到前端应用系统使用的表</p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/08/30/ClickHouseOne/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -1513,13 +1471,13 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">49k</span>
+    <span title="站点总字数">51k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">45 分钟</span>
+    <span title="站点阅读时长">46 分钟</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
