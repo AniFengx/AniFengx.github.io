@@ -1,68 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>ClickHouse 笔记</title>
-    <url>/2024/08/30/ClickHouseOne/</url>
-    <content><![CDATA[<p>项目最近需要用到 ClickHouse 来做大数据的实时分析，但是 ClickHouse 相关文档过少，只能通过做笔记的形式手动记录</p>
-<h3 id="支持的数据类型">支持的数据类型</h3>
-<p><a href="https://clickhouse.com/docs/zh/sql-reference/data-types" title="ClickHouse数据类型">参考地址</a></p>
-<h4 id="数值类型">数值类型:</h4>
-<ul>
-<li>Int8、Int16、Int32、Int64、Int128、Int256：有符号整数型，分别使用 1、2、4、8 个字节存储。</li>
-<li>UInt8、UInt16、UInt32、UInt64、UInt128、UInt256：无符号整数型，分别使用 1、2、4、8 个字节存储。</li>
-<li>Float32、Float64：浮点数型，分别使用 4、8 个字节存储。
-<blockquote>
-<p>对浮点数进行计算可能引起四舍五入的误差。<br>
-SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
-</blockquote>
-</li>
-<li>Decimal (P, S)：定点数型，支持指定精度和小数位数。</li>
-</ul>
-<h4 id="时间日期类型：">时间日期类型：</h4>
-<ul>
-<li>Date：日期类型，使用 4 个字节存储，表示自 1970 年 1 月 1 日以来的天数。</li>
-<li>DateTime：日期时间类型，使用 8 个字节存储，精确到纳秒级。</li>
-</ul>
-<h4 id="字符串类型：">字符串类型：</h4>
-<ul>
-<li>FixedString (N)：定长字符串类型，占用 N 个字节存储。</li>
-<li>String：变长字符串类型，使用相对较少的内存来存储字符串。</li>
-</ul>
-<span id="more"></span>
-<h3 id="数据库引擎及基本语法">数据库引擎及基本语法</h3>
-<h4 id="MergeTree">MergeTree</h4>
-<p>主键由关键字 PRIMARY KEY 指定，如果没有使用 PRIMARY KEY 显式指定的主键，ClickHouse 会使用排序键 ORDER BY 指定的列作为主键。</p>
-<p>需要注意的是，如果同时指定了主键与排序键，那么排序键必须包含主键的所有列，比如主键为（a,b），排序键就必须为 (a,b,**)。</p>
-<p>和关系型数据库的主键具备唯一性不同，<strong>ClickHouse 可以存在相同主键的数据行</strong>。这也是 ClickHouse 为了性能而做出的考量。</p>
-<h4 id="ReplacingMergeTree">ReplacingMergeTree</h4>
-<p>前面提到 MergeTree 的主键没有唯一性约束。所以即使多行数据的主键相同，它们还是能够正常写入。</p>
-<p>ReplacingMergeTree 建表语句与 MergeTree 相同，只需要替换掉表引擎就好，不过需要指定一个列作为版本列。</p>
-<p>当排序键相同的数据行插入时，它会删除重复行，保留版本列值最大的一行。如果没有指定版本列，则会保留最后插入的一行。</p>
-<p>通常来说，ReplacingMergeTree 删除重复行，是因为两种情况。</p>
-<ul>
-<li>一起批量插入的数据，属于同一个数据片段的数据，所以会在插入时候按排序键去重。</li>
-<li>分批插入的数据，属于不同的数据片段，需要依托后台数据片段合并的时候才进行。</li>
-</ul>
-<p>所以即使你用了 ReplacingMergeTree 表引擎，在查询表数据的时候，仍然可能会查询到重复数据，不过只要使用 final 关键字去重即可。或者你也可以使用如下命令强制合并分区，这样数据片段就会合并。</p>
-<h3 id="四层数仓建模">四层数仓建模</h3>
-<p>在数仓建模中，有一个比较通用的建模方法论，就是将数据分为 4 层：包括：ODS（Operational Data Store）、DWD（Data Warehouse Detail）、DWS（Data Warehouse Summary）和 ADS（Application Data Store）</p>
-<h4 id="ODS">ODS</h4>
-<p>直接存放从各个渠道收集的原始数据，比如业务系统收集的、前后端埋点收集的等等。有时候会考虑做一定程度的数据清洗，比如处理异常字段、规范字段命名、统一时间字段等</p>
-<h4 id="DWD">DWD</h4>
-<p>以业务过程作为建模驱动，基于每个具体的业务过程特点，构建最细粒度的明细事实表，比如浏览明细表、交易明细表。DWD 也会清洗 ODS 层的数据（去除空值、脏数据、异常数据）、降维处理、脱敏等，并基于维度建模，将某些字段做适当冗余，做宽表化</p>
-<h4 id="DWS">DWS</h4>
-<p>在 DWD 层的基础上进行数据聚合和汇总，比如用户交易汇总表、用户指标汇总宽表。一般会依据特定业务需求或报表要求进行数据汇总和预计算，提高数据查询效率和性能</p>
-<h4 id="ADS">ADS</h4>
-<p>在 DWS 之上，面向特定应用场景设计的数据层，比如我们 CDP 场景里面，用户标签、人群画像，是通过计算后直接给到前端应用系统使用的表</p>
-]]></content>
-      <categories>
-        <category>ClickHouse</category>
-      </categories>
-      <tags>
-        <tag>ClickHouse</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>WSL 使用笔记</title>
     <url>/2024/09/13/WSL/</url>
     <content><![CDATA[<p>记录在 windows 中使用 WSL 技术出现的一系列问题</p>
@@ -116,7 +54,7 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
 </blockquote>
 <h4 id="从局域网-LAN-访问-WSL-2-分发版">从局域网 (LAN) 访问 WSL 2 分发版</h4>
 <p>WSL 2 有一个带有其自己独一无二的 IP 地址的虚拟化以太网适配器。目前，若要启用此工作流，你需要执行与常规虚拟机相同的步骤。</p>
-<p>下面是使用  <a href="https://learn.microsoft.com/zh-cn/windows-server/networking/technologies/netsh/netsh-interface-portproxy1" title="Netsh 接口 portproxy">Netsh 接口 portproxy</a>  Windows 命令添加端口代理的示例，该代理侦听主机端口并将该端口代理连接到 WSL 2 VM 的 IP 地址。</p>
+<p>下面是使用 <a href="https://learn.microsoft.com/zh-cn/windows-server/networking/technologies/netsh/netsh-interface-portproxy1" title="Netsh 接口 portproxy">Netsh 接口 portproxy</a>  Windows 命令添加端口代理的示例，该代理侦听主机端口并将该端口代理连接到 WSL 2 VM 的 IP 地址。</p>
 <figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 listenport=&lt;yourPortToForward&gt; listenaddress=0.0.0.0 connectport=&lt;yourPortToConnectToInWSL&gt; connectaddress=(wsl hostname -I)</span><br></pre></td></tr></tbody></table></figure>
 <p>在此示例中，需要更新 <code>&lt;yourPortToForward&gt;</code> 到端口号，例如 <code>listenport=4000</code>。 <code>listenaddress=0.0.0.0</code> 表示将接受来自任何 IP 地址的传入请求。 侦听地址指定要侦听的 IPv4 地址，可以更改为以下值：IP 地址、计算机 NetBIOS 名称或计算机 DNS 名称。 如果未指定地址，则默认值为本地计算机。 需要将 <code>&lt;yourPortToConnectToInWSL&gt;</code> 值更新为希望 WSL 连接的端口号，例如 <code>connectport=4000</code>。 最后，<code>connectaddress</code> 值必须是通过 WSL 2 安装的 Linux 分发版的 IP 地址（WSL 2 VM 地址），可通过输入命令：<code>wsl.exe hostname -I</code> 找到。</p>
 <p>因此，此命令可能如下所示：</p>
@@ -132,33 +70,29 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
 <p>Portproxy 服务器从服务器侦听的 IPv4 端口和地址列表中删除 IPv4 地址。</p>
 <figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy delete v4tov4 listenport=&lt;yourPortToForward&gt; listenaddress=0.0.0.0</span><br></pre></td></tr></tbody></table></figure>
 <p>显示所有 portproxy 参数，包括 v4tov4、v4tov6、v6tov4 和 v6tov6 的端口 / 地址对。</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy show all</span><br></pre></td></tr></tbody></table></figure>]]></content>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy show all</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="镜像模式">镜像模式</h4>
+<p>部分情况下，wsl 中的应用程序需要 wsl 虚拟机所在 ip 和宿主机保持一致，这时可启用 wsl 的镜像模式，参考 <a href="https://learn.microsoft.com/zh-cn/windows/wsl/wsl-config#wslconfig" title="WSL 中的高级设置配置">参考</a></p>
+<p>开启方式为修改 .wslconfig 文件，使用 .wslconfig 为 WSL 上运行的所有已安装的发行版配置全局设置。</p>
+<ul>
+<li>默认情况下，.wslconfig 文件不存在。 它必须创建并存储在 <code>%UserProfile%</code> 目录中才能应用这些配置设置。</li>
+<li>用于在作为 WSL 2 版本运行的所有已安装的 Linux 发行版中全局配置设置。</li>
+<li>只能用于 WSL 2 运行的发行版。 作为 WSL 1 运行的发行版不受此配置的影响，因为它们不作为虚拟机运行。</li>
+<li>要访问 <code>%UserProfile%</code> 目录，请在 PowerShell 中使用 <code>cd ~</code> 访问主目录（通常是用户配置文件 <code>C:\Users\&lt;UserName&gt;</code>），或者可以打开 Windows 文件资源管理器并在地址栏中输入 <code>%UserProfile%</code>。 该目录路径应类似于：<code>C:\Users\&lt;UserName&gt;\.wslconfig</code>。</li>
+</ul>
+<p>WSL 将检测这些文件是否存在，读取内容，并在每次启动 WSL 时自动应用配置设置。 如果文件缺失或格式错误（标记格式不正确），则 WSL 将继续正常启动，而不应用配置设置。</p>
+<p>文件中添加 <code>[wsl2]</code> 标签，并在下方添加 <code>networkingMode=mirrored</code></p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">[wsl2]</span><br><span class="line">networkingMode=mirrored</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="Windows-与-WSL-文件交互">Windows 与 WSL 文件交互</h3>
+<p>在 wsl 中可直接访问宿主机，宿主机盘符为 <code>/mnt/</code></p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">cp -r /mnt/e/BaiduNetdiskDownload/ls16 /home/soap/</span><br></pre></td></tr></tbody></table></figure>
+<p><code>/mnt/e</code> 表示本地的 e 盘，Windows 的文件路径为 <code>/mnt/e/BaiduNetdiskDownload/ls16</code>，wsl 的目标路径为 <code>/home/soap/</code></p>
+]]></content>
       <categories>
         <category>WSL</category>
       </categories>
       <tags>
         <tag>WSL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
-    <url>/2022/10/10/chromeTranslate/</url>
-    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
-<h3 id="修改host教程">修改 host 教程</h3>
-<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
-<ul>
-<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
-<li>windows: C:\Windows\System32\drivers\etc</li>
-</ul>
-<p>修改文件，添加以下内容：</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">142.250.4.90 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
-<p>保存修改后，chrome 即可正常使用</p>
-]]></content>
-      <categories>
-        <category>开发工具</category>
-      </categories>
-      <tags>
-        <tag>chrome</tag>
       </tags>
   </entry>
   <entry>
@@ -200,31 +134,6 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
       </categories>
       <tags>
         <tag>Hexo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2022/10/10/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start">Quick Start</h2>
-<h3 id="Create-a-new-post">Create a new post</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server">Run server</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files">Generate static files</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites">Deploy to remote sites</h3>
-<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></tbody></table></figure>
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>helloworld</category>
-      </categories>
-      <tags>
-        <tag>helloworld</tag>
       </tags>
   </entry>
   <entry>
@@ -356,101 +265,6 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
       </categories>
       <tags>
         <tag>bug</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>前端使用 iframe 嵌套我方 h5 页面，出现 session 跨域问题如何解决</title>
-    <url>/2023/03/10/iframeCors/</url>
-    <content><![CDATA[<h3 id="问题描述">问题描述</h3>
-<p>提供给客户对接的 H5 页面正常都是通过 webview 或者页面跳转的形式来做，部分客户可能会采用 iframe 嵌套的形式，如果是 H5 页面用户信息采用 token 的形式，不会有影响，但是采用 session 的形式，会引起 session 跨域从而导致浏览器无法拿到对应的用户信息</p>
-<span id="more"></span>
-<h3 id="问题解决">问题解决</h3>
-<h4 id="SameSite">SameSite</h4>
-<blockquote>
-<p>Chrome 51 开始，浏览器的 Cookie 新增加了一个 SameSite 属性，用来防止 CSRF 攻击和用户追踪。Cookie 的 SameSite 属性用来限制第三方 Cookie，从而减少安全风险</p>
-</blockquote>
-<p>目前 SameSite 有三个常用的值 <code>Strict</code>, <code>Lax</code>, <code>None</code>，他们的作用是对跨站请求的 cookie 做不同程度的限制，而根据请求的不同，其对应关系如下：</p>
-<table>
-<thead>
-<tr>
-<th>请求类型</th>
-<th>示例</th>
-<th>默认</th>
-<th> Lax</th>
-<th>Strict</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> 链接</td>
-<td><code>&lt;a href="..."&gt;&lt;/a&gt;</code></td>
-<td>发送 Cookie</td>
-<td> 发送 Cookie</td>
-<td> 不发送</td>
-</tr>
-<tr>
-<td>预加载</td>
-<td><code>&lt;link rel="prerender" href="..."/&gt;</code></td>
-<td>发送 Cookie</td>
-<td> 发送 Cookie</td>
-<td> 不发送</td>
-</tr>
-<tr>
-<td> GET 表单</td>
-<td><code>&lt;form method="GET" action="..."&gt;</code></td>
-<td>发送 Cookie</td>
-<td> 发送 Cookie</td>
-<td> 不发送</td>
-</tr>
-<tr>
-<td> POST 表单</td>
-<td><code>&lt;form method="POST" action="..."&gt;</code></td>
-<td>发送 Cookie</td>
-<td> 不发送</td>
-<td>不发送</td>
-</tr>
-<tr>
-<td> iframe</td>
-<td><code>&lt;iframe src="..."&gt;&lt;/iframe&gt;</code></td>
-<td>发送 Cookie</td>
-<td> 不发送</td>
-<td>不发送</td>
-</tr>
-<tr>
-<td> AJAX</td>
-<td><code>$.get("...")</code></td>
-<td>发送 Cookie</td>
-<td> 不发送</td>
-<td>不发送</td>
-</tr>
-<tr>
-<td> Image</td>
-<td><code>&lt;img src="..."&gt;</code></td>
-<td>发送 Cookie</td>
-<td> 不发送</td>
-<td>不发送</td>
-</tr>
-</tbody>
-</table>
-<p>从 Chrome 80 开始，默认会对 cookie 设置 SameSite=Lax，ChromeLab 对此有比较清楚的说明：地址，目前项目中大部分 cookie 是没有设置任何的 SameSite 属性，所以可能出现跨站 cookie 无法传递的情况，需要对这部分内容进行处理，否则，可能出现 cookie 无法传递导致类似登陆失败问题。</p>
-<p>所以默认较新浏览器版本下，没有正常声明处理 SameSite 属性的系统，浏览器都会默认设置成 Lax 从而导致 iframe 中失效</p>
-<p>我们只需要设置 SameSite=None，同时，从 Chrome 从 76 版本开始，开始对设置为 None 必须和 Secure 配合使用，所以最后设置内容是</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">SameSite=None;Secure;</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="解决措施">解决措施</h4>
-<ol>
-<li>创建自定义 CookieSerializer，修改设置 SameSite 属性的逻辑 </li>
-</ol>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自定义cookie序列化方式</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> anifengx</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2022-04-02 14:21:21</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CustomCookieSerializer</span> <span class="keyword">extends</span> <span class="title class_">DefaultCookieSerializer</span> {</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * http协议</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">HTTP</span> <span class="operator">=</span> <span class="string">"http"</span>;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 阿里云cdn添加header头帮助判断协议类型</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">X_CLIENT_SCHEME</span> <span class="operator">=</span> <span class="string">"X-Client-Scheme"</span>;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * nginx添加header头帮助判断协议类型</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">X_FORWARDED_PROTO</span> <span class="operator">=</span> <span class="string">"X-Forwarded-Proto"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">writeCookieValue</span><span class="params">(CookieValue cookieValue)</span> {</span><br><span class="line">        <span class="type">HttpServletRequest</span> <span class="variable">request</span> <span class="operator">=</span> cookieValue.getRequest();</span><br><span class="line">        <span class="type">HttpServletResponse</span> <span class="variable">response</span> <span class="operator">=</span> cookieValue.getResponse();</span><br><span class="line">        <span class="built_in">super</span>.writeCookieValue(cookieValue);</span><br><span class="line">        <span class="type">StringBuffer</span> <span class="variable">requestURL</span> <span class="operator">=</span> request.getRequestURL();</span><br><span class="line">        <span class="type">String</span> <span class="variable">scheme</span> <span class="operator">=</span> request.getHeader(X_CLIENT_SCHEME);</span><br><span class="line">        log.info(<span class="string">"requestURL X-Client-Scheme : [{}] scheme: [{}]"</span>, requestURL, scheme);</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isBlank(scheme)) {</span><br><span class="line">            scheme = request.getHeader(X_FORWARDED_PROTO);</span><br><span class="line">            log.info(<span class="string">"requestURL X-Forwarded-Proto : [{}] scheme: [{}]"</span>, requestURL, scheme);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isBlank(scheme)) {</span><br><span class="line">            scheme = request.getScheme();</span><br><span class="line">            log.info(<span class="string">"requestURL schema : [{}] scheme: [{}]"</span>, requestURL, scheme);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isBlank(scheme) || HTTP.equals(scheme)) {</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        }</span><br><span class="line">        Collection&lt;String&gt; headers = response.getHeaders(HttpHeaders.SET_COOKIE);</span><br><span class="line">        <span class="keyword">if</span> (CollectionUtils.isEmpty(headers)) {</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        }</span><br><span class="line">        <span class="type">String</span> <span class="variable">userAgent</span> <span class="operator">=</span> request.getHeader(HttpHeaders.USER_AGENT);</span><br><span class="line">        log.info(<span class="string">"shouldSendSameSiteNone start userAgent: [{}] SET_COOKIE: [{}]"</span>, userAgent, headers);</span><br><span class="line">        <span class="type">boolean</span> <span class="variable">firstHeader</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="comment">// there can be multiple Set-Cookie attributes</span></span><br><span class="line">        <span class="keyword">for</span> (String header : headers) {</span><br><span class="line">            <span class="keyword">if</span> (firstHeader) {</span><br><span class="line">                log.info(<span class="string">"shouldSendSameSiteNone userAgent: [{}] SET_COOKIE: [{}]"</span>, userAgent, header);</span><br><span class="line">                <span class="type">boolean</span> shouldSendSameSiteNone;</span><br><span class="line">                <span class="keyword">try</span> {</span><br><span class="line">                    shouldSendSameSiteNone = shouldSendSameSiteNone(userAgent);</span><br><span class="line">                } <span class="keyword">catch</span> (Exception e) {</span><br><span class="line">                    log.error(<span class="string">"shouldSendSameSiteNone error userAgent: [{}] SET_COOKIE: [{}]"</span>, userAgent, header, e);</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                }</span><br><span class="line">                log.info(<span class="string">"shouldSendSameSiteNone userAgent: [{}] SET_COOKIE: [{}] boolean [{}]"</span>, userAgent, header, shouldSendSameSiteNone);</span><br><span class="line">                <span class="keyword">if</span> (shouldSendSameSiteNone) {</span><br><span class="line">                    header = header.replaceAll(<span class="string">"SameSite=Lax"</span>, <span class="string">"SameSite=None;secure;"</span>);</span><br><span class="line">                    response.setHeader(HttpHeaders.SET_COOKIE, header);</span><br><span class="line">                }</span><br><span class="line">                log.info(<span class="string">"shouldSendSameSiteNone change userAgent: [{}] SET_COOKIE: [{}] boolean [{}] headers [{}] "</span>, userAgent, header, shouldSendSameSiteNone, response.getHeaders(HttpHeaders.SET_COOKIE));</span><br><span class="line">                firstHeader = <span class="literal">false</span>;</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">shouldSendSameSiteNone</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">return</span> !isSameSiteNoneIncompatible(useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isSameSiteNoneIncompatible</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">return</span> hasWebKitSameSiteBug(useragent) || dropsUnrecognizedSameSiteCookies(useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">hasWebKitSameSiteBug</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">return</span> isIosVersion(<span class="number">12</span>, useragent) || (isMacosxVersion(<span class="number">10</span>, <span class="number">14</span>, useragent) &amp;&amp; (isSafari(useragent) || isMacEmbeddedBrowser(useragent)));</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">dropsUnrecognizedSameSiteCookies</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">if</span> (isUcBrowser(useragent)) {</span><br><span class="line">            <span class="keyword">return</span> !isUcBrowserVersionAtLeast(<span class="number">12</span>, <span class="number">13</span>, <span class="number">2</span>, useragent);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> isChromiumBased(useragent) &amp;&amp; isChromiumVersionAtLeast(<span class="number">51</span>, useragent) &amp;&amp; !isChromiumVersionAtLeast(<span class="number">67</span>, useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isIosVersion</span><span class="params">(<span class="type">int</span> major, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"\\(iP.+; CPU .*OS (\\d+)[\\d]*.*\\) AppleWebKit\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            log.info(<span class="string">"isIosVersion Found value: "</span> + m.group(<span class="number">0</span>));</span><br><span class="line">            log.info(<span class="string">"isIosVersion Found value: "</span> + m.group(<span class="number">1</span>));</span><br><span class="line">            <span class="keyword">return</span> m.group(<span class="number">1</span>).equals(String.valueOf(major));</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isMacosxVersion</span><span class="params">(<span class="type">int</span> major, <span class="type">int</span> minor, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"\\(Macintosh;.*Mac OS X (\\d+)(\\d+)[\\d]*.*\\) AppleWebKit\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            log.info(<span class="string">"isMacosxVersion Found value: "</span> + m.group(<span class="number">0</span>));</span><br><span class="line">            log.info(<span class="string">"isMacosxVersion Found value: "</span> + m.group(<span class="number">1</span>));</span><br><span class="line">            log.info(<span class="string">"isMacosxVersion Found value: "</span> + m.group(<span class="number">2</span>));</span><br><span class="line">            <span class="keyword">return</span> m.group(<span class="number">1</span>).equals(String.valueOf(major)) &amp;&amp; m.group(<span class="number">2</span>).equals(String.valueOf(minor));</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isSafari</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"Version\\/.* Safari\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find() &amp;&amp; !isChromiumBased(useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isChromiumBased</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"Chrom(e|ium)"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isMacEmbeddedBrowser</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"^Mozilla\\/[\\.\\d]+ \\(Macintosh;.*Mac OS X [\\d]+\\) "</span> + <span class="string">"AppleWebKit\\/[\\.\\d]+ \\(KHTML, like Gecko\\)$"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isChromiumVersionAtLeast</span><span class="params">(<span class="type">int</span> major, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"Chrom[^ \\/]+\\/(\\d+)[\\.\\d]* "</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">version</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">1</span>));</span><br><span class="line">            <span class="keyword">return</span> version &gt;= major;</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isUcBrowser</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"UCBrowser\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">isUcBrowserVersionAtLeast</span><span class="params">(<span class="type">int</span> major, <span class="type">int</span> minor, <span class="type">int</span> build, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"UCBrowser\\/(\\d+)\\.(\\d+)\\.(\\d+)[\\.\\d]* "</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">majorVersion</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">1</span>));</span><br><span class="line">            <span class="type">int</span> <span class="variable">minorVersion</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">2</span>));</span><br><span class="line">            <span class="type">int</span> <span class="variable">buildVersion</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">3</span>));</span><br><span class="line">            <span class="keyword">if</span> (majorVersion != major) {</span><br><span class="line">                <span class="keyword">return</span> majorVersion &gt; major;</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">if</span> (minorVersion != minor) {</span><br><span class="line">                <span class="keyword">return</span> minorVersion &gt; minor;</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">return</span> buildVersion &gt;= build;</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ol start="2">
-<li>在 spring 中注解式注入自定义 CookieSerializer</li>
-</ol>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpringSessionConfig</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> CookieSerializer <span class="title function_">cookieSerializer</span><span class="params">()</span> {</span><br><span class="line">        <span class="type">CustomCookieSerializer</span> <span class="variable">cookieSerializer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CustomCookieSerializer</span>();</span><br><span class="line">        cookieSerializer.setCookieMaxAge(<span class="number">60</span> * <span class="number">60</span> * <span class="number">24</span> * <span class="number">30</span>);</span><br><span class="line">        <span class="keyword">return</span> cookieSerializer;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>]]></content>
-      <categories>
-        <category>cors</category>
-      </categories>
-      <tags>
-        <tag>java</tag>
-        <tag>cors</tag>
       </tags>
   </entry>
   <entry>
@@ -599,6 +413,194 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
       </tags>
   </entry>
   <entry>
+    <title>ClickHouse 笔记</title>
+    <url>/2024/08/30/ClickHouseOne/</url>
+    <content><![CDATA[<p>项目最近需要用到 ClickHouse 来做大数据的实时分析，但是 ClickHouse 相关文档过少，只能通过做笔记的形式手动记录</p>
+<h3 id="支持的数据类型">支持的数据类型</h3>
+<p><a href="https://clickhouse.com/docs/zh/sql-reference/data-types" title="ClickHouse数据类型">参考地址</a></p>
+<h4 id="数值类型">数值类型:</h4>
+<ul>
+<li>Int8、Int16、Int32、Int64、Int128、Int256：有符号整数型，分别使用 1、2、4、8 个字节存储。</li>
+<li>UInt8、UInt16、UInt32、UInt64、UInt128、UInt256：无符号整数型，分别使用 1、2、4、8 个字节存储。</li>
+<li>Float32、Float64：浮点数型，分别使用 4、8 个字节存储。
+<blockquote>
+<p>对浮点数进行计算可能引起四舍五入的误差。<br>
+SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
+</blockquote>
+</li>
+<li>Decimal (P, S)：定点数型，支持指定精度和小数位数。</li>
+</ul>
+<h4 id="时间日期类型：">时间日期类型：</h4>
+<ul>
+<li>Date：日期类型，使用 4 个字节存储，表示自 1970 年 1 月 1 日以来的天数。</li>
+<li>DateTime：日期时间类型，使用 8 个字节存储，精确到纳秒级。</li>
+</ul>
+<h4 id="字符串类型：">字符串类型：</h4>
+<ul>
+<li>FixedString (N)：定长字符串类型，占用 N 个字节存储。</li>
+<li>String：变长字符串类型，使用相对较少的内存来存储字符串。</li>
+</ul>
+<span id="more"></span>
+<h3 id="数据库引擎及基本语法">数据库引擎及基本语法</h3>
+<h4 id="MergeTree">MergeTree</h4>
+<p>主键由关键字 PRIMARY KEY 指定，如果没有使用 PRIMARY KEY 显式指定的主键，ClickHouse 会使用排序键 ORDER BY 指定的列作为主键。</p>
+<p>需要注意的是，如果同时指定了主键与排序键，那么排序键必须包含主键的所有列，比如主键为（a,b），排序键就必须为 (a,b,**)。</p>
+<p>和关系型数据库的主键具备唯一性不同，<strong>ClickHouse 可以存在相同主键的数据行</strong>。这也是 ClickHouse 为了性能而做出的考量。</p>
+<h4 id="ReplacingMergeTree">ReplacingMergeTree</h4>
+<p>前面提到 MergeTree 的主键没有唯一性约束。所以即使多行数据的主键相同，它们还是能够正常写入。</p>
+<p>ReplacingMergeTree 建表语句与 MergeTree 相同，只需要替换掉表引擎就好，不过需要指定一个列作为版本列。</p>
+<p>当排序键相同的数据行插入时，它会删除重复行，保留版本列值最大的一行。如果没有指定版本列，则会保留最后插入的一行。</p>
+<p>通常来说，ReplacingMergeTree 删除重复行，是因为两种情况。</p>
+<ul>
+<li>一起批量插入的数据，属于同一个数据片段的数据，所以会在插入时候按排序键去重。</li>
+<li>分批插入的数据，属于不同的数据片段，需要依托后台数据片段合并的时候才进行。</li>
+</ul>
+<p>所以即使你用了 ReplacingMergeTree 表引擎，在查询表数据的时候，仍然可能会查询到重复数据，不过只要使用 final 关键字去重即可。或者你也可以使用如下命令强制合并分区，这样数据片段就会合并。</p>
+<h3 id="四层数仓建模">四层数仓建模</h3>
+<p>在数仓建模中，有一个比较通用的建模方法论，就是将数据分为 4 层：包括：ODS（Operational Data Store）、DWD（Data Warehouse Detail）、DWS（Data Warehouse Summary）和 ADS（Application Data Store）</p>
+<h4 id="ODS">ODS</h4>
+<p>直接存放从各个渠道收集的原始数据，比如业务系统收集的、前后端埋点收集的等等。有时候会考虑做一定程度的数据清洗，比如处理异常字段、规范字段命名、统一时间字段等</p>
+<h4 id="DWD">DWD</h4>
+<p>以业务过程作为建模驱动，基于每个具体的业务过程特点，构建最细粒度的明细事实表，比如浏览明细表、交易明细表。DWD 也会清洗 ODS 层的数据（去除空值、脏数据、异常数据）、降维处理、脱敏等，并基于维度建模，将某些字段做适当冗余，做宽表化</p>
+<h4 id="DWS">DWS</h4>
+<p>在 DWD 层的基础上进行数据聚合和汇总，比如用户交易汇总表、用户指标汇总宽表。一般会依据特定业务需求或报表要求进行数据汇总和预计算，提高数据查询效率和性能</p>
+<h4 id="ADS">ADS</h4>
+<p>在 DWS 之上，面向特定应用场景设计的数据层，比如我们 CDP 场景里面，用户标签、人群画像，是通过计算后直接给到前端应用系统使用的表</p>
+<h3 id="搭建集群">搭建集群</h3>
+<p>ClickHouse 集群的配置很简单，只需要修改配置文件 /etc/clickhouse-server/config.xml，在配置文件的 标签下，增加集群的节点配置即可</p>
+<h4 id="remote-server">remote_server</h4>
+<p>配置集群时，主要不要配置 <code>&lt;host&gt;</code> 和 <code>&lt;port&gt;</code> 为转发端口。ck 使用 zookeeper 作为分布式查询的同步节点，其中存储了分布式查询任务，可使用 zookeeper 客户端通过路径 <code>/clickhouse/task_queue/ddl/</code> 查看执行情况，查看其中任意任务内容即可发现，ck 是根据配置中的 host 和 port 来明确需要执行分布式任务的服务</p>
+<p><img src="/2024/08/30/ClickHouseOne/ck1.png" alt=""></p>
+<p><a href="https://stackoverflow.com/questions/64947277/clickhouse-create-database-on-cluster-ends-with-timeout" title="ClickHouse的配置问题">stackoverflow</a>  也有人反馈此问题</p>
+]]></content>
+      <categories>
+        <category>ClickHouse</category>
+      </categories>
+      <tags>
+        <tag>ClickHouse</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>前端使用 iframe 嵌套我方 h5 页面，出现 session 跨域问题如何解决</title>
+    <url>/2023/03/10/iframeCors/</url>
+    <content><![CDATA[<h3 id="问题描述">问题描述</h3>
+<p>提供给客户对接的 H5 页面正常都是通过 webview 或者页面跳转的形式来做，部分客户可能会采用 iframe 嵌套的形式，如果是 H5 页面用户信息采用 token 的形式，不会有影响，但是采用 session 的形式，会引起 session 跨域从而导致浏览器无法拿到对应的用户信息</p>
+<span id="more"></span>
+<h3 id="问题解决">问题解决</h3>
+<h4 id="SameSite">SameSite</h4>
+<blockquote>
+<p>Chrome 51 开始，浏览器的 Cookie 新增加了一个 SameSite 属性，用来防止 CSRF 攻击和用户追踪。Cookie 的 SameSite 属性用来限制第三方 Cookie，从而减少安全风险</p>
+</blockquote>
+<p>目前 SameSite 有三个常用的值 <code>Strict</code>, <code>Lax</code>, <code>None</code>，他们的作用是对跨站请求的 cookie 做不同程度的限制，而根据请求的不同，其对应关系如下：</p>
+<table>
+<thead>
+<tr>
+<th>请求类型</th>
+<th>示例</th>
+<th>默认</th>
+<th> Lax</th>
+<th>Strict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 链接</td>
+<td><code>&lt;a href="..."&gt;&lt;/a&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 发送 Cookie</td>
+<td> 不发送</td>
+</tr>
+<tr>
+<td>预加载</td>
+<td><code>&lt;link rel="prerender" href="..."/&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 发送 Cookie</td>
+<td> 不发送</td>
+</tr>
+<tr>
+<td> GET 表单</td>
+<td><code>&lt;form method="GET" action="..."&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 发送 Cookie</td>
+<td> 不发送</td>
+</tr>
+<tr>
+<td> POST 表单</td>
+<td><code>&lt;form method="POST" action="..."&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 不发送</td>
+<td>不发送</td>
+</tr>
+<tr>
+<td> iframe</td>
+<td><code>&lt;iframe src="..."&gt;&lt;/iframe&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 不发送</td>
+<td>不发送</td>
+</tr>
+<tr>
+<td> AJAX</td>
+<td><code>$.get("...")</code></td>
+<td>发送 Cookie</td>
+<td> 不发送</td>
+<td>不发送</td>
+</tr>
+<tr>
+<td> Image</td>
+<td><code>&lt;img src="..."&gt;</code></td>
+<td>发送 Cookie</td>
+<td> 不发送</td>
+<td>不发送</td>
+</tr>
+</tbody>
+</table>
+<p>从 Chrome 80 开始，默认会对 cookie 设置 SameSite=Lax，ChromeLab 对此有比较清楚的说明：地址，目前项目中大部分 cookie 是没有设置任何的 SameSite 属性，所以可能出现跨站 cookie 无法传递的情况，需要对这部分内容进行处理，否则，可能出现 cookie 无法传递导致类似登陆失败问题。</p>
+<p>所以默认较新浏览器版本下，没有正常声明处理 SameSite 属性的系统，浏览器都会默认设置成 Lax 从而导致 iframe 中失效</p>
+<p>我们只需要设置 SameSite=None，同时，从 Chrome 从 76 版本开始，开始对设置为 None 必须和 Secure 配合使用，所以最后设置内容是</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">SameSite=None;Secure;</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="解决措施">解决措施</h4>
+<ol>
+<li>创建自定义 CookieSerializer，修改设置 SameSite 属性的逻辑 </li>
+</ol>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自定义cookie序列化方式</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> anifengx</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2022-04-02 14:21:21</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CustomCookieSerializer</span> <span class="keyword">extends</span> <span class="title class_">DefaultCookieSerializer</span> {</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * http协议</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">HTTP</span> <span class="operator">=</span> <span class="string">"http"</span>;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 阿里云cdn添加header头帮助判断协议类型</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">X_CLIENT_SCHEME</span> <span class="operator">=</span> <span class="string">"X-Client-Scheme"</span>;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * nginx添加header头帮助判断协议类型</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">X_FORWARDED_PROTO</span> <span class="operator">=</span> <span class="string">"X-Forwarded-Proto"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">writeCookieValue</span><span class="params">(CookieValue cookieValue)</span> {</span><br><span class="line">        <span class="type">HttpServletRequest</span> <span class="variable">request</span> <span class="operator">=</span> cookieValue.getRequest();</span><br><span class="line">        <span class="type">HttpServletResponse</span> <span class="variable">response</span> <span class="operator">=</span> cookieValue.getResponse();</span><br><span class="line">        <span class="built_in">super</span>.writeCookieValue(cookieValue);</span><br><span class="line">        <span class="type">StringBuffer</span> <span class="variable">requestURL</span> <span class="operator">=</span> request.getRequestURL();</span><br><span class="line">        <span class="type">String</span> <span class="variable">scheme</span> <span class="operator">=</span> request.getHeader(X_CLIENT_SCHEME);</span><br><span class="line">        log.info(<span class="string">"requestURL X-Client-Scheme : [{}] scheme: [{}]"</span>, requestURL, scheme);</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isBlank(scheme)) {</span><br><span class="line">            scheme = request.getHeader(X_FORWARDED_PROTO);</span><br><span class="line">            log.info(<span class="string">"requestURL X-Forwarded-Proto : [{}] scheme: [{}]"</span>, requestURL, scheme);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isBlank(scheme)) {</span><br><span class="line">            scheme = request.getScheme();</span><br><span class="line">            log.info(<span class="string">"requestURL schema : [{}] scheme: [{}]"</span>, requestURL, scheme);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isBlank(scheme) || HTTP.equals(scheme)) {</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        }</span><br><span class="line">        Collection&lt;String&gt; headers = response.getHeaders(HttpHeaders.SET_COOKIE);</span><br><span class="line">        <span class="keyword">if</span> (CollectionUtils.isEmpty(headers)) {</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        }</span><br><span class="line">        <span class="type">String</span> <span class="variable">userAgent</span> <span class="operator">=</span> request.getHeader(HttpHeaders.USER_AGENT);</span><br><span class="line">        log.info(<span class="string">"shouldSendSameSiteNone start userAgent: [{}] SET_COOKIE: [{}]"</span>, userAgent, headers);</span><br><span class="line">        <span class="type">boolean</span> <span class="variable">firstHeader</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="comment">// there can be multiple Set-Cookie attributes</span></span><br><span class="line">        <span class="keyword">for</span> (String header : headers) {</span><br><span class="line">            <span class="keyword">if</span> (firstHeader) {</span><br><span class="line">                log.info(<span class="string">"shouldSendSameSiteNone userAgent: [{}] SET_COOKIE: [{}]"</span>, userAgent, header);</span><br><span class="line">                <span class="type">boolean</span> shouldSendSameSiteNone;</span><br><span class="line">                <span class="keyword">try</span> {</span><br><span class="line">                    shouldSendSameSiteNone = shouldSendSameSiteNone(userAgent);</span><br><span class="line">                } <span class="keyword">catch</span> (Exception e) {</span><br><span class="line">                    log.error(<span class="string">"shouldSendSameSiteNone error userAgent: [{}] SET_COOKIE: [{}]"</span>, userAgent, header, e);</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                }</span><br><span class="line">                log.info(<span class="string">"shouldSendSameSiteNone userAgent: [{}] SET_COOKIE: [{}] boolean [{}]"</span>, userAgent, header, shouldSendSameSiteNone);</span><br><span class="line">                <span class="keyword">if</span> (shouldSendSameSiteNone) {</span><br><span class="line">                    header = header.replaceAll(<span class="string">"SameSite=Lax"</span>, <span class="string">"SameSite=None;secure;"</span>);</span><br><span class="line">                    response.setHeader(HttpHeaders.SET_COOKIE, header);</span><br><span class="line">                }</span><br><span class="line">                log.info(<span class="string">"shouldSendSameSiteNone change userAgent: [{}] SET_COOKIE: [{}] boolean [{}] headers [{}] "</span>, userAgent, header, shouldSendSameSiteNone, response.getHeaders(HttpHeaders.SET_COOKIE));</span><br><span class="line">                firstHeader = <span class="literal">false</span>;</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">shouldSendSameSiteNone</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">return</span> !isSameSiteNoneIncompatible(useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isSameSiteNoneIncompatible</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">return</span> hasWebKitSameSiteBug(useragent) || dropsUnrecognizedSameSiteCookies(useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">hasWebKitSameSiteBug</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">return</span> isIosVersion(<span class="number">12</span>, useragent) || (isMacosxVersion(<span class="number">10</span>, <span class="number">14</span>, useragent) &amp;&amp; (isSafari(useragent) || isMacEmbeddedBrowser(useragent)));</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">dropsUnrecognizedSameSiteCookies</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="keyword">if</span> (isUcBrowser(useragent)) {</span><br><span class="line">            <span class="keyword">return</span> !isUcBrowserVersionAtLeast(<span class="number">12</span>, <span class="number">13</span>, <span class="number">2</span>, useragent);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> isChromiumBased(useragent) &amp;&amp; isChromiumVersionAtLeast(<span class="number">51</span>, useragent) &amp;&amp; !isChromiumVersionAtLeast(<span class="number">67</span>, useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isIosVersion</span><span class="params">(<span class="type">int</span> major, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"\\(iP.+; CPU .*OS (\\d+)[\\d]*.*\\) AppleWebKit\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            log.info(<span class="string">"isIosVersion Found value: "</span> + m.group(<span class="number">0</span>));</span><br><span class="line">            log.info(<span class="string">"isIosVersion Found value: "</span> + m.group(<span class="number">1</span>));</span><br><span class="line">            <span class="keyword">return</span> m.group(<span class="number">1</span>).equals(String.valueOf(major));</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isMacosxVersion</span><span class="params">(<span class="type">int</span> major, <span class="type">int</span> minor, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"\\(Macintosh;.*Mac OS X (\\d+)(\\d+)[\\d]*.*\\) AppleWebKit\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            log.info(<span class="string">"isMacosxVersion Found value: "</span> + m.group(<span class="number">0</span>));</span><br><span class="line">            log.info(<span class="string">"isMacosxVersion Found value: "</span> + m.group(<span class="number">1</span>));</span><br><span class="line">            log.info(<span class="string">"isMacosxVersion Found value: "</span> + m.group(<span class="number">2</span>));</span><br><span class="line">            <span class="keyword">return</span> m.group(<span class="number">1</span>).equals(String.valueOf(major)) &amp;&amp; m.group(<span class="number">2</span>).equals(String.valueOf(minor));</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isSafari</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"Version\\/.* Safari\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find() &amp;&amp; !isChromiumBased(useragent);</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isChromiumBased</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"Chrom(e|ium)"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isMacEmbeddedBrowser</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"^Mozilla\\/[\\.\\d]+ \\(Macintosh;.*Mac OS X [\\d]+\\) "</span> + <span class="string">"AppleWebKit\\/[\\.\\d]+ \\(KHTML, like Gecko\\)$"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isChromiumVersionAtLeast</span><span class="params">(<span class="type">int</span> major, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"Chrom[^ \\/]+\\/(\\d+)[\\.\\d]* "</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">version</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">1</span>));</span><br><span class="line">            <span class="keyword">return</span> version &gt;= major;</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">isUcBrowser</span><span class="params">(String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"UCBrowser\\/"</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">return</span> m.find();</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">isUcBrowserVersionAtLeast</span><span class="params">(<span class="type">int</span> major, <span class="type">int</span> minor, <span class="type">int</span> build, String useragent)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">pattern</span> <span class="operator">=</span> <span class="string">"UCBrowser\\/(\\d+)\\.(\\d+)\\.(\\d+)[\\.\\d]* "</span>;</span><br><span class="line">        <span class="type">Pattern</span> <span class="variable">r</span> <span class="operator">=</span> Pattern.compile(pattern);</span><br><span class="line">        <span class="type">Matcher</span> <span class="variable">m</span> <span class="operator">=</span> r.matcher(useragent);</span><br><span class="line">        <span class="keyword">if</span> (m.find()) {</span><br><span class="line">            <span class="type">int</span> <span class="variable">majorVersion</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">1</span>));</span><br><span class="line">            <span class="type">int</span> <span class="variable">minorVersion</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">2</span>));</span><br><span class="line">            <span class="type">int</span> <span class="variable">buildVersion</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Integer</span>(m.group(<span class="number">3</span>));</span><br><span class="line">            <span class="keyword">if</span> (majorVersion != major) {</span><br><span class="line">                <span class="keyword">return</span> majorVersion &gt; major;</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">if</span> (minorVersion != minor) {</span><br><span class="line">                <span class="keyword">return</span> minorVersion &gt; minor;</span><br><span class="line">            }</span><br><span class="line">            <span class="keyword">return</span> buildVersion &gt;= build;</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ol start="2">
+<li>在 spring 中注解式注入自定义 CookieSerializer</li>
+</ol>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpringSessionConfig</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> CookieSerializer <span class="title function_">cookieSerializer</span><span class="params">()</span> {</span><br><span class="line">        <span class="type">CustomCookieSerializer</span> <span class="variable">cookieSerializer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CustomCookieSerializer</span>();</span><br><span class="line">        cookieSerializer.setCookieMaxAge(<span class="number">60</span> * <span class="number">60</span> * <span class="number">24</span> * <span class="number">30</span>);</span><br><span class="line">        <span class="keyword">return</span> cookieSerializer;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>]]></content>
+      <categories>
+        <category>cors</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>cors</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2022/10/10/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start">Quick Start</h2>
+<h3 id="Create-a-new-post">Create a new post</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server">Run server</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files">Generate static files</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites">Deploy to remote sites</h3>
+<figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></tbody></table></figure>
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>helloworld</category>
+      </categories>
+      <tags>
+        <tag>helloworld</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>linux 常用命令</title>
     <url>/2023/03/15/linuxCommonCommands/</url>
     <content><![CDATA[<p>平常查询日志等工作都是通过 ELK 来完成，并且 ELK 用起来也比较方便，但是有时候存在单条日志信息过多导致 ELK 收集器忽略或者截断的情况，导致无法查看需要的全部日志来定位问题，所以会需要连到服务器上去查看日志，这时候就需要用到一些 linux 命令，在此记下方便以后直接复制使用</p>
@@ -635,6 +637,27 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
       </categories>
       <tags>
         <tag>linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
+    <url>/2022/10/10/chromeTranslate/</url>
+    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
+<h3 id="修改host教程">修改 host 教程</h3>
+<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
+<ul>
+<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
+<li>windows: C:\Windows\System32\drivers\etc</li>
+</ul>
+<p>修改文件，添加以下内容：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">142.250.4.90 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
+<p>保存修改后，chrome 即可正常使用</p>
+]]></content>
+      <categories>
+        <category>开发工具</category>
+      </categories>
+      <tags>
+        <tag>chrome</tag>
       </tags>
   </entry>
   <entry>
@@ -908,6 +931,74 @@ SpotBugs 使用步骤
       </tags>
   </entry>
   <entry>
+    <title>spring 监控平台从零单排【二】</title>
+    <url>/2023/04/12/springMonitorTwo/</url>
+    <content><![CDATA[<p>第一章介绍了 <strong>Spring Boot Admin</strong> 的使用方法，但是其 UI 平台展示的内容离实际所需的监控内容还有较大差距，本章着重介绍其底层所使用的 <strong>Actuator</strong> 框架，并提供如何对接到 <strong>Prometheus</strong> 和 <strong>grafana</strong> 的方式</p>
+<h3 id="Spring-Boot-Actuator">Spring Boot Actuator</h3>
+<p><strong>Actuator</strong> 默认暴露了一些 jvm 信息，也可以自行借助打点方法记录需要的监控信息，其底层是使用的 <strong>Micrometer</strong></p>
+<span id="more"></span>
+<h4 id="集成">集成</h4>
+<p><strong>Actuator</strong> 是 Client 模块用来暴露信息的框架，监控平台需要自行搭建，本次直接使用 <strong>grafana</strong> 制作好的看板进行展示</p>
+<h5 id="springboot集成">springboot 集成</h5>
+<ol>
+<li>
+<p>Client 模块修改 pom 文件，添加如下内容</p>
+ <figure class="highlight xml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--  actuator  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-actuator<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!--  将actuator暴露的接口改造为prometheus支持的格式  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.micrometer<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>micrometer-registry-prometheus<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li>
+<p>修改 <code>application.yml</code> 文件，添加如下内容</p>
+ <figure class="highlight yaml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">    <span class="attr">endpoints:</span></span><br><span class="line">        <span class="attr">web:</span></span><br><span class="line">            <span class="attr">exposure:</span></span><br><span class="line">                <span class="attr">include:</span> <span class="string">'prometheus'</span></span><br><span class="line">    <span class="attr">metrics:</span></span><br><span class="line">        <span class="attr">tags:</span></span><br><span class="line">            <span class="comment">#定义暴露指标的tag名称，如下设置是默认取用当前springboot应用名，也可写死</span></span><br><span class="line">            <span class="attr">application:</span> <span class="string">${spring.application.name}</span></span><br></pre></td></tr></tbody></table></figure>
+</li>
+</ol>
+<p>以上步骤添加后，即完成了 <strong>Actuator</strong> 集成，可以运行当前应用，访问应用接口 <code>http://localhost:8080/actuator/prometheus</code> 可获得如下内容</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"># HELP jvm_buffer_count_buffers An estimate of the number of buffers in the pool</span><br><span class="line"># TYPE jvm_buffer_count_buffers gauge</span><br><span class="line">jvm_buffer_count_buffers{application=<span class="string">"web"</span>,id=<span class="string">"mapped"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_buffer_count_buffers{application=<span class="string">"web"</span>,id=<span class="string">"direct"</span>,} <span class="number">3.0</span></span><br><span class="line"># HELP jvm_buffer_total_capacity_bytes An estimate of the total capacity of the buffers in <span class="built_in">this</span> pool</span><br><span class="line"># TYPE jvm_buffer_total_capacity_bytes gauge</span><br><span class="line">jvm_buffer_total_capacity_bytes{application=<span class="string">"web"</span>,id=<span class="string">"mapped"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_buffer_total_capacity_bytes{application=<span class="string">"web"</span>,id=<span class="string">"direct"</span>,} <span class="number">8208.0</span></span><br><span class="line"># HELP tomcat_sessions_created_sessions_total  </span><br><span class="line"># TYPE tomcat_sessions_created_sessions_total counter</span><br><span class="line">tomcat_sessions_created_sessions_total{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP tomcat_sessions_rejected_sessions_total  </span><br><span class="line"># TYPE tomcat_sessions_rejected_sessions_total counter</span><br><span class="line">tomcat_sessions_rejected_sessions_total{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP jvm_classes_loaded_classes The number of classes that are currently loaded in the Java virtual machine</span><br><span class="line"># TYPE jvm_classes_loaded_classes gauge</span><br><span class="line">jvm_classes_loaded_classes{application=<span class="string">"web"</span>,} <span class="number">12286.0</span></span><br><span class="line"># HELP jvm_classes_unloaded_classes_total The total number of classes unloaded since the Java virtual machine has started execution</span><br><span class="line"># TYPE jvm_classes_unloaded_classes_total counter</span><br><span class="line">jvm_classes_unloaded_classes_total{application=<span class="string">"web"</span>,} <span class="number">56.0</span></span><br><span class="line"># HELP jvm_gc_live_data_size_bytes Size of <span class="type">long</span>-lived heap memory pool after reclamation</span><br><span class="line"># TYPE jvm_gc_live_data_size_bytes gauge</span><br><span class="line">jvm_gc_live_data_size_bytes{application=<span class="string">"web"</span>,} <span class="number">3.837896E7</span></span><br><span class="line"># HELP jvm_threads_daemon_threads The current number of live daemon threads</span><br><span class="line"># TYPE jvm_threads_daemon_threads gauge</span><br><span class="line">jvm_threads_daemon_threads{application=<span class="string">"web"</span>,} <span class="number">27.0</span></span><br><span class="line"># HELP process_cpu_usage The <span class="string">"recent cpu usage"</span> <span class="keyword">for</span> the Java Virtual Machine process</span><br><span class="line"># TYPE process_cpu_usage gauge</span><br><span class="line">process_cpu_usage{application=<span class="string">"web"</span>,} <span class="number">0.08109822305359074</span></span><br><span class="line"># HELP jvm_memory_committed_bytes The amount of memory in bytes that is committed <span class="keyword">for</span> the Java virtual machine to use</span><br><span class="line"># TYPE jvm_memory_committed_bytes gauge</span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Eden Space"</span>,} <span class="number">3.13524224E8</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Code Cache"</span>,} <span class="number">1.0289152E7</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Metaspace"</span>,} <span class="number">6.8550656E7</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Old Gen"</span>,} <span class="number">4.59800576E8</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Survivor Space"</span>,} <span class="number">1.572864E7</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Compressed Class Space"</span>,} <span class="number">9306112.0</span></span><br><span class="line"># HELP process_start_time_seconds Start time of the process since unix epoch.</span><br><span class="line"># TYPE process_start_time_seconds gauge</span><br><span class="line">process_start_time_seconds{application=<span class="string">"web"</span>,} <span class="number">1.6812881222E9</span></span><br><span class="line"># HELP jvm_gc_memory_allocated_bytes_total Incremented <span class="keyword">for</span> an increase in the size of <span class="title function_">the</span> <span class="params">(young)</span> heap memory pool after one GC to before the next</span><br><span class="line"># TYPE jvm_gc_memory_allocated_bytes_total counter</span><br><span class="line">jvm_gc_memory_allocated_bytes_total{application=<span class="string">"web"</span>,} <span class="number">4.46238072E8</span></span><br><span class="line"># HELP jvm_gc_memory_promoted_bytes_total Count of positive increases in the size of the old generation memory pool before GC to after GC</span><br><span class="line"># TYPE jvm_gc_memory_promoted_bytes_total counter</span><br><span class="line">jvm_gc_memory_promoted_bytes_total{application=<span class="string">"web"</span>,} <span class="number">2.1952392E7</span></span><br><span class="line"># HELP process_uptime_seconds The uptime of the Java virtual machine</span><br><span class="line"># TYPE process_uptime_seconds gauge</span><br><span class="line">process_uptime_seconds{application=<span class="string">"web"</span>,} <span class="number">19.083</span></span><br><span class="line"># HELP tomcat_sessions_alive_max_seconds  </span><br><span class="line"># TYPE tomcat_sessions_alive_max_seconds gauge</span><br><span class="line">tomcat_sessions_alive_max_seconds{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP jvm_threads_peak_threads The peak live thread count since the Java virtual machine started or peak was reset</span><br><span class="line"># TYPE jvm_threads_peak_threads gauge</span><br><span class="line">jvm_threads_peak_threads{application=<span class="string">"web"</span>,} <span class="number">64.0</span></span><br><span class="line"># HELP tomcat_sessions_active_max_sessions  </span><br><span class="line"># TYPE tomcat_sessions_active_max_sessions gauge</span><br><span class="line">tomcat_sessions_active_max_sessions{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP system_cpu_count The number of processors available to the Java virtual machine</span><br><span class="line"># TYPE system_cpu_count gauge</span><br><span class="line">system_cpu_count{application=<span class="string">"web"</span>,} <span class="number">12.0</span></span><br><span class="line"># HELP jvm_gc_pause_seconds Time spent in GC pause</span><br><span class="line"># TYPE jvm_gc_pause_seconds summary</span><br><span class="line">jvm_gc_pause_seconds_count{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Allocation Failure"</span>,} <span class="number">1.0</span></span><br><span class="line">jvm_gc_pause_seconds_sum{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Allocation Failure"</span>,} <span class="number">0.01</span></span><br><span class="line">jvm_gc_pause_seconds_count{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">1.0</span></span><br><span class="line">jvm_gc_pause_seconds_sum{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.012</span></span><br><span class="line">jvm_gc_pause_seconds_count{action=<span class="string">"end of major GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">1.0</span></span><br><span class="line">jvm_gc_pause_seconds_sum{action=<span class="string">"end of major GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.112</span></span><br><span class="line"># HELP jvm_gc_pause_seconds_max Time spent in GC pause</span><br><span class="line"># TYPE jvm_gc_pause_seconds_max gauge</span><br><span class="line">jvm_gc_pause_seconds_max{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Allocation Failure"</span>,} <span class="number">0.01</span></span><br><span class="line">jvm_gc_pause_seconds_max{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.012</span></span><br><span class="line">jvm_gc_pause_seconds_max{action=<span class="string">"end of major GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.112</span></span><br><span class="line"># HELP tomcat_sessions_active_current_sessions  </span><br><span class="line"># TYPE tomcat_sessions_active_current_sessions gauge</span><br><span class="line">tomcat_sessions_active_current_sessions{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP jvm_gc_max_data_size_bytes Max size of <span class="type">long</span>-lived heap memory pool</span><br><span class="line"># TYPE jvm_gc_max_data_size_bytes gauge</span><br><span class="line">jvm_gc_max_data_size_bytes{application=<span class="string">"web"</span>,} <span class="number">5.672271872E9</span></span><br><span class="line"># HELP jvm_threads_states_threads The current number of threads having NEW state</span><br><span class="line"># TYPE jvm_threads_states_threads gauge</span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"timed-waiting"</span>,} <span class="number">13.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"new"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"terminated"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"blocked"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"waiting"</span>,} <span class="number">7.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"runnable"</span>,} <span class="number">44.0</span></span><br><span class="line"># HELP jvm_buffer_memory_used_bytes An estimate of the memory that the Java virtual machine is using <span class="keyword">for</span> <span class="built_in">this</span> buffer pool</span><br><span class="line"># TYPE jvm_buffer_memory_used_bytes gauge</span><br><span class="line">jvm_buffer_memory_used_bytes{application=<span class="string">"web"</span>,id=<span class="string">"mapped"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_buffer_memory_used_bytes{application=<span class="string">"web"</span>,id=<span class="string">"direct"</span>,} <span class="number">8209.0</span></span><br><span class="line"># HELP jvm_memory_used_bytes The amount of used memory</span><br><span class="line"># TYPE jvm_memory_used_bytes gauge</span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Eden Space"</span>,} <span class="number">1.65650568E8</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Code Cache"</span>,} <span class="number">1.0112832E7</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Metaspace"</span>,} <span class="number">6.4346336E7</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Old Gen"</span>,} <span class="number">3.837896E7</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Survivor Space"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Compressed Class Space"</span>,} <span class="number">8478672.0</span></span><br><span class="line"># HELP jvm_threads_live_threads The current number of live threads including both daemon and non-daemon threads</span><br><span class="line"># TYPE jvm_threads_live_threads gauge</span><br><span class="line">jvm_threads_live_threads{application=<span class="string">"web"</span>,} <span class="number">64.0</span></span><br><span class="line"># HELP tomcat_sessions_expired_sessions_total  </span><br><span class="line"># TYPE tomcat_sessions_expired_sessions_total counter</span><br><span class="line">tomcat_sessions_expired_sessions_total{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP system_cpu_usage The <span class="string">"recent cpu usage"</span> <span class="keyword">for</span> the whole system</span><br><span class="line"># TYPE system_cpu_usage gauge</span><br><span class="line">system_cpu_usage{application=<span class="string">"web"</span>,} <span class="number">0.028650178842763663</span></span><br><span class="line"># HELP jvm_memory_max_bytes The maximum amount of memory in bytes that can be used <span class="keyword">for</span> memory management</span><br><span class="line"># TYPE jvm_memory_max_bytes gauge</span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Eden Space"</span>,} <span class="number">2.796552192E9</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Code Cache"</span>,} <span class="number">2.5165824E8</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Metaspace"</span>,} -<span class="number">1.0</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Old Gen"</span>,} <span class="number">5.672271872E9</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Survivor Space"</span>,} <span class="number">1.572864E7</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Compressed Class Space"</span>,} <span class="number">1.073741824E9</span></span><br><span class="line"># HELP logback_events_total Number of error level events that made it to the logs</span><br><span class="line"># TYPE logback_events_total counter</span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"info"</span>,} <span class="number">14.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"debug"</span>,} <span class="number">0.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"error"</span>,} <span class="number">0.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"warn"</span>,} <span class="number">0.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"trace"</span>,} <span class="number">0.0</span></span><br></pre></td></tr></tbody></table></figure>
+<p>以上信息都是遵守 <strong>prometheus</strong> 规范生成的返回信息</p>
+<h5 id="数据导入到prometheus">数据导入到 prometheus</h5>
+<div class="note "><p>安装方式参考<a href="https://prometheus.io/docs/introduction/first_steps/#starting-prometheus" title="官网安装说明">官网安装说明</a>，安装最新版本即可</p>
+</div>
+<p>修改配置文件 <code>prometheus.yml</code>，添加如下内容</p>
+<figure class="highlight yaml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="attr">scrape_configs:</span></span><br><span class="line">    <span class="comment"># 一个scrape_configs下可以有多个job_name，任意写，建议英文，不要包含特殊字符</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">job_name:</span> <span class="string">'spring'</span></span><br><span class="line">        <span class="comment"># 多久采集一次数据</span></span><br><span class="line">        <span class="attr">scrape_interval:</span> <span class="string">3s</span></span><br><span class="line">        <span class="comment"># 采集时的超时时间，注意：超时时间需要小于采集时间</span></span><br><span class="line">        <span class="attr">scrape_timeout:</span> <span class="string">2s</span></span><br><span class="line">        <span class="comment"># 采集的路径是啥</span></span><br><span class="line">        <span class="attr">metrics_path:</span> <span class="string">'actuator/prometheus'</span></span><br><span class="line">        <span class="comment"># 采集服务的地址，设置成上面Spring Boot应用所在服务器的具体地址。</span></span><br><span class="line">        <span class="attr">static_configs:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">targets:</span> [<span class="string">'127.0.0.1:8080'</span>]</span><br></pre></td></tr></tbody></table></figure>
+<p>如上配置后 prometheus 即可每 3s 请求一次 Client</p>
+<p>启动 prometheus，在 prometheus 根目录下执行如下命令</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">./prometheus --config.file=prometheus.yml</span><br></pre></td></tr></tbody></table></figure>
+<p>访问 <code>http://localhost:9090</code>，可查看 prometheus 采集的指标如下</p>
+<p><img src="/2023/04/12/springMonitorTwo/1.png" alt=""></p>
+<h5 id="通过grafana进行展示">通过 grafana 进行展示</h5>
+<div class="note "><p>安装方式参考<a href="https://grafana.com/docs/grafana/latest/setup-grafana/installation/" title="官网安装说明">官网安装说明</a>，安装最新版本即可</p>
+</div>
+<div class="note warning"><p><strong>grafana</strong> 如果通过 installer 方式安装，默认是电脑重启后自动启动的，这个可以根据情况手动关闭自动启动服务</p>
+</div>
+<p>启动 grafana，进入安装后文件夹下 <code>bin</code> 中，执行如下命令</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">./grafana-server</span><br></pre></td></tr></tbody></table></figure>
+<p>登录 <code>http://localhost:3000/login</code>，初始账号 / 密码为 <code>admin/admin</code>，进入页面后需要配置一些信息</p>
+<ol>
+<li>
+<p>配置数据源，界面如下</p>
+<p><img src="/2023/04/12/springMonitorTwo/2.png" alt=""></p>
+<p>选择 <code>prometheus</code> 后，填入其服务地址 <code>http://localhost:9090</code>，点击 <code>Save &amp; test</code>，成功添加数据源</p>
+</li>
+<li>
+<p>创建看板，界面如下</p>
+<p><img src="/2023/04/12/springMonitorTwo/3.png" alt=""></p>
+<p>网上针对 jvm 相关指标已有成熟看板可供使用，填入 <code>id</code> 为 <code>4701</code> 即可，并且数据源选择刚刚添加的数据源，然后点击 <code>import</code> 导入</p>
+<p><img src="/2023/04/12/springMonitorTwo/4.png" alt=""></p>
+</li>
+</ol>
+<p>到此为止即可借助 <strong>Actuator</strong> 提供的默认指标监控 jvm 的运行情况，效果如下</p>
+<p><img src="/2023/04/12/springMonitorTwo/5.png" alt=""></p>
+<div class="note "><p><strong>grafana</strong> 有专门的看板仓库，其中积累了大量线程的各类指标看板，可自行选择，点击前往 <a href="https://grafana.com/grafana/dashboards/?pg=hp&amp;plcmt=lt-box-dashboards" title="Dashboards">Grafana Lab - Dashboards</a></p>
+</div>]]></content>
+      <categories>
+        <category>monitor</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>spring</tag>
+        <tag>monitor</tag>
+        <tag>Admin</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>spring 监控平台从零单排【一】</title>
     <url>/2023/03/21/springMonitor/</url>
     <content><![CDATA[<p>公司之前已经有了简单的服务器监控工具，主要是针对 linux 服务器性能监控和 mysql、redis 数据库的监控，并没有做到对真实服务情况的监控，公司当前后端主要以 java 为主，所以缺少了 jvm 及接口性能的监控。这些可以通过 java 相关开源框架并结合 nginx 的日志来处理。</p>
@@ -976,74 +1067,6 @@ SpotBugs 使用步骤
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">Method xssFilterRegistration in com.decent.WebApplication required a single bean, but <span class="number">2</span> were found:</span><br><span class="line">	- requestMappingHandlerMapping: defined by method <span class="string">'requestMappingHandlerMapping'</span> in <span class="keyword">class</span> <span class="title class_">path</span> resource [org/springframework/web/servlet/config/annotation/DelegatingWebMvcConfiguration.class]</span><br><span class="line">	- controllerEndpointHandlerMapping: defined by method <span class="string">'controllerEndpointHandlerMapping'</span> in <span class="keyword">class</span> <span class="title class_">path</span> resource [org/springframework/boot/actuate/autoconfigure/endpoint/web/servlet/WebMvcEndpointManagementContextConfiguration.class]</span><br></pre></td></tr></tbody></table></figure>
 <p><code>Admin</code> 也会注册一个 <code>RequestMappingHandlerMapping</code> 的子类 <code>ControllerEndpointHandlerMapping</code> 到容器中，需要使用根据 bean 名称来获取的 bean 的形式</p>
 <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">RequestMappingHandlerMapping</span> <span class="variable">mapping</span> <span class="operator">=</span> applicationContext.getBean(<span class="string">"requestMappingHandlerMapping"</span>, RequestMappingHandlerMapping.class);</span><br></pre></td></tr></tbody></table></figure>]]></content>
-      <categories>
-        <category>monitor</category>
-      </categories>
-      <tags>
-        <tag>java</tag>
-        <tag>spring</tag>
-        <tag>monitor</tag>
-        <tag>Admin</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>spring 监控平台从零单排【二】</title>
-    <url>/2023/04/12/springMonitorTwo/</url>
-    <content><![CDATA[<p>第一章介绍了 <strong>Spring Boot Admin</strong> 的使用方法，但是其 UI 平台展示的内容离实际所需的监控内容还有较大差距，本章着重介绍其底层所使用的 <strong>Actuator</strong> 框架，并提供如何对接到 <strong>Prometheus</strong> 和 <strong>grafana</strong> 的方式</p>
-<h3 id="Spring-Boot-Actuator">Spring Boot Actuator</h3>
-<p><strong>Actuator</strong> 默认暴露了一些 jvm 信息，也可以自行借助打点方法记录需要的监控信息，其底层是使用的 <strong>Micrometer</strong></p>
-<span id="more"></span>
-<h4 id="集成">集成</h4>
-<p><strong>Actuator</strong> 是 Client 模块用来暴露信息的框架，监控平台需要自行搭建，本次直接使用 <strong>grafana</strong> 制作好的看板进行展示</p>
-<h5 id="springboot集成">springboot 集成</h5>
-<ol>
-<li>
-<p>Client 模块修改 pom 文件，添加如下内容</p>
- <figure class="highlight xml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--  actuator  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-actuator<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!--  将actuator暴露的接口改造为prometheus支持的格式  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.micrometer<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>micrometer-registry-prometheus<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
-</li>
-<li>
-<p>修改 <code>application.yml</code> 文件，添加如下内容</p>
- <figure class="highlight yaml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">    <span class="attr">endpoints:</span></span><br><span class="line">        <span class="attr">web:</span></span><br><span class="line">            <span class="attr">exposure:</span></span><br><span class="line">                <span class="attr">include:</span> <span class="string">'prometheus'</span></span><br><span class="line">    <span class="attr">metrics:</span></span><br><span class="line">        <span class="attr">tags:</span></span><br><span class="line">            <span class="comment">#定义暴露指标的tag名称，如下设置是默认取用当前springboot应用名，也可写死</span></span><br><span class="line">            <span class="attr">application:</span> <span class="string">${spring.application.name}</span></span><br></pre></td></tr></tbody></table></figure>
-</li>
-</ol>
-<p>以上步骤添加后，即完成了 <strong>Actuator</strong> 集成，可以运行当前应用，访问应用接口 <code>http://localhost:8080/actuator/prometheus</code> 可获得如下内容</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"># HELP jvm_buffer_count_buffers An estimate of the number of buffers in the pool</span><br><span class="line"># TYPE jvm_buffer_count_buffers gauge</span><br><span class="line">jvm_buffer_count_buffers{application=<span class="string">"web"</span>,id=<span class="string">"mapped"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_buffer_count_buffers{application=<span class="string">"web"</span>,id=<span class="string">"direct"</span>,} <span class="number">3.0</span></span><br><span class="line"># HELP jvm_buffer_total_capacity_bytes An estimate of the total capacity of the buffers in <span class="built_in">this</span> pool</span><br><span class="line"># TYPE jvm_buffer_total_capacity_bytes gauge</span><br><span class="line">jvm_buffer_total_capacity_bytes{application=<span class="string">"web"</span>,id=<span class="string">"mapped"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_buffer_total_capacity_bytes{application=<span class="string">"web"</span>,id=<span class="string">"direct"</span>,} <span class="number">8208.0</span></span><br><span class="line"># HELP tomcat_sessions_created_sessions_total  </span><br><span class="line"># TYPE tomcat_sessions_created_sessions_total counter</span><br><span class="line">tomcat_sessions_created_sessions_total{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP tomcat_sessions_rejected_sessions_total  </span><br><span class="line"># TYPE tomcat_sessions_rejected_sessions_total counter</span><br><span class="line">tomcat_sessions_rejected_sessions_total{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP jvm_classes_loaded_classes The number of classes that are currently loaded in the Java virtual machine</span><br><span class="line"># TYPE jvm_classes_loaded_classes gauge</span><br><span class="line">jvm_classes_loaded_classes{application=<span class="string">"web"</span>,} <span class="number">12286.0</span></span><br><span class="line"># HELP jvm_classes_unloaded_classes_total The total number of classes unloaded since the Java virtual machine has started execution</span><br><span class="line"># TYPE jvm_classes_unloaded_classes_total counter</span><br><span class="line">jvm_classes_unloaded_classes_total{application=<span class="string">"web"</span>,} <span class="number">56.0</span></span><br><span class="line"># HELP jvm_gc_live_data_size_bytes Size of <span class="type">long</span>-lived heap memory pool after reclamation</span><br><span class="line"># TYPE jvm_gc_live_data_size_bytes gauge</span><br><span class="line">jvm_gc_live_data_size_bytes{application=<span class="string">"web"</span>,} <span class="number">3.837896E7</span></span><br><span class="line"># HELP jvm_threads_daemon_threads The current number of live daemon threads</span><br><span class="line"># TYPE jvm_threads_daemon_threads gauge</span><br><span class="line">jvm_threads_daemon_threads{application=<span class="string">"web"</span>,} <span class="number">27.0</span></span><br><span class="line"># HELP process_cpu_usage The <span class="string">"recent cpu usage"</span> <span class="keyword">for</span> the Java Virtual Machine process</span><br><span class="line"># TYPE process_cpu_usage gauge</span><br><span class="line">process_cpu_usage{application=<span class="string">"web"</span>,} <span class="number">0.08109822305359074</span></span><br><span class="line"># HELP jvm_memory_committed_bytes The amount of memory in bytes that is committed <span class="keyword">for</span> the Java virtual machine to use</span><br><span class="line"># TYPE jvm_memory_committed_bytes gauge</span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Eden Space"</span>,} <span class="number">3.13524224E8</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Code Cache"</span>,} <span class="number">1.0289152E7</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Metaspace"</span>,} <span class="number">6.8550656E7</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Old Gen"</span>,} <span class="number">4.59800576E8</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Survivor Space"</span>,} <span class="number">1.572864E7</span></span><br><span class="line">jvm_memory_committed_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Compressed Class Space"</span>,} <span class="number">9306112.0</span></span><br><span class="line"># HELP process_start_time_seconds Start time of the process since unix epoch.</span><br><span class="line"># TYPE process_start_time_seconds gauge</span><br><span class="line">process_start_time_seconds{application=<span class="string">"web"</span>,} <span class="number">1.6812881222E9</span></span><br><span class="line"># HELP jvm_gc_memory_allocated_bytes_total Incremented <span class="keyword">for</span> an increase in the size of <span class="title function_">the</span> <span class="params">(young)</span> heap memory pool after one GC to before the next</span><br><span class="line"># TYPE jvm_gc_memory_allocated_bytes_total counter</span><br><span class="line">jvm_gc_memory_allocated_bytes_total{application=<span class="string">"web"</span>,} <span class="number">4.46238072E8</span></span><br><span class="line"># HELP jvm_gc_memory_promoted_bytes_total Count of positive increases in the size of the old generation memory pool before GC to after GC</span><br><span class="line"># TYPE jvm_gc_memory_promoted_bytes_total counter</span><br><span class="line">jvm_gc_memory_promoted_bytes_total{application=<span class="string">"web"</span>,} <span class="number">2.1952392E7</span></span><br><span class="line"># HELP process_uptime_seconds The uptime of the Java virtual machine</span><br><span class="line"># TYPE process_uptime_seconds gauge</span><br><span class="line">process_uptime_seconds{application=<span class="string">"web"</span>,} <span class="number">19.083</span></span><br><span class="line"># HELP tomcat_sessions_alive_max_seconds  </span><br><span class="line"># TYPE tomcat_sessions_alive_max_seconds gauge</span><br><span class="line">tomcat_sessions_alive_max_seconds{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP jvm_threads_peak_threads The peak live thread count since the Java virtual machine started or peak was reset</span><br><span class="line"># TYPE jvm_threads_peak_threads gauge</span><br><span class="line">jvm_threads_peak_threads{application=<span class="string">"web"</span>,} <span class="number">64.0</span></span><br><span class="line"># HELP tomcat_sessions_active_max_sessions  </span><br><span class="line"># TYPE tomcat_sessions_active_max_sessions gauge</span><br><span class="line">tomcat_sessions_active_max_sessions{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP system_cpu_count The number of processors available to the Java virtual machine</span><br><span class="line"># TYPE system_cpu_count gauge</span><br><span class="line">system_cpu_count{application=<span class="string">"web"</span>,} <span class="number">12.0</span></span><br><span class="line"># HELP jvm_gc_pause_seconds Time spent in GC pause</span><br><span class="line"># TYPE jvm_gc_pause_seconds summary</span><br><span class="line">jvm_gc_pause_seconds_count{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Allocation Failure"</span>,} <span class="number">1.0</span></span><br><span class="line">jvm_gc_pause_seconds_sum{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Allocation Failure"</span>,} <span class="number">0.01</span></span><br><span class="line">jvm_gc_pause_seconds_count{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">1.0</span></span><br><span class="line">jvm_gc_pause_seconds_sum{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.012</span></span><br><span class="line">jvm_gc_pause_seconds_count{action=<span class="string">"end of major GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">1.0</span></span><br><span class="line">jvm_gc_pause_seconds_sum{action=<span class="string">"end of major GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.112</span></span><br><span class="line"># HELP jvm_gc_pause_seconds_max Time spent in GC pause</span><br><span class="line"># TYPE jvm_gc_pause_seconds_max gauge</span><br><span class="line">jvm_gc_pause_seconds_max{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Allocation Failure"</span>,} <span class="number">0.01</span></span><br><span class="line">jvm_gc_pause_seconds_max{action=<span class="string">"end of minor GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.012</span></span><br><span class="line">jvm_gc_pause_seconds_max{action=<span class="string">"end of major GC"</span>,application=<span class="string">"web"</span>,cause=<span class="string">"Metadata GC Threshold"</span>,} <span class="number">0.112</span></span><br><span class="line"># HELP tomcat_sessions_active_current_sessions  </span><br><span class="line"># TYPE tomcat_sessions_active_current_sessions gauge</span><br><span class="line">tomcat_sessions_active_current_sessions{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP jvm_gc_max_data_size_bytes Max size of <span class="type">long</span>-lived heap memory pool</span><br><span class="line"># TYPE jvm_gc_max_data_size_bytes gauge</span><br><span class="line">jvm_gc_max_data_size_bytes{application=<span class="string">"web"</span>,} <span class="number">5.672271872E9</span></span><br><span class="line"># HELP jvm_threads_states_threads The current number of threads having NEW state</span><br><span class="line"># TYPE jvm_threads_states_threads gauge</span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"timed-waiting"</span>,} <span class="number">13.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"new"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"terminated"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"blocked"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"waiting"</span>,} <span class="number">7.0</span></span><br><span class="line">jvm_threads_states_threads{application=<span class="string">"web"</span>,state=<span class="string">"runnable"</span>,} <span class="number">44.0</span></span><br><span class="line"># HELP jvm_buffer_memory_used_bytes An estimate of the memory that the Java virtual machine is using <span class="keyword">for</span> <span class="built_in">this</span> buffer pool</span><br><span class="line"># TYPE jvm_buffer_memory_used_bytes gauge</span><br><span class="line">jvm_buffer_memory_used_bytes{application=<span class="string">"web"</span>,id=<span class="string">"mapped"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_buffer_memory_used_bytes{application=<span class="string">"web"</span>,id=<span class="string">"direct"</span>,} <span class="number">8209.0</span></span><br><span class="line"># HELP jvm_memory_used_bytes The amount of used memory</span><br><span class="line"># TYPE jvm_memory_used_bytes gauge</span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Eden Space"</span>,} <span class="number">1.65650568E8</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Code Cache"</span>,} <span class="number">1.0112832E7</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Metaspace"</span>,} <span class="number">6.4346336E7</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Old Gen"</span>,} <span class="number">3.837896E7</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Survivor Space"</span>,} <span class="number">0.0</span></span><br><span class="line">jvm_memory_used_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Compressed Class Space"</span>,} <span class="number">8478672.0</span></span><br><span class="line"># HELP jvm_threads_live_threads The current number of live threads including both daemon and non-daemon threads</span><br><span class="line"># TYPE jvm_threads_live_threads gauge</span><br><span class="line">jvm_threads_live_threads{application=<span class="string">"web"</span>,} <span class="number">64.0</span></span><br><span class="line"># HELP tomcat_sessions_expired_sessions_total  </span><br><span class="line"># TYPE tomcat_sessions_expired_sessions_total counter</span><br><span class="line">tomcat_sessions_expired_sessions_total{application=<span class="string">"web"</span>,} <span class="number">0.0</span></span><br><span class="line"># HELP system_cpu_usage The <span class="string">"recent cpu usage"</span> <span class="keyword">for</span> the whole system</span><br><span class="line"># TYPE system_cpu_usage gauge</span><br><span class="line">system_cpu_usage{application=<span class="string">"web"</span>,} <span class="number">0.028650178842763663</span></span><br><span class="line"># HELP jvm_memory_max_bytes The maximum amount of memory in bytes that can be used <span class="keyword">for</span> memory management</span><br><span class="line"># TYPE jvm_memory_max_bytes gauge</span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Eden Space"</span>,} <span class="number">2.796552192E9</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Code Cache"</span>,} <span class="number">2.5165824E8</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Metaspace"</span>,} -<span class="number">1.0</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Old Gen"</span>,} <span class="number">5.672271872E9</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"heap"</span>,id=<span class="string">"PS Survivor Space"</span>,} <span class="number">1.572864E7</span></span><br><span class="line">jvm_memory_max_bytes{application=<span class="string">"web"</span>,area=<span class="string">"nonheap"</span>,id=<span class="string">"Compressed Class Space"</span>,} <span class="number">1.073741824E9</span></span><br><span class="line"># HELP logback_events_total Number of error level events that made it to the logs</span><br><span class="line"># TYPE logback_events_total counter</span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"info"</span>,} <span class="number">14.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"debug"</span>,} <span class="number">0.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"error"</span>,} <span class="number">0.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"warn"</span>,} <span class="number">0.0</span></span><br><span class="line">logback_events_total{application=<span class="string">"web"</span>,level=<span class="string">"trace"</span>,} <span class="number">0.0</span></span><br></pre></td></tr></tbody></table></figure>
-<p>以上信息都是遵守 <strong>prometheus</strong> 规范生成的返回信息</p>
-<h5 id="数据导入到prometheus">数据导入到 prometheus</h5>
-<div class="note "><p>安装方式参考<a href="https://prometheus.io/docs/introduction/first_steps/#starting-prometheus" title="官网安装说明">官网安装说明</a>，安装最新版本即可</p>
-</div>
-<p>修改配置文件 <code>prometheus.yml</code>，添加如下内容</p>
-<figure class="highlight yaml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="attr">scrape_configs:</span></span><br><span class="line">    <span class="comment"># 一个scrape_configs下可以有多个job_name，任意写，建议英文，不要包含特殊字符</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">job_name:</span> <span class="string">'spring'</span></span><br><span class="line">        <span class="comment"># 多久采集一次数据</span></span><br><span class="line">        <span class="attr">scrape_interval:</span> <span class="string">3s</span></span><br><span class="line">        <span class="comment"># 采集时的超时时间，注意：超时时间需要小于采集时间</span></span><br><span class="line">        <span class="attr">scrape_timeout:</span> <span class="string">2s</span></span><br><span class="line">        <span class="comment"># 采集的路径是啥</span></span><br><span class="line">        <span class="attr">metrics_path:</span> <span class="string">'actuator/prometheus'</span></span><br><span class="line">        <span class="comment"># 采集服务的地址，设置成上面Spring Boot应用所在服务器的具体地址。</span></span><br><span class="line">        <span class="attr">static_configs:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">targets:</span> [<span class="string">'127.0.0.1:8080'</span>]</span><br></pre></td></tr></tbody></table></figure>
-<p>如上配置后 prometheus 即可每 3s 请求一次 Client</p>
-<p>启动 prometheus，在 prometheus 根目录下执行如下命令</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">./prometheus --config.file=prometheus.yml</span><br></pre></td></tr></tbody></table></figure>
-<p>访问 <code>http://localhost:9090</code>，可查看 prometheus 采集的指标如下</p>
-<p><img src="/2023/04/12/springMonitorTwo/1.png" alt=""></p>
-<h5 id="通过grafana进行展示">通过 grafana 进行展示</h5>
-<div class="note "><p>安装方式参考<a href="https://grafana.com/docs/grafana/latest/setup-grafana/installation/" title="官网安装说明">官网安装说明</a>，安装最新版本即可</p>
-</div>
-<div class="note warning"><p><strong>grafana</strong> 如果通过 installer 方式安装，默认是电脑重启后自动启动的，这个可以根据情况手动关闭自动启动服务</p>
-</div>
-<p>启动 grafana，进入安装后文件夹下 <code>bin</code> 中，执行如下命令</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">./grafana-server</span><br></pre></td></tr></tbody></table></figure>
-<p>登录 <code>http://localhost:3000/login</code>，初始账号 / 密码为 <code>admin/admin</code>，进入页面后需要配置一些信息</p>
-<ol>
-<li>
-<p>配置数据源，界面如下</p>
-<p><img src="/2023/04/12/springMonitorTwo/2.png" alt=""></p>
-<p>选择 <code>prometheus</code> 后，填入其服务地址 <code>http://localhost:9090</code>，点击 <code>Save &amp; test</code>，成功添加数据源</p>
-</li>
-<li>
-<p>创建看板，界面如下</p>
-<p><img src="/2023/04/12/springMonitorTwo/3.png" alt=""></p>
-<p>网上针对 jvm 相关指标已有成熟看板可供使用，填入 <code>id</code> 为 <code>4701</code> 即可，并且数据源选择刚刚添加的数据源，然后点击 <code>import</code> 导入</p>
-<p><img src="/2023/04/12/springMonitorTwo/4.png" alt=""></p>
-</li>
-</ol>
-<p>到此为止即可借助 <strong>Actuator</strong> 提供的默认指标监控 jvm 的运行情况，效果如下</p>
-<p><img src="/2023/04/12/springMonitorTwo/5.png" alt=""></p>
-<div class="note "><p><strong>grafana</strong> 有专门的看板仓库，其中积累了大量线程的各类指标看板，可自行选择，点击前往 <a href="https://grafana.com/grafana/dashboards/?pg=hp&amp;plcmt=lt-box-dashboards" title="Dashboards">Grafana Lab - Dashboards</a></p>
-</div>]]></content>
       <categories>
         <category>monitor</category>
       </categories>
