@@ -168,122 +168,6 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
       </tags>
   </entry>
   <entry>
-    <title>WSL 使用笔记</title>
-    <url>/2024/09/13/WSL/</url>
-    <content><![CDATA[<p>记录在 windows 中使用 WSL 技术出现的一系列问题</p>
-<h3 id="安装WSL">安装 WSL</h3>
-<p>默认需要 window10 或 11 的系统，并且版本号有一定要求，可去 <a href="https://learn.microsoft.com/zh-cn/windows/wsl/install" title="WSL官方安装教程">官方</a> 检查</p>
-<h4 id="开启cpu虚拟化技术">开启 cpu 虚拟化技术</h4>
-<p>使用 WSL 需要电脑 cpu 支持 Hyper-V 虚拟化技术，首先要在 BIOS 中开启对应选项，具体型号笔记本的选项不同，可参考  <a href="https://prod.support.services.microsoft.com/zh-cn/windows/%E5%9C%A8-windows-%E4%B8%8A%E5%90%AF%E7%94%A8%E8%99%9A%E6%8B%9F%E5%8C%96-c5578302-6e43-4b4b-a449-8ced115f58e1" title="在Windows 上启用虚拟化">在 Windows 上启用虚拟化</a></p>
-<span id="more"></span>
-<h4 id="Windows启用linux子系统">Windows 启用 linux 子系统</h4>
-<p>在 Windows 桌面任务栏的搜索框输入<strong>启用或关闭 Windows 功能</strong>，启用截图中圈选的功能</p>
-<p><img src="/2024/09/13/WSL/WSL1.png" alt=""></p>
-<p>但是实测发现，Windows 中未开启 Hyper-V 和适用于 Linux 的 Windows 子系统，仅开启了虚拟机平台，WSL 一样可用</p>
-<h4 id="WSL-update">WSL update</h4>
-<p>经过上述两步，可在终端控制台中输入 <code>wsl --install</code>，自动安装所需工具，安装完成后输入 <code>wsl -v</code> 检查当前版本号和内核</p>
-<p>如果此时提示命令行选项无效，可输入 <code>wsl --update</code>，完成所需组件的更新</p>
-<p>输入 <code>wsl -v</code> 最终显示如下信息</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">WSL 版本： 2.2.4.0</span><br><span class="line">内核版本： 5.15.153.1-2</span><br><span class="line">WSLg 版本： 1.0.61</span><br><span class="line">MSRDC 版本： 1.2.5326</span><br><span class="line">Direct3D 版本： 1.611.1-81528511</span><br><span class="line">DXCore 版本： 10.0.26091.1-240325-1447.ge-release</span><br><span class="line">Windows 版本： 10.0.22631.4037</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="常用命令">常用命令</h3>
-<h4 id="wsl-l-v">wsl -l -v</h4>
-<p>查看当前已安装的 Linux 发行版及对应的 wsl 版本号</p>
-<h4 id="wsl-shutdown">wsl --shutdown</h4>
-<p>关闭所有正在运行的 Linux 发行版，但是可能出现关不上的情况</p>
-<h3 id="存储迁移">存储迁移</h3>
-<p>WSL 默认安装的发型本存储在 C 盘，随着使用的增多，会占用较多空间，建议提早移出到别的盘符</p>
-<h4 id="查看运行状态">查看运行状态</h4>
-<p>打开终端控制台，输入 <code>wsl -l -v</code> 查看 WSL 虚拟机的状态</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">  NAME            STATE           VERSION</span><br><span class="line">* Ubuntu-20.04    Running         2</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="关闭正在运行的虚拟机">关闭正在运行的虚拟机</h4>
-<p>使用命令 <code>wsl --shutdown</code>，再次查看 WSL 虚拟机的状态，可发现已经关闭</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">  NAME            STATE           VERSION</span><br><span class="line">* Ubuntu-20.04    Stopped         2</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="导出备份">导出备份</h4>
-<p>首先在自己选择想要存放 wsl 的盘符（这里选择 D 盘）下创建文件夹（名称为 WSL）。注意命令中 export 后是自己 Ubuntu 的版本名称。</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">wsl --export Ubuntu-20.04 D:\WSL\Ubuntu.tar</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="注销原有版本">注销原有版本</h4>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">wsl --unregister Ubuntu-20.04</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="将备份文件恢复到自己新建的文件夹（这里为WSL）下">将备份文件恢复到自己新建的文件夹（这里为 WSL）下</h4>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">wsl --import Ubuntu-20.04 D:\WSL D:\WSL\Ubuntu.tar</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="恢复默认用户">恢复默认用户</h4>
-<p>导入成功后，打开虚拟机默认当前用户会变成 root，如果想还原到之前的用户，可执行下述命令，将用户名替换成默认进入虚拟机的用户名即可</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">Ubuntu2004 config -default-user 用户名</span><br></pre></td></tr></tbody></table></figure>
-<div class="note warning"><p>执行配置默认用户命令时，控制台可能会报错，如果百度后无法解决的情况下， 可以 root 身份先进入虚拟机，执行 <code>sudo vim /etc/wsl.conf</code> 创建或修改文件，在其中添加如下内容</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">[user]</span><br><span class="line">default = root</span><br></pre></td></tr></tbody></table></figure>
-<p>保存配置并退出，同样在关闭 wsl 之后重新进入，便会发现默认用户已经修改了。</p>
-<p>需要注意的是 wsl.conf 配置优先级要高于 Ubuntu2004.exe config --default-user，因此如果两个都配置了的话，会以 wsl.conf 中的配置优先。</p>
-</div>
-<h3 id="网络问题">网络问题</h3>
-<p>使用 wsl2 版本，在宿主机和 wsl 中使用 localhost 都可访问到部署的服务</p>
-<blockquote>
-<p>使用远程 IP 地址连接到应用程序时，它们将被视为来自局域网 (LAN) 的连接。 这意味着你需要确保你的应用程序可以接受 LAN 连接。</p>
-<p>例如，你可能需要将应用程序绑定到 0.0.0.0 而非 127.0.0.1。 以使用 Flask 的 Python 应用为例，可以通过以下命令执行此操作：app.run (host=‘0.0.0.0’)。 进行这些更改时请注意安全性，因为这将允许来自你的 LAN 的连接。</p>
-</blockquote>
-<h4 id="从局域网-LAN-访问-WSL-2-分发版">从局域网 (LAN) 访问 WSL 2 分发版</h4>
-<p>WSL 2 有一个带有其自己独一无二的 IP 地址的虚拟化以太网适配器。目前，若要启用此工作流，你需要执行与常规虚拟机相同的步骤。</p>
-<p>下面是使用 <a href="https://learn.microsoft.com/zh-cn/windows-server/networking/technologies/netsh/netsh-interface-portproxy1" title="Netsh 接口 portproxy">Netsh 接口 portproxy</a>  Windows 命令添加端口代理的示例，该代理侦听主机端口并将该端口代理连接到 WSL 2 VM 的 IP 地址。</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 listenport=&lt;yourPortToForward&gt; listenaddress=0.0.0.0 connectport=&lt;yourPortToConnectToInWSL&gt; connectaddress=(wsl hostname -I)</span><br></pre></td></tr></tbody></table></figure>
-<p>在此示例中，需要更新 <code>&lt;yourPortToForward&gt;</code> 到端口号，例如 <code>listenport=4000</code>。 <code>listenaddress=0.0.0.0</code> 表示将接受来自任何 IP 地址的传入请求。 侦听地址指定要侦听的 IPv4 地址，可以更改为以下值：IP 地址、计算机 NetBIOS 名称或计算机 DNS 名称。 如果未指定地址，则默认值为本地计算机。 需要将 <code>&lt;yourPortToConnectToInWSL&gt;</code> 值更新为希望 WSL 连接的端口号，例如 <code>connectport=4000</code>。 最后，<code>connectaddress</code> 值必须是通过 WSL 2 安装的 Linux 分发版的 IP 地址（WSL 2 VM 地址），可通过输入命令：<code>wsl.exe hostname -I</code> 找到。</p>
-<p>因此，此命令可能如下所示：</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 listenport=4000 listenaddress=0.0.0.0 connectport=4000 connectaddress=192.168.101.100</span><br></pre></td></tr></tbody></table></figure>
-<p>要获取 IP 地址，请使用：</p>
-<ul>
-<li><code>wsl hostname -I</code> 标识通过 WSL 2 安装的 Linux 分发版 IP 地址（WSL 2 VM 地址）</li>
-<li><code>cat /etc/resolv.conf</code> 表示从 WSL 2 看到的 WINDOWS 计算机的 IP 地址 (WSL 2 VM)</li>
-</ul>
-<div class="note info"><p>在主机名命令中使用小写 “i” 将生成与使用大写 “I” 不同的结果。 <code>wsl hostname -i</code> 是本地计算机（127.0.1.1 是占位符诊断地址），而 <code>wsl hostname -I</code> 会返回其他计算机所看到的本地计算机的 IP 地址，应该用于识别通过 WSL 2 运行的 Linux 发行版的 <code>connectaddress</code>。</p>
-</div>
-<h4 id="netsh-interface-portproxy-常用命令">netsh interface portproxy 常用命令</h4>
-<p>Portproxy 服务器从服务器侦听的 IPv4 端口和地址列表中删除 IPv4 地址。</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy delete v4tov4 listenport=&lt;yourPortToForward&gt; listenaddress=0.0.0.0</span><br></pre></td></tr></tbody></table></figure>
-<p>显示所有 portproxy 参数，包括 v4tov4、v4tov6、v6tov4 和 v6tov6 的端口 / 地址对。</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy show all</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="镜像模式">镜像模式</h4>
-<p>部分情况下，wsl 中的应用程序需要 wsl 虚拟机所在 ip 和宿主机保持一致，这时可启用 wsl 的镜像模式，<a href="https://learn.microsoft.com/zh-cn/windows/wsl/wsl-config#wslconfig" title="WSL 中的高级设置配置">参考</a></p>
-<p>开启方式为修改 .wslconfig 文件，使用 .wslconfig 为 WSL 上运行的所有已安装的发行版配置全局设置。</p>
-<ul>
-<li>默认情况下，.wslconfig 文件不存在。 它必须创建并存储在 <code>%UserProfile%</code> 目录中才能应用这些配置设置。</li>
-<li>用于在作为 WSL 2 版本运行的所有已安装的 Linux 发行版中全局配置设置。</li>
-<li>只能用于 WSL 2 运行的发行版。 作为 WSL 1 运行的发行版不受此配置的影响，因为它们不作为虚拟机运行。</li>
-<li>要访问 <code>%UserProfile%</code> 目录，请在 PowerShell 中使用 <code>cd ~</code> 访问主目录（通常是用户配置文件 <code>C:\Users\&lt;UserName&gt;</code>），或者可以打开 Windows 文件资源管理器并在地址栏中输入 <code>%UserProfile%</code>。 该目录路径应类似于：<code>C:\Users\&lt;UserName&gt;\.wslconfig</code>。</li>
-</ul>
-<p>WSL 将检测这些文件是否存在，读取内容，并在每次启动 WSL 时自动应用配置设置。 如果文件缺失或格式错误（标记格式不正确），则 WSL 将继续正常启动，而不应用配置设置。</p>
-<p>文件中添加 <code>[wsl2]</code> 标签，并在下方添加 <code>networkingMode=mirrored</code></p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">[wsl2]</span><br><span class="line">networkingMode=mirrored</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="Windows-与-WSL-文件交互">Windows 与 WSL 文件交互</h3>
-<p>在 wsl 中可直接访问宿主机，宿主机盘符为 <code>/mnt/</code></p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">cp -r /mnt/e/BaiduNetdiskDownload/ls16 /home/soap/</span><br></pre></td></tr></tbody></table></figure>
-<p><code>/mnt/e</code> 表示本地的 e 盘，Windows 的文件路径为 <code>/mnt/e/BaiduNetdiskDownload/ls16</code>，wsl 的目标路径为 <code>/home/soap/</code></p>
-]]></content>
-      <categories>
-        <category>WSL</category>
-      </categories>
-      <tags>
-        <tag>WSL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
-    <url>/2022/10/10/chromeTranslate/</url>
-    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
-<h3 id="修改host教程">修改 host 教程</h3>
-<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
-<ul>
-<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
-<li>windows: C:\Windows\System32\drivers\etc</li>
-</ul>
-<p>修改文件，添加以下内容：</p>
-<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">142.250.4.90 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
-<p>保存修改后，chrome 即可正常使用</p>
-]]></content>
-      <categories>
-        <category>开发工具</category>
-      </categories>
-      <tags>
-        <tag>chrome</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>java 内存泄露事故分析</title>
     <url>/2022/10/10/bugFix/</url>
     <content><![CDATA[<h3 id="问题描述">问题描述</h3>
@@ -415,6 +299,114 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
       </tags>
   </entry>
   <entry>
+    <title>WSL 使用笔记</title>
+    <url>/2024/09/13/WSL/</url>
+    <content><![CDATA[<p>记录在 windows 中使用 WSL 技术出现的一系列问题</p>
+<h3 id="安装WSL">安装 WSL</h3>
+<p>默认需要 window10 或 11 的系统，并且版本号有一定要求，可去 <a href="https://learn.microsoft.com/zh-cn/windows/wsl/install" title="WSL官方安装教程">官方</a> 检查</p>
+<h4 id="开启cpu虚拟化技术">开启 cpu 虚拟化技术</h4>
+<p>使用 WSL 需要电脑 cpu 支持 Hyper-V 虚拟化技术，首先要在 BIOS 中开启对应选项，具体型号笔记本的选项不同，可参考  <a href="https://prod.support.services.microsoft.com/zh-cn/windows/%E5%9C%A8-windows-%E4%B8%8A%E5%90%AF%E7%94%A8%E8%99%9A%E6%8B%9F%E5%8C%96-c5578302-6e43-4b4b-a449-8ced115f58e1" title="在Windows 上启用虚拟化">在 Windows 上启用虚拟化</a></p>
+<span id="more"></span>
+<h4 id="Windows启用linux子系统">Windows 启用 linux 子系统</h4>
+<p>在 Windows 桌面任务栏的搜索框输入<strong>启用或关闭 Windows 功能</strong>，启用截图中圈选的功能</p>
+<p><img src="/2024/09/13/WSL/WSL1.png" alt=""></p>
+<p>但是实测发现，Windows 中未开启 Hyper-V 和适用于 Linux 的 Windows 子系统，仅开启了虚拟机平台，WSL 一样可用</p>
+<h4 id="WSL-update">WSL update</h4>
+<p>经过上述两步，可在终端控制台中输入 <code>wsl --install</code>，自动安装所需工具，安装完成后输入 <code>wsl -v</code> 检查当前版本号和内核</p>
+<p>如果此时提示命令行选项无效，可输入 <code>wsl --update</code>，完成所需组件的更新</p>
+<p>输入 <code>wsl -v</code> 最终显示如下信息</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">WSL 版本： 2.2.4.0</span><br><span class="line">内核版本： 5.15.153.1-2</span><br><span class="line">WSLg 版本： 1.0.61</span><br><span class="line">MSRDC 版本： 1.2.5326</span><br><span class="line">Direct3D 版本： 1.611.1-81528511</span><br><span class="line">DXCore 版本： 10.0.26091.1-240325-1447.ge-release</span><br><span class="line">Windows 版本： 10.0.22631.4037</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="常用命令">常用命令</h3>
+<h4 id="wsl-l-v">wsl -l -v</h4>
+<p>查看当前已安装的 Linux 发行版及对应的 wsl 版本号</p>
+<h4 id="wsl-shutdown">wsl --shutdown</h4>
+<p>关闭所有正在运行的 Linux 发行版，但是可能出现关不上的情况</p>
+<h3 id="存储迁移">存储迁移</h3>
+<p>WSL 默认安装的发型本存储在 C 盘，随着使用的增多，会占用较多空间，建议提早移出到别的盘符</p>
+<h4 id="查看运行状态">查看运行状态</h4>
+<p>打开终端控制台，输入 <code>wsl -l -v</code> 查看 WSL 虚拟机的状态</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">  NAME            STATE           VERSION</span><br><span class="line">* Ubuntu-20.04    Running         2</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="关闭正在运行的虚拟机">关闭正在运行的虚拟机</h4>
+<p>使用命令 <code>wsl --shutdown</code>，再次查看 WSL 虚拟机的状态，可发现已经关闭</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">  NAME            STATE           VERSION</span><br><span class="line">* Ubuntu-20.04    Stopped         2</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="导出备份">导出备份</h4>
+<p>首先在自己选择想要存放 wsl 的盘符（这里选择 D 盘）下创建文件夹（名称为 WSL）。注意命令中 export 后是自己 Ubuntu 的版本名称。</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">wsl --export Ubuntu-20.04 D:\WSL\Ubuntu.tar</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="注销原有版本">注销原有版本</h4>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">wsl --unregister Ubuntu-20.04</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="将备份文件恢复到自己新建的文件夹（这里为WSL）下">将备份文件恢复到自己新建的文件夹（这里为 WSL）下</h4>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">wsl --import Ubuntu-20.04 D:\WSL D:\WSL\Ubuntu.tar</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="恢复默认用户">恢复默认用户</h4>
+<p>导入成功后，打开虚拟机默认当前用户会变成 root，如果想还原到之前的用户，可执行下述命令，将用户名替换成默认进入虚拟机的用户名即可</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">Ubuntu2004 config -default-user 用户名</span><br></pre></td></tr></tbody></table></figure>
+<div class="note warning"><p>执行配置默认用户命令时，控制台可能会报错，如果百度后无法解决的情况下， 可以 root 身份先进入虚拟机，执行 <code>sudo vim /etc/wsl.conf</code> 创建或修改文件，在其中添加如下内容</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">[user]</span><br><span class="line">default = root</span><br></pre></td></tr></tbody></table></figure>
+<p>保存配置并退出，同样在关闭 wsl 之后重新进入，便会发现默认用户已经修改了。</p>
+<p>需要注意的是 wsl.conf 配置优先级要高于 Ubuntu2004.exe config --default-user，因此如果两个都配置了的话，会以 wsl.conf 中的配置优先。</p>
+</div>
+<h3 id="网络问题">网络问题</h3>
+<p>使用 wsl2 版本，在宿主机和 wsl 中使用 localhost 都可访问到部署的服务</p>
+<blockquote>
+<p>使用远程 IP 地址连接到应用程序时，它们将被视为来自局域网 (LAN) 的连接。 这意味着你需要确保你的应用程序可以接受 LAN 连接。</p>
+<p>例如，你可能需要将应用程序绑定到 0.0.0.0 而非 127.0.0.1。 以使用 Flask 的 Python 应用为例，可以通过以下命令执行此操作：app.run (host=‘0.0.0.0’)。 进行这些更改时请注意安全性，因为这将允许来自你的 LAN 的连接。</p>
+</blockquote>
+<h4 id="从局域网-LAN-访问-WSL-2-分发版">从局域网 (LAN) 访问 WSL 2 分发版</h4>
+<p>WSL 2 有一个带有其自己独一无二的 IP 地址的虚拟化以太网适配器。目前，若要启用此工作流，你需要执行与常规虚拟机相同的步骤。</p>
+<p>下面是使用 <a href="https://learn.microsoft.com/zh-cn/windows-server/networking/technologies/netsh/netsh-interface-portproxy1" title="Netsh 接口 portproxy">Netsh 接口 portproxy</a>  Windows 命令添加端口代理的示例，该代理侦听主机端口并将该端口代理连接到 WSL 2 VM 的 IP 地址。</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 listenport=&lt;yourPortToForward&gt; listenaddress=0.0.0.0 connectport=&lt;yourPortToConnectToInWSL&gt; connectaddress=(wsl hostname -I)</span><br></pre></td></tr></tbody></table></figure>
+<p>在此示例中，需要更新 <code>&lt;yourPortToForward&gt;</code> 到端口号，例如 <code>listenport=4000</code>。 <code>listenaddress=0.0.0.0</code> 表示将接受来自任何 IP 地址的传入请求。 侦听地址指定要侦听的 IPv4 地址，可以更改为以下值：IP 地址、计算机 NetBIOS 名称或计算机 DNS 名称。 如果未指定地址，则默认值为本地计算机。 需要将 <code>&lt;yourPortToConnectToInWSL&gt;</code> 值更新为希望 WSL 连接的端口号，例如 <code>connectport=4000</code>。 最后，<code>connectaddress</code> 值必须是通过 WSL 2 安装的 Linux 分发版的 IP 地址（WSL 2 VM 地址），可通过输入命令：<code>wsl.exe hostname -I</code> 找到。</p>
+<p>因此，此命令可能如下所示：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 listenport=4000 listenaddress=0.0.0.0 connectport=4000 connectaddress=192.168.101.100</span><br></pre></td></tr></tbody></table></figure>
+<p>要获取 IP 地址，请使用：</p>
+<ul>
+<li><code>wsl hostname -I</code> 标识通过 WSL 2 安装的 Linux 分发版 IP 地址（WSL 2 VM 地址）</li>
+<li><code>cat /etc/resolv.conf</code> 表示从 WSL 2 看到的 WINDOWS 计算机的 IP 地址 (WSL 2 VM)</li>
+</ul>
+<div class="note info"><p>在主机名命令中使用小写 “i” 将生成与使用大写 “I” 不同的结果。 <code>wsl hostname -i</code> 是本地计算机（127.0.1.1 是占位符诊断地址），而 <code>wsl hostname -I</code> 会返回其他计算机所看到的本地计算机的 IP 地址，应该用于识别通过 WSL 2 运行的 Linux 发行版的 <code>connectaddress</code>。</p>
+</div>
+<h4 id="netsh-interface-portproxy-常用命令">netsh interface portproxy 常用命令</h4>
+<p>Portproxy 服务器从服务器侦听的 IPv4 端口和地址列表中删除 IPv4 地址。</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy delete v4tov4 listenport=&lt;yourPortToForward&gt; listenaddress=0.0.0.0</span><br></pre></td></tr></tbody></table></figure>
+<p>显示所有 portproxy 参数，包括 v4tov4、v4tov6、v6tov4 和 v6tov6 的端口 / 地址对。</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">netsh interface portproxy show all</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="镜像模式">镜像模式</h4>
+<p>部分情况下，wsl 中的应用程序需要 wsl 虚拟机所在 ip 和宿主机保持一致，这时可启用 wsl 的镜像模式，<a href="https://learn.microsoft.com/zh-cn/windows/wsl/wsl-config#wslconfig" title="WSL 中的高级设置配置">参考</a></p>
+<p>开启方式为修改 .wslconfig 文件，使用 .wslconfig 为 WSL 上运行的所有已安装的发行版配置全局设置。</p>
+<ul>
+<li>默认情况下，.wslconfig 文件不存在。 它必须创建并存储在 <code>%UserProfile%</code> 目录中才能应用这些配置设置。</li>
+<li>用于在作为 WSL 2 版本运行的所有已安装的 Linux 发行版中全局配置设置。</li>
+<li>只能用于 WSL 2 运行的发行版。 作为 WSL 1 运行的发行版不受此配置的影响，因为它们不作为虚拟机运行。</li>
+<li>要访问 <code>%UserProfile%</code> 目录，请在 PowerShell 中使用 <code>cd ~</code> 访问主目录（通常是用户配置文件 <code>C:\Users\&lt;UserName&gt;</code>），或者可以打开 Windows 文件资源管理器并在地址栏中输入 <code>%UserProfile%</code>。 该目录路径应类似于：<code>C:\Users\&lt;UserName&gt;\.wslconfig</code>。</li>
+</ul>
+<p>WSL 将检测这些文件是否存在，读取内容，并在每次启动 WSL 时自动应用配置设置。 如果文件缺失或格式错误（标记格式不正确），则 WSL 将继续正常启动，而不应用配置设置。</p>
+<p>文件中添加 <code>[wsl2]</code> 标签，并在下方添加 <code>networkingMode=mirrored</code></p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">[wsl2]</span><br><span class="line">networkingMode=mirrored</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="Windows-与-WSL-文件交互">Windows 与 WSL 文件交互</h3>
+<p>在 wsl 中可直接访问宿主机，宿主机盘符为 <code>/mnt/</code></p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">cp -r /mnt/e/BaiduNetdiskDownload/ls16 /home/soap/</span><br></pre></td></tr></tbody></table></figure>
+<p><code>/mnt/e</code> 表示本地的 e 盘，Windows 的文件路径为 <code>/mnt/e/BaiduNetdiskDownload/ls16</code>，wsl 的目标路径为 <code>/home/soap/</code></p>
+]]></content>
+      <categories>
+        <category>WSL</category>
+      </categories>
+      <tags>
+        <tag>WSL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>chengquan</title>
+    <url>/2026/04/21/chengquan/</url>
+    <content><![CDATA[<p>cj_center_sell_order so force index (gmt_create) inner join cj_ecomm_365_alloted d ON <a href="http://d.id">d.id</a> = so.coupon_id and so.source = ‘SHOU_QUAN_BA’<br>
+收券吧订单暂时不录入橙数</p>
+]]></content>
+      <categories>
+        <category>chengquan</category>
+      </categories>
+      <tags>
+        <tag>chengquan</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hello World</title>
     <url>/2022/10/10/hello-world/</url>
     <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
@@ -437,6 +429,27 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
       </categories>
       <tags>
         <tag>helloworld</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
+    <url>/2022/10/10/chromeTranslate/</url>
+    <content><![CDATA[<p>google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下</p>
+<h3 id="修改host教程">修改 host 教程</h3>
+<h4 id="进入etc文件夹">进入 etc 文件夹</h4>
+<ul>
+<li>mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”</li>
+<li>windows: C:\Windows\System32\drivers\etc</li>
+</ul>
+<p>修改文件，添加以下内容：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="code"><pre><span class="line">203.208.40.66 translate.google.com</span><br><span class="line">142.250.4.90 translate.googleapis.com</span><br></pre></td></tr></tbody></table></figure>
+<p>保存修改后，chrome 即可正常使用</p>
+]]></content>
+      <categories>
+        <category>开发工具</category>
+      </categories>
+      <tags>
+        <tag>chrome</tag>
       </tags>
   </entry>
   <entry>
@@ -532,6 +545,45 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
       <tags>
         <tag>java</tag>
         <tag>cors</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>linux 常用命令</title>
+    <url>/2023/03/15/linuxCommonCommands/</url>
+    <content><![CDATA[<p>平常查询日志等工作都是通过 ELK 来完成，并且 ELK 用起来也比较方便，但是有时候存在单条日志信息过多导致 ELK 收集器忽略或者截断的情况，导致无法查看需要的全部日志来定位问题，所以会需要连到服务器上去查看日志，这时候就需要用到一些 linux 命令，在此记下方便以后直接复制使用</p>
+<h3 id="查看日志的命令">查看日志的命令</h3>
+<h4 id="tail">tail</h4>
+<p>服务器启动失败，只需要查看最近的失败日志；查看当前服务运行情况等，可以使用本命令</p>
+<p><code>-f</code> 实时读取最新内容，默认 10 行</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">tail -f task_info.log</span><br></pre></td></tr></tbody></table></figure>
+<p><code>-n</code> 指定要读取的行数，读取最后 n 行</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">tail -n 30 task_info.log</span><br></pre></td></tr></tbody></table></figure>
+<span id="more"></span>
+<h4 id="cat">cat</h4>
+<p>查看文件内容，服务器上大文件使用时要注意控制显示内容</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">cat task_info.log</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="grep">grep</h4>
+<p>根据一些关键词搜索要查看的内容，一般结合 cat 使用</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">cat task_info-20221216.5.log | grep '锁座'</span><br></pre></td></tr></tbody></table></figure>
+<blockquote>
+<p>一些额外的选项，方便查看日志</p>
+</blockquote>
+<ul>
+<li>-A n : 如果匹配成功，则将匹配行及其后 n 行一起打印出来<br></li>
+<li>-B n : 如果匹配成功，则将匹配行及其前 n 行一起打印出来<br></li>
+<li>-C n : 如果匹配成功，则将匹配行及其 (前后) n 行一起打印出来<br></li>
+<li>–color=auto ：可以将找到的关键词部分加上颜色的显示</li>
+</ul>
+<p><em><strong>e.g.</strong></em></p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">cat task_info-20221216.5.log | grep -n -A2 -B1 --color=auto '锁座'</span><br></pre></td></tr></tbody></table></figure>
+<h4 id="sz">sz</h4>
+<p>从服务器上下载文件</p>
+<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">sz apiclient_cert.p12</span><br></pre></td></tr></tbody></table></figure>]]></content>
+      <categories>
+        <category>linux</category>
+      </categories>
+      <tags>
+        <tag>linux</tag>
       </tags>
   </entry>
   <entry>
@@ -680,66 +732,18 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
       </tags>
   </entry>
   <entry>
-    <title>linux 常用命令</title>
-    <url>/2023/03/15/linuxCommonCommands/</url>
-    <content><![CDATA[<p>平常查询日志等工作都是通过 ELK 来完成，并且 ELK 用起来也比较方便，但是有时候存在单条日志信息过多导致 ELK 收集器忽略或者截断的情况，导致无法查看需要的全部日志来定位问题，所以会需要连到服务器上去查看日志，这时候就需要用到一些 linux 命令，在此记下方便以后直接复制使用</p>
-<h3 id="查看日志的命令">查看日志的命令</h3>
-<h4 id="tail">tail</h4>
-<p>服务器启动失败，只需要查看最近的失败日志；查看当前服务运行情况等，可以使用本命令</p>
-<p><code>-f</code> 实时读取最新内容，默认 10 行</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">tail -f task_info.log</span><br></pre></td></tr></tbody></table></figure>
-<p><code>-n</code> 指定要读取的行数，读取最后 n 行</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">tail -n 30 task_info.log</span><br></pre></td></tr></tbody></table></figure>
-<span id="more"></span>
-<h4 id="cat">cat</h4>
-<p>查看文件内容，服务器上大文件使用时要注意控制显示内容</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">cat task_info.log</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="grep">grep</h4>
-<p>根据一些关键词搜索要查看的内容，一般结合 cat 使用</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">cat task_info-20221216.5.log | grep '锁座'</span><br></pre></td></tr></tbody></table></figure>
-<blockquote>
-<p>一些额外的选项，方便查看日志</p>
-</blockquote>
-<ul>
-<li>-A n : 如果匹配成功，则将匹配行及其后 n 行一起打印出来<br></li>
-<li>-B n : 如果匹配成功，则将匹配行及其前 n 行一起打印出来<br></li>
-<li>-C n : 如果匹配成功，则将匹配行及其 (前后) n 行一起打印出来<br></li>
-<li>–color=auto ：可以将找到的关键词部分加上颜色的显示</li>
-</ul>
-<p><em><strong>e.g.</strong></em></p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">cat task_info-20221216.5.log | grep -n -A2 -B1 --color=auto '锁座'</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="sz">sz</h4>
-<p>从服务器上下载文件</p>
-<figure class="highlight shell"><table><tbody><tr><td class="code"><pre><span class="line">sz apiclient_cert.p12</span><br></pre></td></tr></tbody></table></figure>]]></content>
-      <categories>
-        <category>linux</category>
-      </categories>
-      <tags>
-        <tag>linux</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>记管理人员拓展活动思考</title>
-    <url>/2022/10/27/manage/</url>
-    <content><![CDATA[<p>2022 年 10 月 15 日参加了管理人员拓展活动，也是第一次参加拓展活动，认识了很多人，也同时有了一些感悟，本文仅做自身感悟记录。</p>
-<p>当日活动有一个七巧板比赛，是个多人分组协同合作的项目，赛后教练也是组织大家做了复盘，本次的笔记也主要是来源于此次复盘的一些发言和自身感悟。</p>
-<h3 id="一致性">一致性</h3>
-<p>如何理解这个标题？一致性指的就是身为管理高层，要有统一的思想，要有一致认可的行动方案。不能小明有小明的方案，小强有小强的方案，并且这两个方案还在同时执行，这只会导致下属行动混乱，没有固定的目标。</p>
-<span id="more"></span>
-<h3 id="项目实施前规划方案的重要性">项目实施前规划方案的重要性</h3>
-<p>每次做什么事前，你是会准备一个计划方案来执行，还是先执行起来，再慢慢修正呢？</p>
-<p>这次七巧板就遇到了这个问题，当教练公布完游戏规则后，游戏就已经开始了，每个组手上都有了一份属于他们自己的任务，游戏时间只有 30 分钟，这时你是选择暂停所有人的行动，花 3-5 分钟甚至更多的时间来收集任务并归纳输出一套解决方案，还是先让整个游戏运转起来，然后等遇到问题再解决问题呢？</p>
-<p>当时我们选择了先行动，再思考，最终在游戏进行了约 20 分钟后，才逐渐摸清了套路，并进行了调整，不过船头调转的太晚，没能拿到游戏的满分。但是假如我们先花些时间，收集并查看每个小组的任务，总结其中的共同点，那么可能只需要 20 分钟就能完成这场游戏。</p>
-<p>由此可见，实际行动前的准备何其重要，提前了解任务目标、游戏规则并制定方案，不正如我们实际工作中的了解客户需求，按照客户的规定提供项目实施计划吗？但是当我们跳过这些准备，直接开始实施，想必项目实施的结果如同游戏结果一般，杂乱无章，一团糟糕，最终引起客户的投诉。</p>
-<p>当然在我们的日常工作中，很少会出现这么紧迫的情况，更多的是先得到需求并与客户研讨，然后逐步执行最终落地。这就更需要我们眼光放长远，不要专注于眼前利益、急干蛮干；提前统筹规划，制定出详细的计划方案，让项目的运行始终符合我们的预期，最终完美落地。</p>
-<h3 id="动态修正">动态修正</h3>
-<p>什么是动态修正？没有什么计划一开始就是完美无缺的，做到万无一失。但是我们可以在计划进行中穿插早会、周会等多种形式，及时对当前进度进行总结复盘，发现其中的问题并进行修正，形成闭环。最不应该的是项目已出现许多问题，却依然视而不见，坚持既定计划，最终导致计划失败或者计划完成但是效果很差。不惧怕问题，视项目中出现的问题为自己改正的契机，正是暴露出的这些问题，才能逐步让自己的计划变得完善，也让自己有了应对经验。</p>
+    <title>openClaw 使用笔记</title>
+    <url>/2026/04/20/openClaw/</url>
+    <content><![CDATA[<p>如果使用的 LM Studio 暗转改的本地模型，可以执行命令</p>
+<p>openclaw onboard</p>
+<p>在其中填入 url 地址，apikey 如果未设置鉴权可以填入任意字符，例如 ak，默认模型自行选择即可</p>
+<p>如果想给 openclaw 一个地址让他查看内容，需要开启他的 exec 工具权限，在可视化界面中选择代理中的 tools，开启 exec 权限，同时自行查看其他 tools，根据需要自行开启</p>
 ]]></content>
       <categories>
-        <category>管理</category>
+        <category>openClaw</category>
       </categories>
       <tags>
-        <tag>管理</tag>
+        <tag>openClaw</tag>
       </tags>
   </entry>
   <entry>
@@ -834,85 +838,6 @@ SELECT 1 - 0.9  =&gt; 0.09999999999999998</p>
       <tags>
         <tag>java</tag>
         <tag>shiro</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>spring 监控平台从零单排【一】</title>
-    <url>/2023/03/21/springMonitor/</url>
-    <content><![CDATA[<p>公司之前已经有了简单的服务器监控工具，主要是针对 linux 服务器性能监控和 mysql、redis 数据库的监控，并没有做到对真实服务情况的监控，公司当前后端主要以 java 为主，所以缺少了 jvm 及接口性能的监控。这些可以通过 java 相关开源框架并结合 nginx 的日志来处理。</p>
-<p>spring 基本已经是 java 开发的主流框架，spring 也提供了 <strong>Actuator</strong> 开源框架来收集应用的相关指标，如健康检查，审计，指标收集，并且支持 <strong>Prometheus</strong> 整合。</p>
-<h3 id="Spring-Boot-Admin">Spring Boot Admin</h3>
-<p><strong>Actuator</strong> 提供各种端口来暴露收集的原始数据，并且支持自定义打点收集数据，但是这些并不能直观的展示到平台上，可以借助 <strong>Prometheus</strong> 传递到 <strong>grafana</strong> 上或自行接入，springboot 也提供了一个开发好的 ui 监控平台展示 <strong>Actuator</strong> 的数据，这就是 <strong>Spring Boot Admin</strong>。</p>
-<span id="more"></span>
-<p>下面简单介绍 <strong>Admin</strong> 的使用姿势</p>
-<h4 id="集成">集成</h4>
-<p><strong>Admin</strong> 需要一个单独的模块来运行监控平台，即 server；已有的业务模块都会当做收集端，即 client</p>
-<h5 id="server">server</h5>
-<ol>
-<li>
-<p>新建模块，直接在 ide 工具中 new 一个新模块即可，创建 <code>application.java</code> 文件和 <code>application.yml</code> 文件</p>
-</li>
-<li>
-<p>新模块 pom 文件中添加依赖</p>
- <figure class="highlight xml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--  支持admin-ui的关键配置  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>de.codecentric<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-admin-starter-server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
-<p><em>我也没搞懂为啥 admin 的组织不在 <code>springboot parent</code> 全家桶里，还需要单独控制版本号</em></p>
-<blockquote>
-<p>注意 <code>spring-boot-admin-starter-server</code> 的版本，和 <code>spring-boot-starter-parent</code> 保持一致，admin 支持的版本号可以到 maven 官方仓库或一些<a href="https://central.sonatype.com/artifact/de.codecentric/spring-boot-admin-starter-server/3.0.2/versions" title="收集Maven版本号的网站">第三方 maven 仓库</a>查看</p>
-</blockquote>
-</li>
-<li>
-<p>新模块 <code>application.java</code> 文件中添加注解 <code>@EnableAdminServer</code></p>
- <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableAutoConfiguration</span></span><br><span class="line"><span class="meta">@EnableAdminServer</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">App</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span>{</span><br><span class="line">        SpringApplication.run(App.class,args);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-</li>
-<li>
-<p>运行新模块查看效果</p>
-</li>
-</ol>
-<p><img src="/2023/03/21/springMonitor/1.png" alt=""></p>
-<h5 id="client">client</h5>
-<ol>
-<li>
-<p>修改需要监控的业务模块的 pom 文件</p>
- <figure class="highlight xml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--  支持admin-ui的关键配置  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>de.codecentric<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-admin-starter-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
-</li>
-<li>
-<p>修改 <code>application.yml</code> 文件，添加 server 的信息</p>
- <figure class="highlight yaml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">    <span class="comment">#注册当前服务到admin-ui-server服务中</span></span><br><span class="line">    <span class="attr">boot:</span></span><br><span class="line">        <span class="attr">admin:</span></span><br><span class="line">        <span class="attr">client:</span></span><br><span class="line">            <span class="attr">url:</span> <span class="string">http://localhost:8090</span></span><br><span class="line"><span class="attr">management:</span></span><br><span class="line">    <span class="attr">endpoints:</span></span><br><span class="line">        <span class="attr">web:</span></span><br><span class="line">        <span class="attr">exposure:</span></span><br><span class="line">            <span class="comment">#暴露所有的收集信息给server</span></span><br><span class="line">            <span class="attr">include:</span> <span class="string">"*"</span></span><br><span class="line">    <span class="attr">endpoint:</span></span><br><span class="line">        <span class="attr">health:</span></span><br><span class="line">            <span class="comment">#显示详细健康信息，例如数据库mysql和redis</span></span><br><span class="line">            <span class="attr">show-details:</span> <span class="string">always</span></span><br></pre></td></tr></tbody></table></figure>
-<blockquote>
-<p>尤其注意 <code>spring.boot.admin.client.url</code> 的配置，如果 <code>server</code> 配置了 <code>server.servlet.context-path</code>，要注意 url 的地址后也要做相应的拼接</p>
-</blockquote>
-</li>
-<li>
-<p>启动业务模块，会自动请求 <code>server</code> 进行注册，<code>server</code> 不需要重启，并且会自动轮询业务模块暴露的收集接口抓取信息</p>
-</li>
-</ol>
-<p><img src="/2023/03/21/springMonitor/2.png" alt=""></p>
-<p>至此 <code>Admin</code> 就已经可以初步使用了</p>
-<div class="note "><p>可供参考的<a href="https://codecentric.github.io/spring-boot-admin/2.5.1/#getting-started" title="官方手册">官方手册</a></p>
-</div>
-<h3 id="后记">后记</h3>
-<p>接入过程中遇到了两个坑，分别记录下</p>
-<h4 id="client注册到server报错">client 注册到 server 报错</h4>
-<p>报错信息如下</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">com.fasterxml.jackson.databind.exc.InvalidDefinitionException: Cannot construct instance of `de.codecentric.boot.admin.server.domain.values.Registration` (no Creators, like <span class="keyword">default</span> constructor, exist): cannot deserialize from Object <span class="title function_">value</span> <span class="params">(no delegate- or property-based Creator)</span></span><br></pre></td></tr></tbody></table></figure>
-<p>原因是 <code>application.java</code> 启动类中没有正确添加注解，如果使用了 <code>@SpringBootApplication</code>，会因为 <code>@ComponentScan</code> 的特性以当前类所在包来查找 bean，导致不能正确注册 <code>Admin</code> 相关的组件</p>
-<div class="note warning"><p>直接 baidu 的解决方法对代码侵入性过高，需要重写 spring 容器中注册的序列化方式类，最后查看 <code>Admin</code> 官网发现了华点</p>
-</div>
-<h4 id="在client中获取容器当前所有注册路径报错">在 client 中获取容器当前所有注册路径报错</h4>
-<p>当使用如下代码时，会提示有重复类型的组件在容器中</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">RequestMappingHandlerMapping</span> <span class="variable">mapping</span> <span class="operator">=</span> applicationContext.getBean(RequestMappingHandlerMapping.class);</span><br></pre></td></tr></tbody></table></figure>
-<p>报错信息为</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">Method xssFilterRegistration in com.decent.WebApplication required a single bean, but <span class="number">2</span> were found:</span><br><span class="line">	- requestMappingHandlerMapping: defined by method <span class="string">'requestMappingHandlerMapping'</span> in <span class="keyword">class</span> <span class="title class_">path</span> resource [org/springframework/web/servlet/config/annotation/DelegatingWebMvcConfiguration.class]</span><br><span class="line">	- controllerEndpointHandlerMapping: defined by method <span class="string">'controllerEndpointHandlerMapping'</span> in <span class="keyword">class</span> <span class="title class_">path</span> resource [org/springframework/boot/actuate/autoconfigure/endpoint/web/servlet/WebMvcEndpointManagementContextConfiguration.class]</span><br></pre></td></tr></tbody></table></figure>
-<p><code>Admin</code> 也会注册一个 <code>RequestMappingHandlerMapping</code> 的子类 <code>ControllerEndpointHandlerMapping</code> 到容器中，需要使用根据 bean 名称来获取的 bean 的形式</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">RequestMappingHandlerMapping</span> <span class="variable">mapping</span> <span class="operator">=</span> applicationContext.getBean(<span class="string">"requestMappingHandlerMapping"</span>, RequestMappingHandlerMapping.class);</span><br></pre></td></tr></tbody></table></figure>]]></content>
-      <categories>
-        <category>monitor</category>
-      </categories>
-      <tags>
-        <tag>java</tag>
-        <tag>spring</tag>
-        <tag>monitor</tag>
-        <tag>Admin</tag>
       </tags>
   </entry>
   <entry>
@@ -1065,6 +990,109 @@ SpotBugs 使用步骤
       </categories>
       <tags>
         <tag>spotbugs</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记管理人员拓展活动思考</title>
+    <url>/2022/10/27/manage/</url>
+    <content><![CDATA[<p>2022 年 10 月 15 日参加了管理人员拓展活动，也是第一次参加拓展活动，认识了很多人，也同时有了一些感悟，本文仅做自身感悟记录。</p>
+<p>当日活动有一个七巧板比赛，是个多人分组协同合作的项目，赛后教练也是组织大家做了复盘，本次的笔记也主要是来源于此次复盘的一些发言和自身感悟。</p>
+<h3 id="一致性">一致性</h3>
+<p>如何理解这个标题？一致性指的就是身为管理高层，要有统一的思想，要有一致认可的行动方案。不能小明有小明的方案，小强有小强的方案，并且这两个方案还在同时执行，这只会导致下属行动混乱，没有固定的目标。</p>
+<span id="more"></span>
+<h3 id="项目实施前规划方案的重要性">项目实施前规划方案的重要性</h3>
+<p>每次做什么事前，你是会准备一个计划方案来执行，还是先执行起来，再慢慢修正呢？</p>
+<p>这次七巧板就遇到了这个问题，当教练公布完游戏规则后，游戏就已经开始了，每个组手上都有了一份属于他们自己的任务，游戏时间只有 30 分钟，这时你是选择暂停所有人的行动，花 3-5 分钟甚至更多的时间来收集任务并归纳输出一套解决方案，还是先让整个游戏运转起来，然后等遇到问题再解决问题呢？</p>
+<p>当时我们选择了先行动，再思考，最终在游戏进行了约 20 分钟后，才逐渐摸清了套路，并进行了调整，不过船头调转的太晚，没能拿到游戏的满分。但是假如我们先花些时间，收集并查看每个小组的任务，总结其中的共同点，那么可能只需要 20 分钟就能完成这场游戏。</p>
+<p>由此可见，实际行动前的准备何其重要，提前了解任务目标、游戏规则并制定方案，不正如我们实际工作中的了解客户需求，按照客户的规定提供项目实施计划吗？但是当我们跳过这些准备，直接开始实施，想必项目实施的结果如同游戏结果一般，杂乱无章，一团糟糕，最终引起客户的投诉。</p>
+<p>当然在我们的日常工作中，很少会出现这么紧迫的情况，更多的是先得到需求并与客户研讨，然后逐步执行最终落地。这就更需要我们眼光放长远，不要专注于眼前利益、急干蛮干；提前统筹规划，制定出详细的计划方案，让项目的运行始终符合我们的预期，最终完美落地。</p>
+<h3 id="动态修正">动态修正</h3>
+<p>什么是动态修正？没有什么计划一开始就是完美无缺的，做到万无一失。但是我们可以在计划进行中穿插早会、周会等多种形式，及时对当前进度进行总结复盘，发现其中的问题并进行修正，形成闭环。最不应该的是项目已出现许多问题，却依然视而不见，坚持既定计划，最终导致计划失败或者计划完成但是效果很差。不惧怕问题，视项目中出现的问题为自己改正的契机，正是暴露出的这些问题，才能逐步让自己的计划变得完善，也让自己有了应对经验。</p>
+]]></content>
+      <categories>
+        <category>管理</category>
+      </categories>
+      <tags>
+        <tag>管理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spring 监控平台从零单排【一】</title>
+    <url>/2023/03/21/springMonitor/</url>
+    <content><![CDATA[<p>公司之前已经有了简单的服务器监控工具，主要是针对 linux 服务器性能监控和 mysql、redis 数据库的监控，并没有做到对真实服务情况的监控，公司当前后端主要以 java 为主，所以缺少了 jvm 及接口性能的监控。这些可以通过 java 相关开源框架并结合 nginx 的日志来处理。</p>
+<p>spring 基本已经是 java 开发的主流框架，spring 也提供了 <strong>Actuator</strong> 开源框架来收集应用的相关指标，如健康检查，审计，指标收集，并且支持 <strong>Prometheus</strong> 整合。</p>
+<h3 id="Spring-Boot-Admin">Spring Boot Admin</h3>
+<p><strong>Actuator</strong> 提供各种端口来暴露收集的原始数据，并且支持自定义打点收集数据，但是这些并不能直观的展示到平台上，可以借助 <strong>Prometheus</strong> 传递到 <strong>grafana</strong> 上或自行接入，springboot 也提供了一个开发好的 ui 监控平台展示 <strong>Actuator</strong> 的数据，这就是 <strong>Spring Boot Admin</strong>。</p>
+<span id="more"></span>
+<p>下面简单介绍 <strong>Admin</strong> 的使用姿势</p>
+<h4 id="集成">集成</h4>
+<p><strong>Admin</strong> 需要一个单独的模块来运行监控平台，即 server；已有的业务模块都会当做收集端，即 client</p>
+<h5 id="server">server</h5>
+<ol>
+<li>
+<p>新建模块，直接在 ide 工具中 new 一个新模块即可，创建 <code>application.java</code> 文件和 <code>application.yml</code> 文件</p>
+</li>
+<li>
+<p>新模块 pom 文件中添加依赖</p>
+ <figure class="highlight xml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--  支持admin-ui的关键配置  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>de.codecentric<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-admin-starter-server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
+<p><em>我也没搞懂为啥 admin 的组织不在 <code>springboot parent</code> 全家桶里，还需要单独控制版本号</em></p>
+<blockquote>
+<p>注意 <code>spring-boot-admin-starter-server</code> 的版本，和 <code>spring-boot-starter-parent</code> 保持一致，admin 支持的版本号可以到 maven 官方仓库或一些<a href="https://central.sonatype.com/artifact/de.codecentric/spring-boot-admin-starter-server/3.0.2/versions" title="收集Maven版本号的网站">第三方 maven 仓库</a>查看</p>
+</blockquote>
+</li>
+<li>
+<p>新模块 <code>application.java</code> 文件中添加注解 <code>@EnableAdminServer</code></p>
+ <figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableAutoConfiguration</span></span><br><span class="line"><span class="meta">@EnableAdminServer</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">App</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span>{</span><br><span class="line">        SpringApplication.run(App.class,args);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li>
+<p>运行新模块查看效果</p>
+</li>
+</ol>
+<p><img src="/2023/03/21/springMonitor/1.png" alt=""></p>
+<h5 id="client">client</h5>
+<ol>
+<li>
+<p>修改需要监控的业务模块的 pom 文件</p>
+ <figure class="highlight xml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--  支持admin-ui的关键配置  --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>de.codecentric<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-admin-starter-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li>
+<p>修改 <code>application.yml</code> 文件，添加 server 的信息</p>
+ <figure class="highlight yaml"><table><tbody><tr><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">    <span class="comment">#注册当前服务到admin-ui-server服务中</span></span><br><span class="line">    <span class="attr">boot:</span></span><br><span class="line">        <span class="attr">admin:</span></span><br><span class="line">        <span class="attr">client:</span></span><br><span class="line">            <span class="attr">url:</span> <span class="string">http://localhost:8090</span></span><br><span class="line"><span class="attr">management:</span></span><br><span class="line">    <span class="attr">endpoints:</span></span><br><span class="line">        <span class="attr">web:</span></span><br><span class="line">        <span class="attr">exposure:</span></span><br><span class="line">            <span class="comment">#暴露所有的收集信息给server</span></span><br><span class="line">            <span class="attr">include:</span> <span class="string">"*"</span></span><br><span class="line">    <span class="attr">endpoint:</span></span><br><span class="line">        <span class="attr">health:</span></span><br><span class="line">            <span class="comment">#显示详细健康信息，例如数据库mysql和redis</span></span><br><span class="line">            <span class="attr">show-details:</span> <span class="string">always</span></span><br></pre></td></tr></tbody></table></figure>
+<blockquote>
+<p>尤其注意 <code>spring.boot.admin.client.url</code> 的配置，如果 <code>server</code> 配置了 <code>server.servlet.context-path</code>，要注意 url 的地址后也要做相应的拼接</p>
+</blockquote>
+</li>
+<li>
+<p>启动业务模块，会自动请求 <code>server</code> 进行注册，<code>server</code> 不需要重启，并且会自动轮询业务模块暴露的收集接口抓取信息</p>
+</li>
+</ol>
+<p><img src="/2023/03/21/springMonitor/2.png" alt=""></p>
+<p>至此 <code>Admin</code> 就已经可以初步使用了</p>
+<div class="note "><p>可供参考的<a href="https://codecentric.github.io/spring-boot-admin/2.5.1/#getting-started" title="官方手册">官方手册</a></p>
+</div>
+<h3 id="后记">后记</h3>
+<p>接入过程中遇到了两个坑，分别记录下</p>
+<h4 id="client注册到server报错">client 注册到 server 报错</h4>
+<p>报错信息如下</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">com.fasterxml.jackson.databind.exc.InvalidDefinitionException: Cannot construct instance of `de.codecentric.boot.admin.server.domain.values.Registration` (no Creators, like <span class="keyword">default</span> constructor, exist): cannot deserialize from Object <span class="title function_">value</span> <span class="params">(no delegate- or property-based Creator)</span></span><br></pre></td></tr></tbody></table></figure>
+<p>原因是 <code>application.java</code> 启动类中没有正确添加注解，如果使用了 <code>@SpringBootApplication</code>，会因为 <code>@ComponentScan</code> 的特性以当前类所在包来查找 bean，导致不能正确注册 <code>Admin</code> 相关的组件</p>
+<div class="note warning"><p>直接 baidu 的解决方法对代码侵入性过高，需要重写 spring 容器中注册的序列化方式类，最后查看 <code>Admin</code> 官网发现了华点</p>
+</div>
+<h4 id="在client中获取容器当前所有注册路径报错">在 client 中获取容器当前所有注册路径报错</h4>
+<p>当使用如下代码时，会提示有重复类型的组件在容器中</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">RequestMappingHandlerMapping</span> <span class="variable">mapping</span> <span class="operator">=</span> applicationContext.getBean(RequestMappingHandlerMapping.class);</span><br></pre></td></tr></tbody></table></figure>
+<p>报错信息为</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">Method xssFilterRegistration in com.decent.WebApplication required a single bean, but <span class="number">2</span> were found:</span><br><span class="line">	- requestMappingHandlerMapping: defined by method <span class="string">'requestMappingHandlerMapping'</span> in <span class="keyword">class</span> <span class="title class_">path</span> resource [org/springframework/web/servlet/config/annotation/DelegatingWebMvcConfiguration.class]</span><br><span class="line">	- controllerEndpointHandlerMapping: defined by method <span class="string">'controllerEndpointHandlerMapping'</span> in <span class="keyword">class</span> <span class="title class_">path</span> resource [org/springframework/boot/actuate/autoconfigure/endpoint/web/servlet/WebMvcEndpointManagementContextConfiguration.class]</span><br></pre></td></tr></tbody></table></figure>
+<p><code>Admin</code> 也会注册一个 <code>RequestMappingHandlerMapping</code> 的子类 <code>ControllerEndpointHandlerMapping</code> 到容器中，需要使用根据 bean 名称来获取的 bean 的形式</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">RequestMappingHandlerMapping</span> <span class="variable">mapping</span> <span class="operator">=</span> applicationContext.getBean(<span class="string">"requestMappingHandlerMapping"</span>, RequestMappingHandlerMapping.class);</span><br></pre></td></tr></tbody></table></figure>]]></content>
+      <categories>
+        <category>monitor</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>spring</tag>
+        <tag>monitor</tag>
+        <tag>Admin</tag>
       </tags>
   </entry>
   <entry>
