@@ -1,0 +1,124 @@
+{
+  "files": [
+    {
+      "path": "fontawesome/LICENSE.txt",
+      "version": "6.2.0",
+      "url": "https://unpkg.com/@fortawesome/fontawesome-free@6.2.0/LICENSE.txt",
+      "sha256": "de784a808496d49f5f80dd9d1d6e9a51cff712cfbc339e7c25155631ae3cdb5d"
+    },
+    {
+      "path": "fontawesome/css/all.min.css",
+      "version": "6.2.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css",
+      "sha256": "01b035efb5dfa529c512f82962ed633328222da6f33c224244806d4798c67349"
+    },
+    {
+      "path": "fontawesome/webfonts/fa-brands-400.woff2",
+      "version": "6.2.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/webfonts/fa-brands-400.woff2",
+      "sha256": "3fe890d088ecf0cc9bc1b9069201e52972dbad6237865524090e15982d0de718"
+    },
+    {
+      "path": "fontawesome/webfonts/fa-brands-400.ttf",
+      "version": "6.2.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/webfonts/fa-brands-400.ttf",
+      "sha256": "c7ae37d35b8edd322f5c85b8f54f8cb76f5e8446581ae20da5e7e3a9bdee900b"
+    },
+    {
+      "path": "fontawesome/webfonts/fa-regular-400.woff2",
+      "version": "6.2.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/webfonts/fa-regular-400.woff2",
+      "sha256": "fe69d94841462d397faeff253ee09a6dc7941be931f942a55e6b9def8f3b048d"
+    },
+    {
+      "path": "fontawesome/webfonts/fa-regular-400.ttf",
+      "version": "6.2.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/webfonts/fa-regular-400.ttf",
+      "sha256": "fdc1f7533021117d87697715eac26ba3d4eef9225c7eedbbfb1b0d0cfff0ab8c"
+    },
+    {
+      "path": "fontawesome/webfonts/fa-solid-900.woff2",
+      "version": "6.2.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/webfonts/fa-solid-900.woff2",
+      "sha256": "d27bc752105c079f8a516e9142406a9fc12cbb409f9bf8681f2ddfe0360b52a6"
+    },
+    {
+      "path": "fontawesome/webfonts/fa-solid-900.ttf",
+      "version": "6.2.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/webfonts/fa-solid-900.ttf",
+      "sha256": "6d53c706f3b7178ccfc82c94d3fc7968828dacd351717f27c757a65cfd853147"
+    },
+    {
+      "path": "fontawesome/webfonts/fa-v4compatibility.woff2",
+      "version": "6.2.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/webfonts/fa-v4compatibility.woff2",
+      "sha256": "7d1c2ce5f34e1b3567536e8d3039c6c34f8257742982c5ff5a5b47a82e5a67d7"
+    },
+    {
+      "path": "fontawesome/webfonts/fa-v4compatibility.ttf",
+      "version": "6.2.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/webfonts/fa-v4compatibility.ttf",
+      "sha256": "4d73f280597014ae892270cee177513ad329955de91ad9d2a45a1f5760a32ffa"
+    },
+    {
+      "path": "animejs/LICENSE.txt",
+      "version": "3.2.1",
+      "url": "https://unpkg.com/animejs@3.2.1/LICENSE.md",
+      "sha256": "f825f5c75974fda9ae806de442770f3d7686cf86245e78fa0c3c39913184af95"
+    },
+    {
+      "path": "animejs/anime.min.js",
+      "version": "3.2.1",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js",
+      "sha256": "5cbda29ea5096ac9404c59c77493a2f467d0eb4a27f16c750b61fc0d888dd716"
+    },
+    {
+      "path": "creativecommons/LICENSE.txt",
+      "version": "2020.11.3",
+      "url": "https://unpkg.com/@creativecommons/vocabulary@2020.11.3/LICENSE",
+      "sha256": "f12992342e52b74dac0191e55f3f34b1f0a8f9f031d148af78bec2ed9fba2e95"
+    },
+    {
+      "path": "creativecommons/by_nc_sa.svg",
+      "version": "2020.11.3",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg",
+      "sha256": "8cefc9b5be27f43d9d1ac5d6123b41bf29de974a33eb12f3cb8024bdfa9f7125"
+    },
+    {
+      "path": "pjax/LICENSE.txt",
+      "version": "0.5.0",
+      "url": "https://unpkg.com/@next-theme/pjax@0.5.0/LICENSE",
+      "sha256": "a3fb61c22ecb516ac5be5acb37952d646bd8fe0472e15e91972d429ad5ce5c74"
+    },
+    {
+      "path": "pjax/pjax.min.js",
+      "version": "0.5.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.5.0/pjax.min.js",
+      "sha256": "dcd9282c3ae61cb4d88fb72c1c8652af43070054d7b61ed46bf0c3b783115008"
+    },
+    {
+      "path": "pangu/LICENSE.txt",
+      "version": "4.0.7",
+      "url": "https://unpkg.com/pangu@4.0.7/LICENSE",
+      "sha256": "eeccd5776471b1e421a3b647c616722db5439e38a62f07bf378d8de476979c9d"
+    },
+    {
+      "path": "pangu/pangu.min.js",
+      "version": "4.0.7",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/pangu/4.0.7/pangu.min.js",
+      "sha256": "8feca3e7a71d118d82c2456d1b2cf5f1f3726c51a930627c2711b7192c8edbe2"
+    },
+    {
+      "path": "searchdb/LICENSE.txt",
+      "version": "1.4.0",
+      "url": "https://unpkg.com/hexo-generator-searchdb@1.4.0/LICENSE",
+      "sha256": "dc7a2d72b7eb7db1e906702954615bbbf34fd297e2431eec3829f47f4e749722"
+    },
+    {
+      "path": "searchdb/search.js",
+      "version": "1.4.0",
+      "url": "https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.0/search.js",
+      "sha256": "bd764c60b12ab113805e4130f7718622f681d9a6fe416eb0dfed5a843f675d70"
+    }
+  ]
+}

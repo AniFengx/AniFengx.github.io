@@ -1,0 +1,1175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>ClickHouse 笔记</title>
+    <url>/2024/08/30/ClickHouseOne/</url>
+    <content><![CDATA[项目最近需要用到 ClickHouse 来做大数据的实时分析，但是 ClickHouse 相关文档过少，只能通过做笔记的形式手动记录
+支持的数据类型
+参考地址
+数值类型:
+
+Int8、Int16、Int32、Int64、Int128、Int256：有符号整数型，分别使用 1、2、4、8 个字节存储。
+UInt8、UInt16、UInt32、UInt64、UInt128、UInt256：无符号整数型，分别使用 1、2、4、8 个字节存储。
+Float32、Float64：浮点数型，分别使用 4、8 个字节存储。
+
+对浮点数进行计算可能引起四舍五入的误差。
+SELECT 1 - 0.9  =&gt; 0.09999999999999998
+
+
+Decimal (P, S)：定点数型，支持指定精度和小数位数。
+
+时间日期类型：
+
+Date：日期类型，使用 4 个字节存储，表示自 1970 年 1 月 1 日以来的天数。
+DateTime：日期时间类型，使用 8 个字节存储，精确到纳秒级。
+
+字符串类型：
+
+FixedString (N)：定长字符串类型，占用 N 个字节存储。
+String：变长字符串类型，使用相对较少的内存来存储字符串。
+
+
+数据库引擎及基本语法
+MergeTree
+主键由关键字 PRIMARY KEY 指定，如果没有使用 PRIMARY KEY 显式指定的主键，ClickHouse 会使用排序键 ORDER BY 指定的列作为主键。
+需要注意的是，如果同时指定了主键与排序键，那么排序键必须包含主键的所有列，比如主键为（a,b），排序键就必须为 (a,b,**)。
+和关系型数据库的主键具备唯一性不同，ClickHouse 可以存在相同主键的数据行。这也是 ClickHouse 为了性能而做出的考量。
+PARTITION BY 分区键，可选项。大多数情况下，不需要使用分区键。即使需要使用，也不需要使用比月更细粒度的分区键。分区不会加快查询（这与 ORDER BY 表达式不同）。永远也别使用过细粒度的分区键。不要使用客户端指定分区标识符或分区字段名称来对数据进行分区（而是将分区字段标识或名称作为 ORDER BY 表达式的第一列来指定分区）。
+要按月分区，可以使用表达式 toYYYYMM (date_column) ，这里的 date_column 是一个 Date 类型的列。分区名的格式会是 “YYYYMM” 。
+
+ReplacingMergeTree
+前面提到 MergeTree 的主键没有唯一性约束。所以即使多行数据的主键相同，它们还是能够正常写入。
+ReplacingMergeTree 建表语句与 MergeTree 相同，只需要替换掉表引擎就好，不过需要指定一个列作为版本列。
+当排序键相同的数据行插入时，它会删除重复行，保留版本列值最大的一行。如果没有指定版本列，则会保留最后插入的一行。
+通常来说，ReplacingMergeTree 删除重复行，是因为两种情况。
+
+一起批量插入的数据，属于同一个数据片段的数据，所以会在插入时候按排序键去重。
+分批插入的数据，属于不同的数据片段，需要依托后台数据片段合并的时候才进行。
+
+所以即使你用了 ReplacingMergeTree 表引擎，在查询表数据的时候，仍然可能会查询到重复数据，不过只要使用 final 关键字去重即可。或者你也可以使用如下命令强制合并分区，这样数据片段就会合并。
+四层数仓建模
+在数仓建模中，有一个比较通用的建模方法论，就是将数据分为 4 层：包括：ODS（Operational Data Store）、DWD（Data Warehouse Detail）、DWS（Data Warehouse Summary）和 ADS（Application Data Store）
+ODS
+直接存放从各个渠道收集的原始数据，比如业务系统收集的、前后端埋点收集的等等。有时候会考虑做一定程度的数据清洗，比如处理异常字段、规范字段命名、统一时间字段等
+DWD
+以业务过程作为建模驱动，基于每个具体的业务过程特点，构建最细粒度的明细事实表，比如浏览明细表、交易明细表。DWD 也会清洗 ODS 层的数据（去除空值、脏数据、异常数据）、降维处理、脱敏等，并基于维度建模，将某些字段做适当冗余，做宽表化
+DWS
+在 DWD 层的基础上进行数据聚合和汇总，比如用户交易汇总表、用户指标汇总宽表。一般会依据特定业务需求或报表要求进行数据汇总和预计算，提高数据查询效率和性能
+ADS
+在 DWS 之上，面向特定应用场景设计的数据层，比如我们 CDP 场景里面，用户标签、人群画像，是通过计算后直接给到前端应用系统使用的表
+搭建集群
+ClickHouse 集群的配置很简单，只需要修改配置文件 /etc/clickhouse-server/config.xml，在配置文件的 标签下，增加集群的节点配置即可
+remote_server
+配置集群时，注意不要配置 &lt;host&gt; 和 &lt;port&gt; 为转发端口。ck 使用 zookeeper 作为分布式查询的同步节点，其中存储了分布式查询任务，可使用 zookeeper 客户端通过路径 /clickhouse/task_queue/ddl/ 查看执行情况，查看其中任意任务内容即可发现，ck 是根据配置中的 host 和 port 来明确需要执行分布式任务的服务
+
+stackoverflow  也有人反馈此问题
+常用命令
+查看进程及杀死进程
+当出现 ClickHouse 查询过慢，所在服务器 cpu 和内存飙升的情况，说明可能出现慢 sql，此时可通过以下命令查询正在执行的 sql 信息
+selectquery_id,read_rows,total_rows_approx,memory_usage,initial_user,initial_address,elapsed,queryfrom system.processes;
+字段含义
+
+query_id 查询 id
+read_rows 从表中读取的行数
+ total_rows_approx 应读取的行总数的近似值
+ memory_usage 请求使用的内存量
+ initial_user 进行查询的用户
+ initial_address 请求的 IP 地址
+ elapsed 从执行开始以来的秒数
+ query 查询语句
+
+通过 sql 语句的查询行数和查询已经执行的时间来判断 sql 是不是在慢查询，或者是同事在查询的时候没有日期限定而直接查全表。一般的话如果 grafana 监控的 CK 节点出现 cpu 飙升的情况，就需要我们去判断 CK 中是否有垃圾 sql 在执行，根据 query_id 杀死该进程
+kill query where query_id = '70442d9b-7fc5-4a0e-81be-9543431a4882' ;
+清表
+如果发现数据集错误，可以执行下述命令清除表中数据，但是执行较慢，谨慎执行
+TRUNCATE TABLE cdp.cdp_user_local;
+分批导入数据
+可用官方客户端工具 clickhouse-client 导入数据，参考命令
+clickhouse-client --password 123456 --port 9000 --query="INSERT INTO cdp.cdp_user_all FORMAT CSV" --input_format_allow_errors_ratio=0.1 --input_format_allow_errors_num=0 &lt; cdp_user_data.csv
+在 ClickHouse 里，其实不建议表分区数量太多。默认情况下一次插入数据的分区超过 100 个，就会报下面的错误。
+Received exception from server (version 24.3.2):Code: 252. DB::Exception: Received from localhost:9002. DB::Exception: Too many partitions for single INSERT block (more than 100). The limit is controlled by 'max_partitions_per_insert_block' setting. Large number of partitions is a common misconception. It will lead to severe negative performance impact, including slow server startup, slow INSERT queries and slow SELECT queries. Recommended total number of partitions for a table is under 1000..10000. Please note, that partitioning is not intended to speed up SELECT queries (ORDER BY key is sufficient to make range queries fast). Partitions are intended for data manipulation (DROP PARTITION, etc).. (TOO_MANY_PARTS)(query: INSERT INTO cdp.cdp_user_all FORMAT CSV)
+可以通过修改 /etc/clickhouse-server/users.xml 配置文件的 max_partitions_per_insert_block 的值来调大每次 INSERT 可以承载的分区数量。
+&lt;profiles&gt;    &lt;!-- Default settings. --&gt;    &lt;default&gt;        &lt;max_partitions_per_insert_block&gt;10000&lt;/max_partitions_per_insert_block&gt;    &lt;/default&gt;&lt;/profiles&gt;
+还有另一种方式，拆解要插入的 csv 文件，可在 linux 下执行如下命令
+split -l 1000 cdp_user_data.csv output_chunk_
+这里，-l 1000 参数指定每个生成的文件应该包含 1000 行，cdp_user_data.csv 是要拆分的原始文件，output_chunk_ 是每个小文件的前缀。执行上述命令后，你会得到类似 output_chunk_aa, output_chunk_ab, output_chunk_ac 等以 output_chunk_ 开头的文件，每个文件包含大约 1000 行（最后一个文件可能少于 1000 行，如果原始文件的行数不是 1000 的倍数）。
+随后执行如下命令即可批量将拆分后的文件导入到 ClickHouse
+cat *.csv | clickhouse-client --password 123456 --port 9000 --query="INSERT INTO cdp.cdp_user_all FORMAT CSV" --input_format_allow_errors_ratio=0.1 --input_format_allow_errors_num=0
+踩坑问题
+分区数量过多
+数据测试时，错误使用了 PARTITION BY，选择了一个区分度过高，类似于主键的字段作为分区键，导致每插入一条数据就会创建一个分区，当插入 20w 数据时，就达到分区上限（搭建了两个节点组建集群，单个节点默认上限 10w 个分区），建表语句如下
+CREATE TABLE cdp_user_local on cluster default(  unique_user_id UInt64 COMMENT '用户全局唯一ID，ONE-ID',  name String COMMENT '用户姓名',  nickname String COMMENT '用户昵称',  gender Int8 COMMENT '性别：1-男；2-女；3-未知',  birthday String COMMENT '用户生日：yyyyMMdd',  user_level Int8 COMMENT '用户等级：1-5',  register_date DateTime64 COMMENT '注册日期',  last_login_time DateTime64 COMMENT '最后一次登录时间') ENGINE = MergeTree()    PARTITION BY register_date    PRIMARY KEY unique_user_id    ORDER BY unique_user_id;
+register_date 时间格式为年月日时分秒，区分度过高，错误如下。此时应参考官方建议使用函数 toYYYYMM(register_date)
+Code: 252. DB::Exception: Too many parts (100025) in all partitions in total. This indicates wrong choice of partition key. The threshold can be modified with 'max_parts_in_total' setting in &lt;merge_tree&gt; element in config.xml or with per-table setting. (TOO_MANY_PARTS) (version 21.11.11.1 (official build))
+正常情况下不需要按照报错提示修改分区上限，大部分情况是因为错误的设置了细粒度分区键导致的，请自行检查建表 sql，如需要修改，可编辑 /etc/clickhouse-server/users.xml 文件，添加如下配置项。
+&lt;merge_tree&gt;    &lt;max_parts_in_total&gt;100000&lt;/max_parts_in_total&gt;&lt;/merge_tree&gt;
+datagrip 查询超时
+有时会执行一些时间较长的慢 sql，但是在 datagrip 软件下，默认 30s 会超时提示 Read timed out，datagrip 默认使用 jdbc 链接，可手动修改配置项
+
+亦可直接在链接上添加参数 jdbc:clickhouse://localhost:8123?socket_timeout=300000
+]]></content>
+      <categories>
+        <category>技术笔记</category>
+      </categories>
+      <tags>
+        <tag>ClickHouse</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo 使用指北</title>
+    <url>/2022/10/16/UseHexoOne/</url>
+    <content><![CDATA[第一次使用 Hexo 还是在 2017 年，那时候到处了解学习新兴技术，go 也是在那段时间听说并进行了简单学习；当时应该是在搜如何建一个个人博客，然后就搜到了 Hexo 的相关文章，因为其借用 GitPage 相关特性无需自建服务器，直接依托 github 就能建立个人博客，并且也能支持搜索引擎收录，这些亮点在当时的我看来还是很酷的（现在依然觉得很酷～），但是当时在研究完如何安装并成功放到 GitPage 之后，因为没有良好的书写文档的习惯，个人博客也就搁置了，不过当时还是很惊叹于 Hexo 运行后的博客页面，风格很吸引人。
+最近使用 github 时，看了看自己的仓库发现了这个被遗弃的博客仓库，正好最近意识到了文档的重要性，并且也在尝试书写一些，而且用的也是 markdown 格式，能够无缝衔接到 Hexo 上，就准备把这个仓库重新用起来，希望不算太晚吧。
+说起来，markdown 也是 2017 那年学习使用的，因为当时正值毕业季，需要写个人简历，可能大部分人都是用的智联吧，后来我同学推荐我用乔布简历，写完效果拔群～比智联不知道高到哪里去了，后来同学又推荐我使用 markdown，简单的编写规则加上自由的样式控制可以写出非常好看的简历，并且也足够小众足够酷（但是现在基本程序员已经都会用这个工具了），这才是程序员写个人简历的工具～从此之后我写文档基本都是用 markdown 来写
+
+
+Hexo
+Hexo 安装方式
+鉴于国情，很多人学习技术更多的是在 csdn 或者其他个人博客，通过别人学习后总结的文章来学习，确实这样学起来更快，并且很多官方网站都是英文的，而 csdn 或者个人博客相当于一个汉化的过程，但是 csdn 会存在一个问题就是文章中的内容会出现过时的情况，所以还是建议直接前往官网学习，并且 Hexo 官网是有简体中文的。
+安装 git
+直接去 git 官网下载 64 位的 exe 安装文件即可
+安装 node
+node 版本是个坑，很多 npm 包是对 node 版本有要求的，并且有的时候过新的 node 版本也会导致 npm 包失败，我尝试 Hexo 安装成功的 node 环境版本是 14.16.1
+安装 Hexo
+npm 全局安装 Hexo
+$ npm install -g hexo-cli
+Hexo 初始化
+$ hexo init$ npm install
+配置文件
+_config.yml 是 Hexo 的配置文件，可以在其中设置一些基本参数，例如博客名称、作者名称及一些插件的配置信息
+安装主题 NEXT
+Hexo 默认主题外观还是比较一般的，Hexo 支持很多扩展主题，我使用的是 NexT 主题，国内大部分网站也是推荐使用这个
+但是这就引出了一个坑，因国内大部分介绍 Hexo 的博客文章都停留在 2020 年或 2020 年以前了，假如没有去 Hexo 官方学习安装方式，而是直接按照国内博客来，那么你安装主题的命令一定是
+$ git clone https://github.com/theme-next/hexo-theme-next themes/next
+在安装完这个主题后，你会发现使用起来都很正常，但是几个第三方插件却会出现不好使的情况，并且也没有任何参考解决方案，例如当你要用 leancloud 来当浏览量插件时，页面会出现报错的情况。这实际上是因为 NexT 原作者出现了长期不在线的情况，导致其他成员无法管理已有仓库，所以重新创建了新的分支解释博客
+正确的安装主题命令
+$ git clone https://github.com/next-theme/hexo-theme-next themes/next
+
+命令后缀的 themes/next 不必须按照示例来，next 是指 clone 后的所在文件夹名，这个可以任意命名，只需要 clone 后，将根目录下的_config.yml 中 theme 参数配置为对应的文件夹名就可以了
+
+Hexo 新版本下，修改主题的配置文件有了新的方式，只需要在根目录下建立_config.xxx.yml，xxx 对应的是 themes 下使用主题所在的文件夹名
+Hexo 常用命令
+
+hexo clean 删除编译文件
+hexo g 编译文件
+hexo d 推送编译文件到远端。如果存储在 GitHub 上，需配置 Settings 中的 SSH keys。
+
+
+先执行命令 ssh-keygen -t rsa -C "youremail" 生成密钥，然后执行命令 cat ~/.ssh/id_rsa.pub 获取公钥，将公钥复制到 github 的 SSH keys 中
+
+
+hexo s 启动服务器
+
+Hexo 开启文章加密
+当部分文章想要改为私密模式时，可以使用以下方法
+
+安装插件，在项目根目录下执行 npm install --save hexo-blog-encrypt
+在 _config.yml 中添加 encrypt: enable: true 
+在需要私密的文章的开头添加 password: &lt;PASSWORD&gt;，password: 后必须有一个空格，否则插件可能无法识别
+需要执行 hexo clean 命令清理缓存后重新生成文件，才能生效
+
+常用 Markdown 语法
+Note 引用
+Note 引用包含 success / primary / warning / default / info / danger 类型
+{% note warning %} warning {% endnote %}
+
+]]></content>
+      <categories>
+        <category>工具使用</category>
+      </categories>
+      <tags>
+        <tag>Hexo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WSL 使用笔记</title>
+    <url>/2024/09/13/WSL/</url>
+    <content><![CDATA[记录在 windows 中使用 WSL 技术出现的一系列问题
+安装 WSL
+默认需要 window10 或 11 的系统，并且版本号有一定要求，可去 官方 检查
+开启 cpu 虚拟化技术
+使用 WSL 需要电脑 cpu 支持 Hyper-V 虚拟化技术，首先要在 BIOS 中开启对应选项，具体型号笔记本的选项不同，可参考  在 Windows 上启用虚拟化
+
+Windows 启用 linux 子系统
+在 Windows 桌面任务栏的搜索框输入启用或关闭 Windows 功能，启用截图中圈选的功能
+
+但是实测发现，Windows 中未开启 Hyper-V 和适用于 Linux 的 Windows 子系统，仅开启了虚拟机平台，WSL 一样可用
+WSL update
+经过上述两步，可在终端控制台中输入 wsl --install，自动安装所需工具，安装完成后输入 wsl -v 检查当前版本号和内核
+如果此时提示命令行选项无效，可输入 wsl --update，完成所需组件的更新
+输入 wsl -v 最终显示如下信息
+WSL 版本： 2.2.4.0内核版本： 5.15.153.1-2WSLg 版本： 1.0.61MSRDC 版本： 1.2.5326Direct3D 版本： 1.611.1-81528511DXCore 版本： 10.0.26091.1-240325-1447.ge-releaseWindows 版本： 10.0.22631.4037
+常用命令
+wsl -l -v
+查看当前已安装的 Linux 发行版及对应的 wsl 版本号
+wsl --shutdown
+关闭所有正在运行的 Linux 发行版，但是可能出现关不上的情况
+存储迁移
+WSL 默认安装的发型本存储在 C 盘，随着使用的增多，会占用较多空间，建议提早移出到别的盘符
+查看运行状态
+打开终端控制台，输入 wsl -l -v 查看 WSL 虚拟机的状态
+  NAME            STATE           VERSION* Ubuntu-20.04    Running         2
+关闭正在运行的虚拟机
+使用命令 wsl --shutdown，再次查看 WSL 虚拟机的状态，可发现已经关闭
+  NAME            STATE           VERSION* Ubuntu-20.04    Stopped         2
+导出备份
+首先在自己选择想要存放 wsl 的盘符（这里选择 D 盘）下创建文件夹（名称为 WSL）。注意命令中 export 后是自己 Ubuntu 的版本名称。
+wsl --export Ubuntu-20.04 D:\WSL\Ubuntu.tar
+注销原有版本
+wsl --unregister Ubuntu-20.04
+将备份文件恢复到自己新建的文件夹（这里为 WSL）下
+wsl --import Ubuntu-20.04 D:\WSL D:\WSL\Ubuntu.tar
+恢复默认用户
+导入成功后，打开虚拟机默认当前用户会变成 root，如果想还原到之前的用户，可执行下述命令，将用户名替换成默认进入虚拟机的用户名即可
+Ubuntu2004 config -default-user 用户名
+执行配置默认用户命令时，控制台可能会报错，如果百度后无法解决的情况下， 可以 root 身份先进入虚拟机，执行 sudo vim /etc/wsl.conf 创建或修改文件，在其中添加如下内容
+[user]default = root
+保存配置并退出，同样在关闭 wsl 之后重新进入，便会发现默认用户已经修改了。
+需要注意的是 wsl.conf 配置优先级要高于 Ubuntu2004.exe config --default-user，因此如果两个都配置了的话，会以 wsl.conf 中的配置优先。
+
+网络问题
+使用 wsl2 版本，在宿主机和 wsl 中使用 localhost 都可访问到部署的服务
+
+使用远程 IP 地址连接到应用程序时，它们将被视为来自局域网 (LAN) 的连接。 这意味着你需要确保你的应用程序可以接受 LAN 连接。
+例如，你可能需要将应用程序绑定到 0.0.0.0 而非 127.0.0.1。 以使用 Flask 的 Python 应用为例，可以通过以下命令执行此操作：app.run (host=‘0.0.0.0’)。 进行这些更改时请注意安全性，因为这将允许来自你的 LAN 的连接。
+
+从局域网 (LAN) 访问 WSL 2 分发版
+WSL 2 有一个带有其自己独一无二的 IP 地址的虚拟化以太网适配器。目前，若要启用此工作流，你需要执行与常规虚拟机相同的步骤。
+下面是使用 Netsh 接口 portproxy Windows 命令添加端口代理的示例，该代理侦听主机端口并将该端口代理连接到 WSL 2 VM 的 IP 地址。
+netsh interface portproxy add v4tov4 listenport=&lt;yourPortToForward&gt; listenaddress=0.0.0.0 connectport=&lt;yourPortToConnectToInWSL&gt; connectaddress=(wsl hostname -I)
+在此示例中，需要更新 &lt;yourPortToForward&gt; 到端口号，例如 listenport=4000。 listenaddress=0.0.0.0 表示将接受来自任何 IP 地址的传入请求。 侦听地址指定要侦听的 IPv4 地址，可以更改为以下值：IP 地址、计算机 NetBIOS 名称或计算机 DNS 名称。 如果未指定地址，则默认值为本地计算机。 需要将 &lt;yourPortToConnectToInWSL&gt; 值更新为希望 WSL 连接的端口号，例如 connectport=4000。 最后，connectaddress 值必须是通过 WSL 2 安装的 Linux 分发版的 IP 地址（WSL 2 VM 地址），可通过输入命令：wsl.exe hostname -I 找到。
+因此，此命令可能如下所示：
+netsh interface portproxy add v4tov4 listenport=4000 listenaddress=0.0.0.0 connectport=4000 connectaddress=192.168.101.100
+要获取 IP 地址，请使用：
+
+wsl hostname -I 标识通过 WSL 2 安装的 Linux 分发版 IP 地址（WSL 2 VM 地址）
+cat /etc/resolv.conf 表示从 WSL 2 看到的 WINDOWS 计算机的 IP 地址 (WSL 2 VM)
+
+在主机名命令中使用小写 “i” 将生成与使用大写 “I” 不同的结果。 wsl hostname -i 是本地计算机（127.0.1.1 是占位符诊断地址），而 wsl hostname -I 会返回其他计算机所看到的本地计算机的 IP 地址，应该用于识别通过 WSL 2 运行的 Linux 发行版的 connectaddress。
+
+netsh interface portproxy 常用命令
+Portproxy 服务器从服务器侦听的 IPv4 端口和地址列表中删除 IPv4 地址。
+netsh interface portproxy delete v4tov4 listenport=&lt;yourPortToForward&gt; listenaddress=0.0.0.0
+显示所有 portproxy 参数，包括 v4tov4、v4tov6、v6tov4 和 v6tov6 的端口 / 地址对。
+netsh interface portproxy show all
+镜像模式
+部分情况下，wsl 中的应用程序需要 wsl 虚拟机所在 ip 和宿主机保持一致，这时可启用 wsl 的镜像模式，参考
+开启方式为修改 .wslconfig 文件，使用 .wslconfig 为 WSL 上运行的所有已安装的发行版配置全局设置。
+
+默认情况下，.wslconfig 文件不存在。 它必须创建并存储在 %UserProfile% 目录中才能应用这些配置设置。
+用于在作为 WSL 2 版本运行的所有已安装的 Linux 发行版中全局配置设置。
+只能用于 WSL 2 运行的发行版。 作为 WSL 1 运行的发行版不受此配置的影响，因为它们不作为虚拟机运行。
+要访问 %UserProfile% 目录，请在 PowerShell 中使用 cd ~ 访问主目录（通常是用户配置文件 C:\Users\&lt;UserName&gt;），或者可以打开 Windows 文件资源管理器并在地址栏中输入 %UserProfile%。 该目录路径应类似于：C:\Users\&lt;UserName&gt;\.wslconfig。
+
+WSL 将检测这些文件是否存在，读取内容，并在每次启动 WSL 时自动应用配置设置。 如果文件缺失或格式错误（标记格式不正确），则 WSL 将继续正常启动，而不应用配置设置。
+文件中添加 [wsl2] 标签，并在下方添加 networkingMode=mirrored
+[wsl2]networkingMode=mirrored
+网络代理
+如果想让 wsl 也使用网络代理，有两种方式
+1. 代理软件 TUN 模式
+例如 clash 等工具，直接开启 TUN 模式，全局接管网络代理，这种情况不需要 wsl 调整任何配置即可
+2. 代理软件监听端口
+在 wsl 中配置代理地址
+export http_proxy=http://localhost:10808export https_proxy=http://localhost:10808
+如果开启镜像模式，直接使用 localhost 就能访问到本地的代理服务
+Windows 与 WSL 文件交互
+在 wsl 中可直接访问宿主机，宿主机盘符为 /mnt/
+cp -r /mnt/e/BaiduNetdiskDownload/ls16 /home/soap/
+/mnt/e 表示本地的 e 盘，Windows 的文件路径为 /mnt/e/BaiduNetdiskDownload/ls16，wsl 的目标路径为 /home/soap/
+]]></content>
+      <categories>
+        <category>工具使用</category>
+      </categories>
+      <tags>
+        <tag>WSL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>java 内存泄露事故分析</title>
+    <url>/2022/10/10/bugFix/</url>
+    <content><![CDATA[问题描述
+电影票长期存在 ticket 模块堆栈内存溢出导致系统崩溃的问题，初期一直认为是订单量过大导致比价功能调用次数太多引起的内存溢出问题。经过排查 dump 日志未能定位到具体问题，最终特权选择多开 ticket 模块的方式来避免单机崩溃导致服务不可用的情况，但是此方法治标不治本，运维需要经常重启崩溃的 ticket 模块。
+
+电影票 ticket 模块在 h5 用户下单时，会调用异步比价功能，此功能使用 @Async 注解实现，意味着每有一笔订单都会启用一个比价线程
+
+本问题历时一年才得以解决，这其中经历了四个问题分析阶段
+
+
+ticket 模块崩溃，根据 dump 日志发现内存中存在大量比价功能生成的对象，初步判断是短时订单量过大导致的，未有较好的解决办法，选择多开 ticket 模块顶住大量订单的压力。
+
+
+运维侧报告 ticket 模块存在凌晨崩溃的情况，排查日志发现凌晨订单只有几笔，此时怀疑是比价功能存在一定问题，导致其产生的对象停留较久，但是依旧未排查到问题。
+
+因还是未定位到能导致内存溢出的问题，只能判断认为是虚拟机内存回收较慢导致的
+
+
+
+技术侧发现 @Async 注解支持选择线程池来将异步线程改为用线程池来执行，可以防止大量调用 @Async 导致生成了海量线程从而内存溢出。但是在本功能上线后，依然出现了 ticket 模块崩溃的问题。
+
+
+经过以上三次排查，已基本确定本次问题是由代码问题引起的内存泄露，并不是因为电影票订单数据量过大导致的系统崩溃。随后重新开始排查问题，并最终定位到是因为 json 序列化引起的内存泄露。
+
+
+定位思路
+步骤 1
+首先使用 JProfiler 工具查看 dump 日志，按照保留大小倒序排序，可以发现最多的是 String 对象，这是因为 YtbShowListResponse 内存溢出对象中存储有请求接口返回的字符串内容，此内容包含一个影院下面的所有场次，所以内容较大。
+
+
+（JProfiler 工具查看 dump 日志）
+
+
+步骤 2
+查看对象的数据结构，发现本质是一个 Map，初步怀疑是不是 NutMap 第三方工具引起的
+
+
+（YtbShowListResponse 数据结构）
+
+步骤 3
+使用 JProfiler 工具的图表功能，查看对象到 GC 根 (root) 的路径，可以发现最终是被 org.nutz.lang.Mirror 对象所持有，导致无法被回收
+
+
+（JProfiler 工具查看图标）
+
+步骤 4
+此时查看比价功能代码，可以发现 YtbShowListResponse 对象的使用都是正常的，并没有放置到 java 静态变量中等操作，但是根据 dump 日志分析其中的 YtbShowListResponse 对象，YtbShowListResponse 中 content 字段都是成功，即请求失败就不会出现内存泄露问题，问题代码范围进一步缩小。
+
+
+（比价功能代码）
+
+步骤 5
+排查代码发现 getResponse 方法有非常高的可疑性，使用了第三方序列化方式 Json.fromJson，并且使用了 PType 第三方工具来标识序列化类型，更加可疑，此序列化方法和 org.nutz.lang.Mirror 同属于 nutz 第三方工具包，基本已锁定到问题代码。
+@Override   public List&lt;YtbShowBo&gt; getResponse() {       String data = this.getData();       if (Strings.isBlank(data)) {           throw new YtbException("影托邦场次列表响应为空");       }       return Json.fromJson(new PType&lt;List&lt;YtbShowBo&gt;&gt;() {       }, data);   }
+步骤 6
+为了验证是否是 json 序列化导致，在 YtbShowListResponse 上重写了 finalize 方法，并在其中打印了日志，验证对象是否被回收了，采用对照法，使用 fastjson 包替换了序列化方法，执行相同比价功能，最终验证结果如下：
+
+Json.fromJson 方法和 PType 共同使用情况下，会导致 finalize 不被执行，也就意味着此对象不会被虚拟机回收
+ JSON.parseObject 方法和 TypeReference 共同使用情况下，finalize 很快就执行了，意味着对象被回收了
+
+
+java 的 finalize 方法在生产环境是禁止使用的，对其的重写可能会造成虚拟机性能下降或者对象无法被回收的问题，最终导致系统崩溃（网上说的，未验证ㄟ (▔, ▔) ㄏ），本次只是在测试环境打印日志，方便检查对象是否被回收，切勿在生产环境使用本方法。
+
+
+其实 java 虚拟机垃圾回收执行的很快
+
+总结
+到这里，其实问题已经得到了解决，但是为了提现我们热爱技术的一面，也为了彰显我们的钻研精神，那么还要提出疑问，为什么这会导致内存泄露？总结出以下几个问题：
+
+为什么 fastjson 不会出现内存泄露的问题？
+明明序列化的对象是字符串 data 数据，生成后的对象也是 List&lt;YtbShowBo&gt;，怎么结果就成了 YtbShowListResponse 存到了虚拟机中无法被回收？
+json 序列化的原理是什么？
+
+本着以上几个问题，我们进入了下一阶段，我们要找到问题本质～我们要搞清楚到底是什么东西，影响了虚拟机内存回收？
+追本溯源
+进入 nutz 的 jar 包源码，可以发现他使用了 mirrorCache 把所有使用到的序列化类型都缓存了起来，问题就出在了这里
+
+
+（json 序列化源码）
+
+这时就要开始使用我们的好帮手百度了，PType 实现了 ParameterizedType 接口，使用 ParameterizedType + 内存溢出为标题查到一篇文章①，说明 fastjson 也存在使用 ParameterizedType 不当导致的内存泄露问题，此问题已经被 fastjson 修复了。不过 nutz 包和 fastjson 包并不相同，但是这也印证了我们的观点，json 序列化如果使用不当确实会导致内存泄露的问题。
+
+ParameterizedType 是 jdk 提供的用于处理带泛型类型的类的序列化方式②
+
+比对了 nutz 包和 fastjson 的源码，发现了区别，fastjson 并没有直接使用序列化类型 Type，而是在其内部进行了重新实现，到这里，我们就能回答出前面三个问题中的两个了：
+
+fastjson 采用了在 Type 中重新生成子序列化类型的方式，避免了内存泄露的问题
+ json 序列化的原理就是通过声明一个序列化类型，然后将字符串内容进行转换的过程
+
+
+
+（**nutz** 包和 **fastjson** 源码比较，左 **nutz**，右 **fastjson**）
+
+但是，第二个问题没有得到解答，为什么最终在内存中存储了大量的 YtbShowListResponse 而不是 List&lt;YtbShowBo&gt; 呢？
+这个问题最终通过研究 new TypeReference 和 new PType 两者之间的区别得以解决
+先看下声明序列化类型的写法，new xxx(){} 是 java 匿名内部类的写法。
+List&lt;YtbShowBo&gt; ytbShowBos = Json.fromJson(new PType&lt;List&lt;YtbShowBo&gt;&gt;() {}, data);
+此时，你只需要回想下学过的 java 基础，就能明白一点，java 的匿名内部类是依赖于其父类的，这就导致你在 dump 日志或者 debug 模式下查看匿名内部类对象时，都会惊奇的发现他的指针并不是指向他的内存地址，而是直接指向其父类
+
+匿名内部类其实极易导致内存泄露问题③
+
+
+
+（debug）
+
+到这里，你也就明白了为什么会出现内存泄露的问题，为什么内存中会有大量的 YtbShowListResponse 对象，因为每一个 new PType 都持有了其父类对象，当 PType 被放置到 mirrorCache 中缓存起来时，也就导致他持有的父对象再也无法被回收了，我们也就解答了前面第二个问题，也就明白了这次内存泄露的本质
+这就结束了吗？
+问题找到了，但是我们还没有去解决问题，前面好像已经找到了解决办法，就是替换第三方序列化工具，使用 fastjson 替代 nutz，但是这样好像我们学到的知识没用上，如何使用 java 基础解决这个问题？让我们倒回前文有关匿名内部类的部分，解决办法就藏在这里面 ↑
+终极解决方案：
+将在方法内部创建的 Type 改为静态变量
+private static final PType&lt;List&lt;YtbShowBo&gt;&gt; YTB_SHOW_BO_TYPE = new PType&lt;List&lt;YtbShowBo&gt;&gt;() {};
+本问题随即解决
+
+当匿名内部类成为静态变量时，根据我们学过的 java 基础知识，java 类下的静态变量属于类，被所有类实例对象所共享，当且仅当在类初次加载时会被初始化
+
+到此为止了，但是没有完全为止
+本次内存泄露问题已经圆满解决，大家也跟着本文档学习了解了如何排查问题，如何分析问题，如何解决问题。但是本文档只是个引子，希望在以后的工作中大家都能保持钻研精神，不怕问题，解决问题。
+附录
+收录相关在排查问题时查询到的有参考意义的博客内容
+附录① Java 反序列化 json 内存溢出_fastjson 反序列化使用不当导致内存泄露
+附录② ParameterizedType 详解
+附录③ JVM–Java 内存泄露–匿名内部类–原因 / 解决方案
+]]></content>
+      <categories>
+        <category>问题排查</category>
+      </categories>
+      <tags>
+        <tag>bug</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>chrome 浏览器内置谷歌翻译无法使用解决方案</title>
+    <url>/2022/10/10/chromeTranslate/</url>
+    <content><![CDATA[google 近期关闭了国内谷歌翻译网站，但是 chrome 浏览器内置的翻译功能用起来比较顺手，可以通过修改 host 的方式临时解决下
+修改 host 教程
+进入 etc 文件夹
+
+mac: 右键访达 - 前往文件夹 - 输入 “etc/hosts”
+windows: C:\Windows\System32\drivers\etc
+
+修改文件，添加以下内容：
+203.208.40.66 translate.google.com142.250.4.90 translate.googleapis.com
+保存修改后，chrome 即可正常使用
+]]></content>
+      <categories>
+        <category>工具使用</category>
+      </categories>
+      <tags>
+        <tag>chrome</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2022/10/10/hello-world/</url>
+    <content><![CDATA[Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.
+Quick Start
+Create a new post
+$ hexo new "My New Post"
+More info: Writing
+Run server
+$ hexo server
+More info: Server
+Generate static files
+$ hexo generate
+More info: Generating
+Deploy to remote sites
+$ hexo deploy
+More info: Deployment
+]]></content>
+      <categories>
+        <category>工具使用</category>
+      </categories>
+      <tags>
+        <tag>helloworld</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>前端使用 iframe 嵌套我方 h5 页面，出现 session 跨域问题如何解决</title>
+    <url>/2023/03/10/iframeCors/</url>
+    <content><![CDATA[问题描述
+提供给客户对接的 H5 页面正常都是通过 webview 或者页面跳转的形式来做，部分客户可能会采用 iframe 嵌套的形式，如果是 H5 页面用户信息采用 token 的形式，不会有影响，但是采用 session 的形式，会引起 session 跨域从而导致浏览器无法拿到对应的用户信息
+
+问题解决
+SameSite
+
+Chrome 51 开始，浏览器的 Cookie 新增加了一个 SameSite 属性，用来防止 CSRF 攻击和用户追踪。Cookie 的 SameSite 属性用来限制第三方 Cookie，从而减少安全风险
+
+目前 SameSite 有三个常用的值 Strict, Lax, None，他们的作用是对跨站请求的 cookie 做不同程度的限制，而根据请求的不同，其对应关系如下：
+
+
+
+请求类型
+示例
+默认
+ Lax
+Strict
+
+
+
+
+ 链接
+&lt;a href="..."&gt;&lt;/a&gt;
+发送 Cookie
+ 发送 Cookie
+ 不发送
+
+
+预加载
+&lt;link rel="prerender" href="..."/&gt;
+发送 Cookie
+ 发送 Cookie
+ 不发送
+
+
+ GET 表单
+&lt;form method="GET" action="..."&gt;
+发送 Cookie
+ 发送 Cookie
+ 不发送
+
+
+ POST 表单
+&lt;form method="POST" action="..."&gt;
+发送 Cookie
+ 不发送
+不发送
+
+
+ iframe
+&lt;iframe src="..."&gt;&lt;/iframe&gt;
+发送 Cookie
+ 不发送
+不发送
+
+
+ AJAX
+$.get("...")
+发送 Cookie
+ 不发送
+不发送
+
+
+ Image
+&lt;img src="..."&gt;
+发送 Cookie
+ 不发送
+不发送
+
+
+
+从 Chrome 80 开始，默认会对 cookie 设置 SameSite=Lax，ChromeLab 对此有比较清楚的说明：地址，目前项目中大部分 cookie 是没有设置任何的 SameSite 属性，所以可能出现跨站 cookie 无法传递的情况，需要对这部分内容进行处理，否则，可能出现 cookie 无法传递导致类似登陆失败问题。
+所以默认较新浏览器版本下，没有正常声明处理 SameSite 属性的系统，浏览器都会默认设置成 Lax 从而导致 iframe 中失效
+我们只需要设置 SameSite=None，同时，从 Chrome 从 76 版本开始，开始对设置为 None 必须和 Secure 配合使用，所以最后设置内容是
+SameSite=None;Secure;
+解决措施
+
+创建自定义 CookieSerializer，修改设置 SameSite 属性的逻辑 
+
+/** * 自定义cookie序列化方式 * * @author anifengx * @date 2022-04-02 14:21:21 */@Slf4jpublic class CustomCookieSerializer extends DefaultCookieSerializer {    /**     * http协议     */    private static final String HTTP = "http";    /**     * 阿里云cdn添加header头帮助判断协议类型     */    private static final String X_CLIENT_SCHEME = "X-Client-Scheme";    /**     * nginx添加header头帮助判断协议类型     */    private static final String X_FORWARDED_PROTO = "X-Forwarded-Proto";    @Override    public void writeCookieValue(CookieValue cookieValue) {        HttpServletRequest request = cookieValue.getRequest();        HttpServletResponse response = cookieValue.getResponse();        super.writeCookieValue(cookieValue);        StringBuffer requestURL = request.getRequestURL();        String scheme = request.getHeader(X_CLIENT_SCHEME);        log.info("requestURL X-Client-Scheme : [{}] scheme: [{}]", requestURL, scheme);        if (StringUtils.isBlank(scheme)) {            scheme = request.getHeader(X_FORWARDED_PROTO);            log.info("requestURL X-Forwarded-Proto : [{}] scheme: [{}]", requestURL, scheme);        }        if (StringUtils.isBlank(scheme)) {            scheme = request.getScheme();            log.info("requestURL schema : [{}] scheme: [{}]", requestURL, scheme);        }        if (StringUtils.isBlank(scheme) || HTTP.equals(scheme)) {            return;        }        Collection&lt;String&gt; headers = response.getHeaders(HttpHeaders.SET_COOKIE);        if (CollectionUtils.isEmpty(headers)) {            return;        }        String userAgent = request.getHeader(HttpHeaders.USER_AGENT);        log.info("shouldSendSameSiteNone start userAgent: [{}] SET_COOKIE: [{}]", userAgent, headers);        boolean firstHeader = true;        // there can be multiple Set-Cookie attributes        for (String header : headers) {            if (firstHeader) {                log.info("shouldSendSameSiteNone userAgent: [{}] SET_COOKIE: [{}]", userAgent, header);                boolean shouldSendSameSiteNone;                try {                    shouldSendSameSiteNone = shouldSendSameSiteNone(userAgent);                } catch (Exception e) {                    log.error("shouldSendSameSiteNone error userAgent: [{}] SET_COOKIE: [{}]", userAgent, header, e);                    return;                }                log.info("shouldSendSameSiteNone userAgent: [{}] SET_COOKIE: [{}] boolean [{}]", userAgent, header, shouldSendSameSiteNone);                if (shouldSendSameSiteNone) {                    header = header.replaceAll("SameSite=Lax", "SameSite=None;secure;");                    response.setHeader(HttpHeaders.SET_COOKIE, header);                }                log.info("shouldSendSameSiteNone change userAgent: [{}] SET_COOKIE: [{}] boolean [{}] headers [{}] ", userAgent, header, shouldSendSameSiteNone, response.getHeaders(HttpHeaders.SET_COOKIE));                firstHeader = false;            }        }    }    boolean shouldSendSameSiteNone(String useragent) {        return !isSameSiteNoneIncompatible(useragent);    }    boolean isSameSiteNoneIncompatible(String useragent) {        return hasWebKitSameSiteBug(useragent) || dropsUnrecognizedSameSiteCookies(useragent);    }    boolean hasWebKitSameSiteBug(String useragent) {        return isIosVersion(12, useragent) || (isMacosxVersion(10, 14, useragent) &amp;&amp; (isSafari(useragent) || isMacEmbeddedBrowser(useragent)));    }    boolean dropsUnrecognizedSameSiteCookies(String useragent) {        if (isUcBrowser(useragent)) {            return !isUcBrowserVersionAtLeast(12, 13, 2, useragent);        }        return isChromiumBased(useragent) &amp;&amp; isChromiumVersionAtLeast(51, useragent) &amp;&amp; !isChromiumVersionAtLeast(67, useragent);    }    boolean isIosVersion(int major, String useragent) {        String pattern = "\\(iP.+; CPU .*OS (\\d+)[\\d]*.*\\) AppleWebKit\\/";        Pattern r = Pattern.compile(pattern);        Matcher m = r.matcher(useragent);        if (m.find()) {            log.info("isIosVersion Found value: " + m.group(0));            log.info("isIosVersion Found value: " + m.group(1));            return m.group(1).equals(String.valueOf(major));        }        return false;    }    boolean isMacosxVersion(int major, int minor, String useragent) {        String pattern = "\\(Macintosh;.*Mac OS X (\\d+)(\\d+)[\\d]*.*\\) AppleWebKit\\/";        Pattern r = Pattern.compile(pattern);        Matcher m = r.matcher(useragent);        if (m.find()) {            log.info("isMacosxVersion Found value: " + m.group(0));            log.info("isMacosxVersion Found value: " + m.group(1));            log.info("isMacosxVersion Found value: " + m.group(2));            return m.group(1).equals(String.valueOf(major)) &amp;&amp; m.group(2).equals(String.valueOf(minor));        }        return false;    }    boolean isSafari(String useragent) {        String pattern = "Version\\/.* Safari\\/";        Pattern r = Pattern.compile(pattern);        Matcher m = r.matcher(useragent);        return m.find() &amp;&amp; !isChromiumBased(useragent);    }    boolean isChromiumBased(String useragent) {        String pattern = "Chrom(e|ium)";        Pattern r = Pattern.compile(pattern);        Matcher m = r.matcher(useragent);        return m.find();    }    boolean isMacEmbeddedBrowser(String useragent) {        String pattern = "^Mozilla\\/[\\.\\d]+ \\(Macintosh;.*Mac OS X [\\d]+\\) " + "AppleWebKit\\/[\\.\\d]+ \\(KHTML, like Gecko\\)$";        Pattern r = Pattern.compile(pattern);        Matcher m = r.matcher(useragent);        return m.find();    }    boolean isChromiumVersionAtLeast(int major, String useragent) {        String pattern = "Chrom[^ \\/]+\\/(\\d+)[\\.\\d]* ";        Pattern r = Pattern.compile(pattern);        Matcher m = r.matcher(useragent);        if (m.find()) {            int version = new Integer(m.group(1));            return version &gt;= major;        }        return false;    }    boolean isUcBrowser(String useragent) {        String pattern = "UCBrowser\\/";        Pattern r = Pattern.compile(pattern);        Matcher m = r.matcher(useragent);        return m.find();    }    private boolean isUcBrowserVersionAtLeast(int major, int minor, int build, String useragent) {        String pattern = "UCBrowser\\/(\\d+)\\.(\\d+)\\.(\\d+)[\\.\\d]* ";        Pattern r = Pattern.compile(pattern);        Matcher m = r.matcher(useragent);        if (m.find()) {            int majorVersion = new Integer(m.group(1));            int minorVersion = new Integer(m.group(2));            int buildVersion = new Integer(m.group(3));            if (majorVersion != major) {                return majorVersion &gt; major;            }            if (minorVersion != minor) {                return minorVersion &gt; minor;            }            return buildVersion &gt;= build;        }        return false;    }}
+
+在 spring 中注解式注入自定义 CookieSerializer
+
+@Configurationpublic class SpringSessionConfig {    @Bean    public CookieSerializer cookieSerializer() {        CustomCookieSerializer cookieSerializer = new CustomCookieSerializer();        cookieSerializer.setCookieMaxAge(60 * 60 * 24 * 30);        return cookieSerializer;    }}]]></content>
+      <categories>
+        <category>问题排查</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>cors</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>java 面试题汇总</title>
+    <url>/2022/11/02/javaAudition/</url>
+    <content><![CDATA[本文记录一些比较贴合实际开发的常遇到的 java 面试题，方便后续面试
+【易】StringBuilder 和 StringBuffer 区别是什么？
+StringBuffer 是线程安全的，StringBuilder 是非线程安全的，但是 StringBuilder 性能高于 StringBuffer，单线程下推荐使用 StringBuilder，StringBuffer 内部采用 synchronized 来实现并发下的线程安全，也导致性能较于 StringBuilder 更低 【加分项】
+【中】在 Java 程序中怎么保证多线程的运行安全？
+
+使用安全类，比如 Java. util. concurrent 下的类
+使用自动锁 synchronized
+ 使用手动锁 Lock
+volatile 关键字
+
+【难】volatile 关键字作用，如何实现的原子性、可见性、有序性
+volatile 只能保证可见性和有序性，对于一些复杂操作无法保证原子性
+
+可见性：
+
+
+CPU 的运行速度是远远高于内存的读写速度的，为了不让 cpu 为了等待读写内存数据，现代 cpu 和内存之间都存在一个高速缓存 cache，线程在运行的过程中会把主内存的数据拷贝一份到线程内部 cache 中，也就是 working memory。这个时候多个线程访问同一个变量，其实就是访问自己的内部 cache。这就导致当线程 A 把变量 flag 加载到自己的内部缓存 cache 中，线程 B 修改变量 flag 后，即使重新写入主内存，但是线程 A 不会重新从主内存加载变量 flag，看到的还是自己 cache 中的变量 flag。所以线程 A 是读取不到线程 B 更新后的值。
+
+volatile 会对修饰的变量添加 LOCK 指令，这个指令有两个最用
+
+将当前处理器缓存的数据刷新到主内存
+刷新到主内存时会使得其他处理器缓存的该内存地址的数据无效
+
+这也就保证了变量的可见性
+
+有序性
+
+计算机在执行程序的过程中，编译器和处理器通常会对指令进行重排序，这样做的目的是为了提高性能。而 volatile 通过借助内存屏障这个概念保证了操作的有序性。
+volatile 重排序规则：
+
+当第一个操作是 volatile 读时，无论第二个操作是什么都不能进行重排序。
+当第二个操作是 volatile 写时，无论第一个操作是什么都不能进行重排序。
+当第一个操作是 volatile 写，第二个操作为 volatile 读时，不能进行重排序。
+
+根据 volatile 重排序规则，Java 内存模型采取的是保守的屏障插入策略，volatile 写是在前面和后面分别插入内存屏障，volatile 读是在后面插入两个内存屏障，具体如下：
+
+
+volatile 读：在每个 volatile 读后面分别插入 LoadLoad 屏障及 LoadStore 屏障（根据 volatile 重排序规则第一条）
+
+LoadLoad 屏障的作用：禁止上面的所有普通读操作和上面的 volatile 读操作进行重排序
+ LoadStore 屏障的作用：禁止下面的普通写和上面的 volatile 读进行重排序。
+
+
+
+volatile 写：在每个 volatile 写前面插入一个 StoreStore 屏障（为满足 volatile 重排序规则第二条），在每个 volatile 写后面插入一个 StoreLoad 屏障（为满足 voaltile 重排序规则第三条
+
+StoreStore 屏障的作用：禁止上面的普通写和下面的 volatile 写重排序
+ StoreLoad 屏障的作用：防止上面的 volatile 写与下面可能出现的 volatile 读 / 写重排序。
+
+
+
+
+因为 Java 内存模型所采用的屏障插入策略比较保守，所以在实际的执行过程中，只要不改变 volatile 读 / 写的内存语义，编译器通常会省略一些不必要的内存屏障。
+
+
+原子性
+
+为什么一些复杂操作无法保证原子性？例如 i++，此操作实际可以分解为
+
+线程读取 i 的值
+ i 进行自增计算
+刷新回 i 的值
+
+会出现 ab 两个线程取到同一个 i 值，例如 5，然后进行自增运算得到要刷新的值为 6，这是 a 线程率先完成赋值操作，i 变为 6，随后 b 线程进行赋值操作，因 b 线程已完成自增运算，所以也会用得到的值 6 来进行赋值操作，从而导致不满足原子性
+【难】synchronized 的底层实现原理是什么？锁升级原理是什么？
+
+【易】遍历 List 操作的几种方式？
+
+for 循环遍历
+增强 for 循环
+迭代器循环
+ jdk8 后的 lambda 表达式，foreach 方法 【加分项】
+
+【中】遍历循环删除元素的话你会用那种方法来操作？
+使用迭代器循环删除
+【中】说一下 session 的工作原理？
+session 的工作原理是客户端登录完成之后，服务器会创建对应的 session，session 创建完之后，会把 session 的 id 发送给客户端，客户端再存储到浏览器中。这样客户端每次访问服务器时，都会带着 sessionid，服务器拿到 sessionid 之后，在内存找到与之对应的 session 这样就可以正常工作了
+【中】try-catch-finally 中，如果 catch 中 return 了，finally 还会执行吗？
+finally 一定会执行，即使是 catch 中 return 了，catch 中的 return 会等 finally 中的代码执行完之后，才会执行
+【低】spring 事务实现方式有哪些？
+声明式事务：声明式事务也有两种实现方式，基于 xml 配置文件的方式和注解方式（在类上添加 @Transaction 注解）
+编码方式：提供编码的形式管理和维护事务
+【低】MySQL 的内连接、左连接、右连接有什么区别？
+内连接关键字：inner join；左连接：left join；右连接：right join。
+内连接是把匹配的关联数据显示出来；左连接是左边的表全部显示出来，右边的表显示出符合条件的数据；右连接正好相反。
+【低】mysql 默认事务隔离级别？
+REPEATABLE-READ 可重复读
+【中】乐观锁和悲观锁的区别？
+乐观锁：每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在提交更新的时候会判断一下在此期间别人有没有去更新这个数据
+悲观锁：每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候都会上锁，这样别人想拿这个数据就会阻止，直到这个锁被释放
+【难】如何保证接口幂等性？
+没有唯一正确的答案，更多地考察面试者的实际经验和总结能力
+
+
+定义唯一 msgId，根据 msgId 判断是否重复
+结合业务逻辑使用乐观锁来限制，例如订单回调的业务逻辑，可以根据回调时订单的当前状态来判断本次回调内容是否要消费，并且在消费时借助乐观锁来进行限制，添加前置状态校验，类似
+【加分项】
+
+update `order` set `status` = 'status' where `status` = 'beforeStatus';
+
+每个请求操作必须有唯一的 ID，而这个 ID 就是用来表示此业务是否被执行过的关键凭证，例如，订单支付业务的请求，就要使用订单的 ID 作为幂等性验证的 Key；每次执行业务之前必须要先判断此业务是否已经被处理过；第一次业务处理完成之后，要把此业务处理的状态进行保存，比如存储到 Redis 中或者是数据库中，这样才能防止业务被重复处理
+
+【难】JVM 中有哪些垃圾回收算法？
+【中】什么是 Redis 缓存穿透、击穿、雪崩？
+缓存穿透：指访问一个缓存和数据库中都不存在的 key，由于这个 key 在缓存中不存在，则会到数据库中查询，数据库中也不存在该 key，无法将数据添加到缓存中，所以每次都会访问数据库导致数据库压力增大
+
+
+将空 key 添加到缓存中
+使用布隆过滤器过滤空 key
+
+
+缓存击穿：指大量请求访问缓存中的一个 key 时，该 key 过期了，导致这些请求都去直接访问数据库，短时间大量的请求可能会将数据库击垮
+
+
+添加互斥锁或分布式锁，让一个线程去访问数据库，将数据添加到缓存中后，其他线程直接从缓存中获取
+热点数据 key 不过期，定时更新缓存
+
+
+缓存雪崩：指在系统运行过程中，缓存服务宕机或大量的 key 值同时过期，导致所有请求都直接访问数据库导致数据库压力增大
+
+
+将 key 的过期时间打散，避免大量 key 同时过期
+使用互斥锁重建缓存
+
+
+【中】Redis 怎么实现分布式锁？
+使用命令 setnx 来实现，假如当前 key 有值则说明锁已经被占有，程序在使用完锁后需要调用 del 释放锁；
+
+redis 的分布式锁会存在锁超时的情况，如果程序执行时间过长会导致锁自动解开，从而分布式锁就失效了，可以借助 Redission 的 watchdog 机制来解决；因为设置锁和设置过期时间是分开操作的，可能存在设置完锁服务宕机的情况，导致锁没有正确释放，这些可以通过 lua 脚本来实现，合并到一条命令中，也可以通过 Redission 来实现。【加分项】
+
+【中】RPC 请求，服务端在收到方法名、接口名、参数名后怎么完成一次调用？
+服务端通过 rpc 解析到参数后，通过反射的方式，调用具体方法
+【低】最近有在学习新的东西吗？有在了解哪块技术吗？
+答案不限，关注面试者是否有自律性和学习能力
+]]></content>
+      <categories>
+        <category>面试题</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>linux 常用命令</title>
+    <url>/2023/03/15/linuxCommonCommands/</url>
+    <content><![CDATA[平常查询日志等工作都是通过 ELK 来完成，并且 ELK 用起来也比较方便，但是有时候存在单条日志信息过多导致 ELK 收集器忽略或者截断的情况，导致无法查看需要的全部日志来定位问题，所以会需要连到服务器上去查看日志，这时候就需要用到一些 linux 命令，在此记下方便以后直接复制使用
+查看日志的命令
+tail
+服务器启动失败，只需要查看最近的失败日志；查看当前服务运行情况等，可以使用本命令
+-f 实时读取最新内容，默认 10 行
+tail -f task_info.log
+-n 指定要读取的行数，读取最后 n 行
+tail -n 30 task_info.log
+
+cat
+查看文件内容，服务器上大文件使用时要注意控制显示内容
+cat task_info.log
+grep
+根据一些关键词搜索要查看的内容，一般结合 cat 使用
+cat task_info-20221216.5.log | grep '锁座'
+
+一些额外的选项，方便查看日志
+
+
+-A n : 如果匹配成功，则将匹配行及其后 n 行一起打印出来
+-B n : 如果匹配成功，则将匹配行及其前 n 行一起打印出来
+-C n : 如果匹配成功，则将匹配行及其 (前后) n 行一起打印出来
+–color=auto ：可以将找到的关键词部分加上颜色的显示
+
+e.g.
+cat task_info-20221216.5.log | grep -n -A2 -B1 --color=auto '锁座'
+sz
+从服务器上下载文件
+sz apiclient_cert.p12]]></content>
+      <categories>
+        <category>工具使用</category>
+      </categories>
+      <tags>
+        <tag>linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记管理人员拓展活动思考</title>
+    <url>/2022/10/27/manage/</url>
+    <content><![CDATA[2022 年 10 月 15 日参加了管理人员拓展活动，也是第一次参加拓展活动，认识了很多人，也同时有了一些感悟，本文仅做自身感悟记录。
+当日活动有一个七巧板比赛，是个多人分组协同合作的项目，赛后教练也是组织大家做了复盘，本次的笔记也主要是来源于此次复盘的一些发言和自身感悟。
+一致性
+如何理解这个标题？一致性指的就是身为管理高层，要有统一的思想，要有一致认可的行动方案。不能小明有小明的方案，小强有小强的方案，并且这两个方案还在同时执行，这只会导致下属行动混乱，没有固定的目标。
+
+项目实施前规划方案的重要性
+每次做什么事前，你是会准备一个计划方案来执行，还是先执行起来，再慢慢修正呢？
+这次七巧板就遇到了这个问题，当教练公布完游戏规则后，游戏就已经开始了，每个组手上都有了一份属于他们自己的任务，游戏时间只有 30 分钟，这时你是选择暂停所有人的行动，花 3-5 分钟甚至更多的时间来收集任务并归纳输出一套解决方案，还是先让整个游戏运转起来，然后等遇到问题再解决问题呢？
+当时我们选择了先行动，再思考，最终在游戏进行了约 20 分钟后，才逐渐摸清了套路，并进行了调整，不过船头调转的太晚，没能拿到游戏的满分。但是假如我们先花些时间，收集并查看每个小组的任务，总结其中的共同点，那么可能只需要 20 分钟就能完成这场游戏。
+由此可见，实际行动前的准备何其重要，提前了解任务目标、游戏规则并制定方案，不正如我们实际工作中的了解客户需求，按照客户的规定提供项目实施计划吗？但是当我们跳过这些准备，直接开始实施，想必项目实施的结果如同游戏结果一般，杂乱无章，一团糟糕，最终引起客户的投诉。
+当然在我们的日常工作中，很少会出现这么紧迫的情况，更多的是先得到需求并与客户研讨，然后逐步执行最终落地。这就更需要我们眼光放长远，不要专注于眼前利益、急干蛮干；提前统筹规划，制定出详细的计划方案，让项目的运行始终符合我们的预期，最终完美落地。
+动态修正
+什么是动态修正？没有什么计划一开始就是完美无缺的，做到万无一失。但是我们可以在计划进行中穿插早会、周会等多种形式，及时对当前进度进行总结复盘，发现其中的问题并进行修正，形成闭环。最不应该的是项目已出现许多问题，却依然视而不见，坚持既定计划，最终导致计划失败或者计划完成但是效果很差。不惧怕问题，视项目中出现的问题为自己改正的契机，正是暴露出的这些问题，才能逐步让自己的计划变得完善，也让自己有了应对经验。
+]]></content>
+      <categories>
+        <category>管理思考</category>
+      </categories>
+      <tags>
+        <tag>管理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>mysql 中多表 LEFT JOIN 的误区</title>
+    <url>/2022/11/12/mysqlLeftJoin/</url>
+    <content><![CDATA[最近在日常看项目慢 SQL 日志的时候，发现项目里的用户管理查询 SQL 略慢，基本要在一秒以上，决定优化一下，结果优化了半天还优化出来个问题，研究了好久才发现原因，其实是我的使用姿势不对
+背景介绍
+用户列表查询使用了多表关联，其中使用了 7 张表做 LEFT JOIN 关联查询，拼接了很多查询条件，并且还穿插了几个子查询。所以做了一下优化，重新梳理了表逻辑
+其中有三张表分别是 user 用户表，user_brand 用户品牌表，user_add_account 用户加款账户表，查询逻辑是
+SELECT u.name, group_concat(ub.name) brandName, group_concat(uac.account) accountFROM `user` u LEFT JOIN `user_brand` ub ON u.id = ub.user_id LEFT JOIN `user_add_account` uac ON u.id = uac.user_id
+结果出现了 brandName 和 account 相同内容重复的问题，之前 brandName 是通过子查询得出的，所以没有存在重复的情况，结果改成 LEFT JOIN 出现了重复问题，这个问题也是研究了好久才发现，其实是因为对 SQL 查询原理掌握不牢导致的
+
+原因
+三表的关系是，user 和 user_brand 是一对多的关系，user 和 user_add_account 也是一对多的关系，在 mysql 中，如果多表使用 LEFT JOIN 来进行关联查询，并且存在多个左表和右表的一对多关系，mysql 会将多个右表的条数进行笛卡尔积对应到左表上，就导致了 user_brand 和 user_add_account 都存在重复出现的情况
+问题 SQL
+SELECT u.id, ub.brand_id, uaa.account FROM `user` u LEFT JOIN `user_brand` ub ON u.id = ub.user_id LEFT JOIN `user_add_account` uaa ON uaa.user_id = u.id 
+查询结果
+
+
+
+id
+brand_id
+account
+
+
+
+
+8
+1
+5719xxxxxxxx901
+
+
+8
+1
+5719xxxxxxxx555
+
+
+11
+1
+1209xxxxxxxx902
+
+
+11
+2
+1209xxxxxxxx902
+
+
+11
+3
+1209xxxxxxxx902
+
+
+
+很明显可以看出，id 为 8 的数据因为 user_add_account 存在两条数据，导致会查出来两条数据，id 为 11 的数据因为 user_brand 存在三条数据，导致会查出来三条数据，假如有一个 id 为 20 的数据，关联到 user_brand2 条，关联到 user_add_account 三条，那最终会查出 6 条数据
+怎么解决？
+两种方案，第一种可以在 group_concat 中加 DISTINCT 关键词去重，因为实际业务查询只是为了看关联到 user_brand 的数据，去重并不会影响业务的展示
+第二种可以去除 LEFT JOIN 关联的表，采用单独查询后拼接的方式，也能避免本情况，顺便还能减少表关联，减轻数据库查询压力
+]]></content>
+      <categories>
+        <category>问题排查</category>
+      </categories>
+      <tags>
+        <tag>mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>openClaw 使用笔记</title>
+    <url>/2026/04/20/openClaw/</url>
+    <content><![CDATA[如果使用 LM Studio 调用本地模型，可以执行命令
+openclaw onboard
+在其中填入 url 地址，apikey 如果未设置鉴权可以填入任意字符，例如 ak，默认模型自行选择即可
+如果想给 openclaw 一个地址让他查看内容，需要开启他的 exec 工具权限，在可视化界面中选择代理中的 tools，开启 exec 权限，同时自行查看其他 tools，根据需要自行开启
+]]></content>
+      <categories>
+        <category>工具使用</category>
+      </categories>
+      <tags>
+        <tag>openClaw</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>shiro 框架版本升级出现请求 400 拦截处理</title>
+    <url>/2023/01/18/shiroUpdate/</url>
+    <content><![CDATA[问题描述
+因阿里云服务器安全提示，项目中的 shiro 框架近期做了一次升级，升级后检查项目运行无任何问题，几天后运营突然反应说管理平台图片全部无法展示，进行了初步排查，发现在请求后端获取图片的请求全部返回 400 被拦截了，结合最近更新内容锁定目标在 shiro 版本升级上
+运营需要在管理平台查看图片后直接右键另存为对应中文名的文件，并且要求是原本文件名称。图片默认都上传到了 oss，如果直接右键下载会是乱序英文数字文件名，所以在管理平台后端做了一次转发并设置了中文文件名称
+
+
+问题解决
+实际问题是由于 shiro 新框架新增了几个默认 filter，其中 InvalidRequestFilter 会拦截 url 上的特殊字符，所以只需要修改 InvalidRequestFilter 的方法跳过拦截即可
+解决办法
+重写 ShiroFilterFactoryBean
+public class CustomShiroFilterFactoryBean extends ShiroFilterFactoryBean {    private static final Logger logger = LoggerFactory.getLogger(CustomShiroFilterFactoryBean.class);    @Override    public Class getObjectType() {        return CustomSpringShiroFilter.class;    }    @Override    protected AbstractShiroFilter createInstance() throws Exception {        logger.debug("Creating Shiro Filter instance.");        SecurityManager securityManager = getSecurityManager();        if (securityManager == null) {            String msg = "SecurityManager property must be set.";            throw new BeanInitializationException(msg);        }        if (!(securityManager instanceof WebSecurityManager)) {            String msg = "The security manager does not implement the WebSecurityManager interface.";            throw new BeanInitializationException(msg);        }        FilterChainManager manager = createFilterChainManager();        //Expose the constructed FilterChainManager by first wrapping it in a        // FilterChainResolver implementation. The AbstractShiroFilter implementations        // do not know about FilterChainManagers - only resolvers:        PathMatchingFilterChainResolver chainResolver = new PathMatchingFilterChainResolver();        chainResolver.setFilterChainManager(manager);        // URL携带中文400，servletPath中文校验bug        Map&lt;String, Filter&gt; filterMap = manager.getFilters();        Filter invalidRequestFilter = filterMap.get(DefaultFilter.invalidRequest.name());        if (invalidRequestFilter instanceof InvalidRequestFilter) {            ((InvalidRequestFilter) invalidRequestFilter).setBlockNonAscii(false);        }        //Now create a concrete ShiroFilter instance and apply the acquired SecurityManager and built        //FilterChainResolver.  It doesn't matter that the instance is an anonymous inner class        //here - we're just using it because it is a concrete AbstractShiroFilter instance that accepts        //injection of the SecurityManager and FilterChainResolver:        return new CustomSpringShiroFilter((WebSecurityManager) securityManager, chainResolver);    }}
+将重写的 ShiroFilterFactoryBean 注入进 shiro 中
+@Bean(name = "shiroFilter")public BaseShiroFactoryBean shiroFilter(@Qualifier(value = "securityManager") SecurityManager securityManager) {    //根据配置加载是否启用redis    Boolean redis = customerConfig.getRedis();    BaseShiroFactoryBean shiroFilterFactoryBean = new CustomShiroFilterFactoryBean();    Map&lt;String, Filter&gt; filters = shiroFilterFactoryBean.getFilters();    filters.put(Constants.CUSTOMER_SHIRO_FILTER, customRolesAuthorizationFilter());    shiroFilterFactoryBean.setFilters(filters);    shiroFilterFactoryBean.setSecurityManager(securityManager);    //加载默认配置.    Map&lt;String, String&gt; filterChainDefinitionMap = new HashMap&lt;&gt;(16);    defaultFilterChain(filterChainDefinitionMap);    //加载自定义配置    loadCustomerChain(filterChainDefinitionMap);    //登录地址    if (StringUtils.isBlank(customerConfig.getLoginUrl())) {        shiroFilterFactoryBean.setLoginUrl(Constants.DEFAULT_LOGIN_URL);    } else {        shiroFilterFactoryBean.setLoginUrl(customerConfig.getLoginUrl());    }    //登录成功后要跳转的链接    if (StringUtils.isBlank(customerConfig.getSuccessUrl())) {        shiroFilterFactoryBean.setSuccessUrl(Constants.DEFAULT_INDEX);    } else {        shiroFilterFactoryBean.setSuccessUrl(customerConfig.getSuccessUrl());    }    //未授权界面;    if (StringUtils.isBlank(customerConfig.getUnauthorizedUrl())) {        shiroFilterFactoryBean.setUnauthorizedUrl(Constants.DEFAULT_403);    } else {        shiroFilterFactoryBean.setUnauthorizedUrl(customerConfig.getUnauthorizedUrl());    }    //加载静态权限链    shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);    //加载动态权限链    shiroFilterFactoryBean.setFilterChainDefinitions("");    return shiroFilterFactoryBean;}
+至此问题解决，一开始曾尝试设置 filter 不校验的 url 地址，但是查看源码后发现不支持这么设置，修改源码影响范围较大，遂决定全局关闭 BlockNonAscii 设置
+参考文章
+关于 springboot: 在 SpringBoot 下升级 shiro 之后导致中文路径 400 非法的解决方案
+尝试了上述方法，发现未生效
+
+SHIRO1.6 升级到 1.7 后的问题处理
+主要参考了上述文章
+]]></content>
+      <categories>
+        <category>问题排查</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>shiro</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spotbugs 使用指南</title>
+    <url>/2022/10/10/spotbugs/</url>
+    <content><![CDATA[前言
+代码质量主要依靠代码检查来进行，但当前代码检查占用较多工时。现推荐一个比较成熟的代码检查插件，要求 JAVA 开发每次提交代码前都应使用插件自检，可以一定程度上减少代码检查所用的时间，帮助开发人员规范编码习惯，提高编码水平，本插件不能替代阿里巴巴开发规范插件，只是对其的补充。
+SpotBugs 使用说明
+安装方法
+在 IDEA 中，点击工具类 File-&gt;Settings-&gt;Plugins 后，切换到 Marketplace 标签，在输入框中输入 spotbugs，查询到 SpotBugs 插件，点击 install 按钮安装插件，如图所示：
+
+
+SpotBugs 安装
+
+
+使用手册
+使用步骤
+SpotBugs 的使用方式是通过插件扫描代码的方式来检查出代码中隐含的 bug，首先切换 idea 任务栏到 SpotBugs 下（截图红字 3）。SpotBugs 主要有两种扫描方式，可全项目扫描或单模块扫描：
+
+全项目扫描使用截图红字 2 中第三个按钮
+单模块扫描首先选择需要扫描的模块（截图红字 1），然后点击截图红字 2 中第一个按钮
+
+
+说明：截图红字 3 中三个按钮依次为：扫描选中模块不包含 TEST 类；扫描选中模块包含 TEST 类；扫描全项目
+
+
+
+SpotBugs 使用步骤
+
+BUG 说明
+SpotBugs 扫描出的问题主要分为几个大类，每个大类中包含多个具体问题，具体问题有自己对应的处理优先级，分为高中低三级。现针对具体问题做解释说明，方便修改错误代码。本文档并未描述 SpotBugs 支持的全部问题，只针对每个大类列举有特点且较难理解的问题，未在本文档中出现但是被 SpotBugs 扫描出的问题，开发者也应自行查找处理，附 SpotBugs 官方校验规则文档
+高危（强制修改）
+1.1 No relationship between generic parameter and method argument
+方法参数和传入参数存在泛型不一致的情况
+
+反例：
+List&lt;String&gt; strList = new ArrayList&lt;&gt;();strList.add("1");List&lt;Long&gt; idList = new ArrayList&lt;&gt;();idList.add(1L);idList.add(2L);idList.add(3L);idList.removeAll(strList);
+1.2 Call to equals() comparing different types
+equals 方法比较的双方不是相同类型
+
+反例：
+cn.common.enums.OrderStatusEnum.REFUNDED.equals(cn.common.kentucky.enums.OrderStatusEnum.REFUNDED)
+1.3 Nullcheck of value previously dereferenced
+空值检查顺序错误
+
+反例：
+Order order = OrderDao.getOrder(dto.getId());if (BreakUpType.CHILD.equals(order.getBreakUpType())) {    // do something}if (order == null) {    return new SimpleMessage(ErrorCodeEnum.NO, "订单不存在");}
+1.4 A parameter is dead upon entry to a method but overwritten
+错误的认为对参数的覆盖会回传给调用者
+
+反例：
+private void partialH5Refund(Long id, String refundNo, String content, OrderRefund orderRefund) throws Exception {	// String类型采用值传递，在方法中修改参数并不会影响原参数    content = String.format("系统同步部分退款, 退款交易流水号[%s]", refundNo);}
+说明：JAVA 中当传入参数是对象时，修改对象属性是可以生效的，但是直接赋值覆盖对象的操作，是不会影响原参数的；String 类在 JAVA 中是值传递，对其的修改不会影响原参数。具体有关 JAVA 值传递和引用传递的相关介绍可参考文章 JAVA 值传递和引用传递
+1.5 Self assignment of clearInterval rather than assigned to field
+在 setValue 中错误的将传参的值赋值给传参
+
+反例：
+public void setClearInterval(Long clearInterval) {	// 应该使用this引用    clearInterval = clearInterval;}
+1.6 Class names shouldn’t shadow simple name of superclass
+子类名称不应和父类相同
+
+反例：
+public class OrderConfig extends cn.kentucky.order.config.OrderConfig
+1.7 Random object created and used only once
+推荐使用 java.security.SecureRandom 代替 Random
+1.8 Boxing/unboxing to parse a primitive
+使用 Integer.parse 代替 Integer.valueOf；Integer.valueOf 会涉及多次拆箱装箱操作，经历了 String - int - Integer - int 的过程
+1.9 Reliance on default encoding
+使用 new String、 getBytes 等方法需要指定编码格式，默认编码格式会因服务所在平台发生改变，这会产生意想不到的问题
+
+正例：
+byte[] data = plainText.getBytes(StandardCharsets.UTF_8);
+1.10 HTTP Response splitting vulnerability
+禁止将用户提交的参数直接放置到 response header 上或作为重定向参数，这可能会出现安全漏洞，具体描述参考 HTTP Response Splitting
+
+反例：
+String referer = request.getHeader("REFERER");response.sendRedirect(referer);
+中等（强制修改）
+2.1 equals method overrides equals in superclass and may not be symmetric
+JAVA 中当子类使用 lombok 插件的 @Data 注解时，必须配上 @EqualsAndHashCode (callSuper = true)
+
+说明：@Data 默认使用 @EqualsAndHashCode (callSuper = false)，当在子类中使用此属性时，调用 equals 方法只会比较子类的属性，不会比较继承自父类的属性，极易产生不符合预期的结果（网上提示，此注解同时会产生父子类互相调用 equals 方法结果不相同的问题，即（a.equals (b) == b.equals (a)），但是实测不会产生本问题，因 lombok 同时生成了 canEqual 方法）
+正例：
+@EqualsAndHashCode(callSuper = true)@Datapublic class McOrderVO extends McOrder implements Serializable
+2.2 Possible null pointer dereference in method on exception path
+当代码经过 exception 异常处理时，存在可能的空值引用
+
+反例：
+Map&lt;String, Object&gt; paramMap = null;try {    paramMap = commonDingTalkPayService.payForApplet(aliConfig.getAppId());} catch (Exception e) {    // do something}MessageBean payInfoData = wechatPayService.getPayInfo(orderNo, order.getUserId());PayInfoVo data = (PayInfoVo)payInfoData.getData();// paramMap 默认声明是null值，当在try中抛出错误时，会经过异常处理但是paramMap依然保持null值，会在后续put时引发空指针问题paramMap.put("payInfo", data);
+2.3【推荐】May expose internal representation by incorporating reference to mutable object
+不建议当对象中的属性也是对象时，其 get 和 set 方法直接进行赋值操作或返回操作，而是 set 时将传入参数进行拷贝并返回，get 时将属性拷贝并返回；如果直接使用传参赋值，会造成修改传参的效果被同步，引起与开发预期不符的问题。具体问题案例可参考属性拷贝
+
+正例：
+public class Test3 {    private Date regDate ;    public void setRegDate(Date regDate) {		// 将传参的拷贝赋值给当前属性        this.regDate = (Date) regDate.clone();    }    public Date getRegDate() {		// 将当前属性拷贝返回出去        return (Date) regDate.clone();    }}
+2.4【推荐】May expose internal representation by returning reference to mutable object
+问题同 2.3，本问题是不建议直接返回原属性，而是返回属性的拷贝值
+2.5 May expose internal representation by returning reference to mutable object
+静态集合常量应该是 final 型的，不允许修改
+2.6 Field isn’t final and can’t be protected from malicious code
+字段未被 final 修饰，存在被修改的风险
+2.7 Field should be package protected
+属性应该用 protected 保护
+2.8 Field is a mutable collection which should be package protected
+集合属性应该使用 protected 保护
+2.9 Field isn’t final but should be
+属性应该被设置为 final
+2.10 Field is a mutable array
+集合属性存在被修改的风险
+
+正例：涉及 2.3-2.8
+public class TestMap {  // list也应设置为不可修改的类型，并且建议使用list替换array格式，array只能通过protected修改来防止修改。  public static final List&lt;String&gt; UPLOAD_IMAGE_TYPES = ImmutableList.of("image/jpeg", "image/png", "image/bmp");  public static final String CANCEL = "CANCEL";  private static final Map&lt;Integer,String&gt; map ;  static {    Map&lt;Integer,String&gt; tempMap  = new HashMap();    tempMap.put(1, "one");    tempMap.put(2, "two");	// 禁止修改集合    map = Collections.unmodifiableMap(tempMap);  }}
+2.11 Non-transient non-serializable instance field in serializable class
+实现序列化的类中存在未实现序列化的属性，推荐类中添加系列化标识
+2.12 Serializable inner class
+实现了序列化标识的内部类建议都为静态内部类，可以减少序列化时必须要关联外部类的问题
+2.13 Method may fail to close stream
+使用 JAVA 的 IO 流时，必须在 finally 块中对流进行关闭
+2.14 Format string should use %n rather than \n
+String 的 format 方法应该使用 % n 来进行换行
+2.15 Useless object created
+问题同 3.2
+2.16 Method may fail to clean up stream or resource on checked exception
+JAVA 的 IO 流使用后必须调用关闭方法
+2.17 Boxed value is unboxed and then immediately reboxed
+JAVA 中三目运算时，如果同时存在基本类型和包装类型，JAVA 会自动向下转型拆箱，然后最后进行赋值操作时重新装箱
+
+正例：
+return this.isTempDrug == null ? Integer.valueOf(0) : this.isTempDrug;
+2.18 Inefficient use of keySet iterator instead of entrySet iterator
+遍历 map 时，如果需要使用到 value 值时，推荐使用 entrySet 而不是 keySet
+
+反例：
+Map&lt;String, String&gt; param = new HashMap&lt;&gt;();for (String key : param.keySet()) {	// 从map中根据key获取value会浪费性能    list.add(new BasicNameValuePair(key, param.get(key)));}
+低危（建议修改）
+3.1 Exception is caught when Exception is not thrown
+针对已知异常，根据业务需要分开处理，而不是直接全部归为 Exception
+
+正例：
+try{　　　　// do something　　}　　catch(SQLException ex){　　　　// do something　　}　　catch(IOException ex){　　　　// do something　　}　　catch(Exception ex){　　　　// do something}
+3.2 Dead store to local variable
+禁止局部变量创建却未使用
+3.3 Switch statement found where default case is missing
+switch 出现条件中未添加 break 导致进入 default 的情况
+
+反例：
+switch (sendOrderRequest.getOrderStatus()) {    case SUCCESS:        dealSuccess(order, sendOrderRequest);        break;    case FAIL:        dealFail(order, sendOrderRequest);		// 此处应该添加break， 防止后续修改时添加default操作导致与预期不符的情况出现    default:        break;}
+]]></content>
+      <categories>
+        <category>工具使用</category>
+      </categories>
+      <tags>
+        <tag>spotbugs</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spring 监控平台从零单排【一】</title>
+    <url>/2023/03/21/springMonitor/</url>
+    <content><![CDATA[公司之前已经有了简单的服务器监控工具，主要是针对 linux 服务器性能监控和 mysql、redis 数据库的监控，并没有做到对真实服务情况的监控，公司当前后端主要以 java 为主，所以缺少了 jvm 及接口性能的监控。这些可以通过 java 相关开源框架并结合 nginx 的日志来处理。
+spring 基本已经是 java 开发的主流框架，spring 也提供了 Actuator 开源框架来收集应用的相关指标，如健康检查，审计，指标收集，并且支持 Prometheus 整合。
+Spring Boot Admin
+Actuator 提供各种端口来暴露收集的原始数据，并且支持自定义打点收集数据，但是这些并不能直观的展示到平台上，可以借助 Prometheus 传递到 grafana 上或自行接入，springboot 也提供了一个开发好的 ui 监控平台展示 Actuator 的数据，这就是 Spring Boot Admin。
+
+下面简单介绍 Admin 的使用姿势
+集成
+Admin 需要一个单独的模块来运行监控平台，即 server；已有的业务模块都会当做收集端，即 client
+server
+
+
+新建模块，直接在 ide 工具中 new 一个新模块即可，创建 application.java 文件和 application.yml 文件
+
+
+新模块 pom 文件中添加依赖
+ &lt;!--  支持admin-ui的关键配置  --&gt;&lt;dependency&gt;    &lt;groupId&gt;de.codecentric&lt;/groupId&gt;    &lt;artifactId&gt;spring-boot-admin-starter-server&lt;/artifactId&gt;    &lt;version&gt;2.5.5&lt;/version&gt;&lt;/dependency&gt;
+我也没搞懂为啥 admin 的组织不在 springboot parent 全家桶里，还需要单独控制版本号
+
+注意 spring-boot-admin-starter-server 的版本，和 spring-boot-starter-parent 保持一致，admin 支持的版本号可以到 maven 官方仓库或一些第三方 maven 仓库查看
+
+
+
+新模块 application.java 文件中添加注解 @EnableAdminServer
+ @Configuration@EnableAutoConfiguration@EnableAdminServerpublic class App {    public static void main(String[] args){        SpringApplication.run(App.class,args);    }}
+
+
+运行新模块查看效果
+
+
+
+client
+
+
+修改需要监控的业务模块的 pom 文件
+ &lt;!--  支持admin-ui的关键配置  --&gt;&lt;dependency&gt;    &lt;groupId&gt;de.codecentric&lt;/groupId&gt;    &lt;artifactId&gt;spring-boot-admin-starter-client&lt;/artifactId&gt;    &lt;version&gt;2.5.5&lt;/version&gt;&lt;/dependency&gt;
+
+
+修改 application.yml 文件，添加 server 的信息
+ spring:    #注册当前服务到admin-ui-server服务中    boot:        admin:        client:            url: http://localhost:8090management:    endpoints:        web:        exposure:            #暴露所有的收集信息给server            include: "*"    endpoint:        health:            #显示详细健康信息，例如数据库mysql和redis            show-details: always
+
+尤其注意 spring.boot.admin.client.url 的配置，如果 server 配置了 server.servlet.context-path，要注意 url 的地址后也要做相应的拼接
+
+
+
+启动业务模块，会自动请求 server 进行注册，server 不需要重启，并且会自动轮询业务模块暴露的收集接口抓取信息
+
+
+
+至此 Admin 就已经可以初步使用了
+可供参考的官方手册
+
+后记
+接入过程中遇到了两个坑，分别记录下
+client 注册到 server 报错
+报错信息如下
+com.fasterxml.jackson.databind.exc.InvalidDefinitionException: Cannot construct instance of `de.codecentric.boot.admin.server.domain.values.Registration` (no Creators, like default constructor, exist): cannot deserialize from Object value (no delegate- or property-based Creator)
+原因是 application.java 启动类中没有正确添加注解，如果使用了 @SpringBootApplication，会因为 @ComponentScan 的特性以当前类所在包来查找 bean，导致不能正确注册 Admin 相关的组件
+直接 baidu 的解决方法对代码侵入性过高，需要重写 spring 容器中注册的序列化方式类，最后查看 Admin 官网发现了华点
+
+在 client 中获取容器当前所有注册路径报错
+当使用如下代码时，会提示有重复类型的组件在容器中
+RequestMappingHandlerMapping mapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
+报错信息为
+Method xssFilterRegistration in com.decent.WebApplication required a single bean, but 2 were found:	- requestMappingHandlerMapping: defined by method 'requestMappingHandlerMapping' in class path resource [org/springframework/web/servlet/config/annotation/DelegatingWebMvcConfiguration.class]	- controllerEndpointHandlerMapping: defined by method 'controllerEndpointHandlerMapping' in class path resource [org/springframework/boot/actuate/autoconfigure/endpoint/web/servlet/WebMvcEndpointManagementContextConfiguration.class]
+Admin 也会注册一个 RequestMappingHandlerMapping 的子类 ControllerEndpointHandlerMapping 到容器中，需要使用根据 bean 名称来获取的 bean 的形式
+RequestMappingHandlerMapping mapping = applicationContext.getBean("requestMappingHandlerMapping", RequestMappingHandlerMapping.class);]]></content>
+      <categories>
+        <category>技术笔记</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>spring</tag>
+        <tag>monitor</tag>
+        <tag>Admin</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spring 监控平台从零单排【二】</title>
+    <url>/2023/04/12/springMonitorTwo/</url>
+    <content><![CDATA[第一章介绍了 Spring Boot Admin 的使用方法，但是其 UI 平台展示的内容离实际所需的监控内容还有较大差距，本章着重介绍其底层所使用的 Actuator 框架，并提供如何对接到 Prometheus 和 grafana 的方式
+Spring Boot Actuator
+Actuator 默认暴露了一些 jvm 信息，也可以自行借助打点方法记录需要的监控信息，其底层是使用的 Micrometer
+
+集成
+Actuator 是 Client 模块用来暴露信息的框架，监控平台需要自行搭建，本次直接使用 grafana 制作好的看板进行展示
+springboot 集成
+
+
+Client 模块修改 pom 文件，添加如下内容
+ &lt;!--  actuator  --&gt;&lt;dependency&gt;    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;&lt;/dependency&gt;&lt;!--  将actuator暴露的接口改造为prometheus支持的格式  --&gt;&lt;dependency&gt;    &lt;groupId&gt;io.micrometer&lt;/groupId&gt;    &lt;artifactId&gt;micrometer-registry-prometheus&lt;/artifactId&gt;&lt;/dependency&gt;
+
+
+修改 application.yml 文件，添加如下内容
+ management:    endpoints:        web:            exposure:                include: 'prometheus'    metrics:        tags:            #定义暴露指标的tag名称，如下设置是默认取用当前springboot应用名，也可写死            application: ${spring.application.name}
+
+
+以上步骤添加后，即完成了 Actuator 集成，可以运行当前应用，访问应用接口 http://localhost:8080/actuator/prometheus 可获得如下内容
+# HELP jvm_buffer_count_buffers An estimate of the number of buffers in the pool# TYPE jvm_buffer_count_buffers gaugejvm_buffer_count_buffers{application="web",id="mapped",} 0.0jvm_buffer_count_buffers{application="web",id="direct",} 3.0# HELP jvm_buffer_total_capacity_bytes An estimate of the total capacity of the buffers in this pool# TYPE jvm_buffer_total_capacity_bytes gaugejvm_buffer_total_capacity_bytes{application="web",id="mapped",} 0.0jvm_buffer_total_capacity_bytes{application="web",id="direct",} 8208.0# HELP tomcat_sessions_created_sessions_total  # TYPE tomcat_sessions_created_sessions_total countertomcat_sessions_created_sessions_total{application="web",} 0.0# HELP tomcat_sessions_rejected_sessions_total  # TYPE tomcat_sessions_rejected_sessions_total countertomcat_sessions_rejected_sessions_total{application="web",} 0.0# HELP jvm_classes_loaded_classes The number of classes that are currently loaded in the Java virtual machine# TYPE jvm_classes_loaded_classes gaugejvm_classes_loaded_classes{application="web",} 12286.0# HELP jvm_classes_unloaded_classes_total The total number of classes unloaded since the Java virtual machine has started execution# TYPE jvm_classes_unloaded_classes_total counterjvm_classes_unloaded_classes_total{application="web",} 56.0# HELP jvm_gc_live_data_size_bytes Size of long-lived heap memory pool after reclamation# TYPE jvm_gc_live_data_size_bytes gaugejvm_gc_live_data_size_bytes{application="web",} 3.837896E7# HELP jvm_threads_daemon_threads The current number of live daemon threads# TYPE jvm_threads_daemon_threads gaugejvm_threads_daemon_threads{application="web",} 27.0# HELP process_cpu_usage The "recent cpu usage" for the Java Virtual Machine process# TYPE process_cpu_usage gaugeprocess_cpu_usage{application="web",} 0.08109822305359074# HELP jvm_memory_committed_bytes The amount of memory in bytes that is committed for the Java virtual machine to use# TYPE jvm_memory_committed_bytes gaugejvm_memory_committed_bytes{application="web",area="heap",id="PS Eden Space",} 3.13524224E8jvm_memory_committed_bytes{application="web",area="nonheap",id="Code Cache",} 1.0289152E7jvm_memory_committed_bytes{application="web",area="nonheap",id="Metaspace",} 6.8550656E7jvm_memory_committed_bytes{application="web",area="heap",id="PS Old Gen",} 4.59800576E8jvm_memory_committed_bytes{application="web",area="heap",id="PS Survivor Space",} 1.572864E7jvm_memory_committed_bytes{application="web",area="nonheap",id="Compressed Class Space",} 9306112.0# HELP process_start_time_seconds Start time of the process since unix epoch.# TYPE process_start_time_seconds gaugeprocess_start_time_seconds{application="web",} 1.6812881222E9# HELP jvm_gc_memory_allocated_bytes_total Incremented for an increase in the size of the (young) heap memory pool after one GC to before the next# TYPE jvm_gc_memory_allocated_bytes_total counterjvm_gc_memory_allocated_bytes_total{application="web",} 4.46238072E8# HELP jvm_gc_memory_promoted_bytes_total Count of positive increases in the size of the old generation memory pool before GC to after GC# TYPE jvm_gc_memory_promoted_bytes_total counterjvm_gc_memory_promoted_bytes_total{application="web",} 2.1952392E7# HELP process_uptime_seconds The uptime of the Java virtual machine# TYPE process_uptime_seconds gaugeprocess_uptime_seconds{application="web",} 19.083# HELP tomcat_sessions_alive_max_seconds  # TYPE tomcat_sessions_alive_max_seconds gaugetomcat_sessions_alive_max_seconds{application="web",} 0.0# HELP jvm_threads_peak_threads The peak live thread count since the Java virtual machine started or peak was reset# TYPE jvm_threads_peak_threads gaugejvm_threads_peak_threads{application="web",} 64.0# HELP tomcat_sessions_active_max_sessions  # TYPE tomcat_sessions_active_max_sessions gaugetomcat_sessions_active_max_sessions{application="web",} 0.0# HELP system_cpu_count The number of processors available to the Java virtual machine# TYPE system_cpu_count gaugesystem_cpu_count{application="web",} 12.0# HELP jvm_gc_pause_seconds Time spent in GC pause# TYPE jvm_gc_pause_seconds summaryjvm_gc_pause_seconds_count{action="end of minor GC",application="web",cause="Allocation Failure",} 1.0jvm_gc_pause_seconds_sum{action="end of minor GC",application="web",cause="Allocation Failure",} 0.01jvm_gc_pause_seconds_count{action="end of minor GC",application="web",cause="Metadata GC Threshold",} 1.0jvm_gc_pause_seconds_sum{action="end of minor GC",application="web",cause="Metadata GC Threshold",} 0.012jvm_gc_pause_seconds_count{action="end of major GC",application="web",cause="Metadata GC Threshold",} 1.0jvm_gc_pause_seconds_sum{action="end of major GC",application="web",cause="Metadata GC Threshold",} 0.112# HELP jvm_gc_pause_seconds_max Time spent in GC pause# TYPE jvm_gc_pause_seconds_max gaugejvm_gc_pause_seconds_max{action="end of minor GC",application="web",cause="Allocation Failure",} 0.01jvm_gc_pause_seconds_max{action="end of minor GC",application="web",cause="Metadata GC Threshold",} 0.012jvm_gc_pause_seconds_max{action="end of major GC",application="web",cause="Metadata GC Threshold",} 0.112# HELP tomcat_sessions_active_current_sessions  # TYPE tomcat_sessions_active_current_sessions gaugetomcat_sessions_active_current_sessions{application="web",} 0.0# HELP jvm_gc_max_data_size_bytes Max size of long-lived heap memory pool# TYPE jvm_gc_max_data_size_bytes gaugejvm_gc_max_data_size_bytes{application="web",} 5.672271872E9# HELP jvm_threads_states_threads The current number of threads having NEW state# TYPE jvm_threads_states_threads gaugejvm_threads_states_threads{application="web",state="timed-waiting",} 13.0jvm_threads_states_threads{application="web",state="new",} 0.0jvm_threads_states_threads{application="web",state="terminated",} 0.0jvm_threads_states_threads{application="web",state="blocked",} 0.0jvm_threads_states_threads{application="web",state="waiting",} 7.0jvm_threads_states_threads{application="web",state="runnable",} 44.0# HELP jvm_buffer_memory_used_bytes An estimate of the memory that the Java virtual machine is using for this buffer pool# TYPE jvm_buffer_memory_used_bytes gaugejvm_buffer_memory_used_bytes{application="web",id="mapped",} 0.0jvm_buffer_memory_used_bytes{application="web",id="direct",} 8209.0# HELP jvm_memory_used_bytes The amount of used memory# TYPE jvm_memory_used_bytes gaugejvm_memory_used_bytes{application="web",area="heap",id="PS Eden Space",} 1.65650568E8jvm_memory_used_bytes{application="web",area="nonheap",id="Code Cache",} 1.0112832E7jvm_memory_used_bytes{application="web",area="nonheap",id="Metaspace",} 6.4346336E7jvm_memory_used_bytes{application="web",area="heap",id="PS Old Gen",} 3.837896E7jvm_memory_used_bytes{application="web",area="heap",id="PS Survivor Space",} 0.0jvm_memory_used_bytes{application="web",area="nonheap",id="Compressed Class Space",} 8478672.0# HELP jvm_threads_live_threads The current number of live threads including both daemon and non-daemon threads# TYPE jvm_threads_live_threads gaugejvm_threads_live_threads{application="web",} 64.0# HELP tomcat_sessions_expired_sessions_total  # TYPE tomcat_sessions_expired_sessions_total countertomcat_sessions_expired_sessions_total{application="web",} 0.0# HELP system_cpu_usage The "recent cpu usage" for the whole system# TYPE system_cpu_usage gaugesystem_cpu_usage{application="web",} 0.028650178842763663# HELP jvm_memory_max_bytes The maximum amount of memory in bytes that can be used for memory management# TYPE jvm_memory_max_bytes gaugejvm_memory_max_bytes{application="web",area="heap",id="PS Eden Space",} 2.796552192E9jvm_memory_max_bytes{application="web",area="nonheap",id="Code Cache",} 2.5165824E8jvm_memory_max_bytes{application="web",area="nonheap",id="Metaspace",} -1.0jvm_memory_max_bytes{application="web",area="heap",id="PS Old Gen",} 5.672271872E9jvm_memory_max_bytes{application="web",area="heap",id="PS Survivor Space",} 1.572864E7jvm_memory_max_bytes{application="web",area="nonheap",id="Compressed Class Space",} 1.073741824E9# HELP logback_events_total Number of error level events that made it to the logs# TYPE logback_events_total counterlogback_events_total{application="web",level="info",} 14.0logback_events_total{application="web",level="debug",} 0.0logback_events_total{application="web",level="error",} 0.0logback_events_total{application="web",level="warn",} 0.0logback_events_total{application="web",level="trace",} 0.0
+以上信息都是遵守 prometheus 规范生成的返回信息
+数据导入到 prometheus
+安装方式参考官网安装说明，安装最新版本即可
+
+修改配置文件 prometheus.yml，添加如下内容
+scrape_configs:    # 一个scrape_configs下可以有多个job_name，任意写，建议英文，不要包含特殊字符    - job_name: 'spring'        # 多久采集一次数据        scrape_interval: 3s        # 采集时的超时时间，注意：超时时间需要小于采集时间        scrape_timeout: 2s        # 采集的路径是啥        metrics_path: 'actuator/prometheus'        # 采集服务的地址，设置成上面Spring Boot应用所在服务器的具体地址。        static_configs:            - targets: ['127.0.0.1:8080']
+如上配置后 prometheus 即可每 3s 请求一次 Client
+启动 prometheus，在 prometheus 根目录下执行如下命令
+./prometheus --config.file=prometheus.yml
+访问 http://localhost:9090，可查看 prometheus 采集的指标如下
+
+通过 grafana 进行展示
+安装方式参考官网安装说明，安装最新版本即可
+
+grafana 如果通过 installer 方式安装，默认是电脑重启后自动启动的，这个可以根据情况手动关闭自动启动服务
+
+启动 grafana，进入安装后文件夹下 bin 中，执行如下命令
+./grafana-server
+登录 http://localhost:3000/login，初始账号 / 密码为 admin/admin，进入页面后需要配置一些信息
+
+
+配置数据源，界面如下
+
+选择 prometheus 后，填入其服务地址 http://localhost:9090，点击 Save &amp; test，成功添加数据源
+
+
+创建看板，界面如下
+
+网上针对 jvm 相关指标已有成熟看板可供使用，填入 id 为 4701 即可，并且数据源选择刚刚添加的数据源，然后点击 import 导入
+
+
+
+到此为止即可借助 Actuator 提供的默认指标监控 jvm 的运行情况，效果如下
+
+grafana 有专门的看板仓库，其中积累了大量线程的各类指标看板，可自行选择，点击前往 Grafana Lab - Dashboards
+]]></content>
+      <categories>
+        <category>技术笔记</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>spring</tag>
+        <tag>monitor</tag>
+        <tag>Admin</tag>
+      </tags>
+  </entry>
+</search>

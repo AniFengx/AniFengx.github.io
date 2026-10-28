@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /search.xml
+Sitemap: https://anifengx.github.io/sitemap.xml
